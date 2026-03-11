@@ -556,13 +556,13 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 <div class="page active" id="page-home">
   <div class="home-hero">
     <div>
-      <div class="home-day" id="heroDay"></div>
+      <div class="home-day" id="heroDay" style="display:inline"></div><button onclick="resetJourneyToToday()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft);opacity:0.5;margin-left:8px;padding:0;vertical-align:middle" title="Reset journey day">↺</button>
       <div class="home-greeting" id="heroGreeting"></div>
       <div class="home-narrative" id="heroNarrative"></div>
       <div id="heroCountdownPill" style="margin-top:12px"></div>
     </div>
     <div style="display:flex;gap:14px">
-      <div class="home-stat"><div class="home-stat-num" id="statDay">142</div><div class="home-stat-label">Journey Day</div></div>
+      <div class="home-stat"><div class="home-stat-num" id="statDay">1</div><div class="home-stat-label">Journey Day</div></div>
     </div>
   </div>
 
@@ -1051,6 +1051,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <button class="ritual-tab active" onclick="switchGrowthTab(this,'timeline')">🌱 Timeline</button>
     <button class="ritual-tab" onclick="switchGrowthTab(this,'slowplan')">🌿 Slow Planner</button>
     <button class="ritual-tab" onclick="switchGrowthTab(this,'reset')">🔄 Sunday Reset</button>
+    <button class="ritual-tab" onclick="switchGrowthTab(this,'monthlyreset')">📅 Monthly Reset</button>
   </div>
 
   <!-- TIMELINE -->
@@ -1106,9 +1107,37 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 
     <div id="weeklyResetChecklist"></div>
 
-    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;align-items:center">
+      <button class="pink-btn" onclick="saveResetNotes()">💾 Save Notes</button>
       <button class="pink-btn" onclick="resetWeeklyChecklist()">🔄 Start Fresh (New Week)</button>
-      <button class="pink-pill" style="font-size:12px" onclick="exportResetSummary()">⬇ Export This Week's Notes</button>
+      <button class="pink-pill" style="font-size:12px" onclick="exportResetSummary()">⬇ Export Notes</button>
+      <span id="resetSaveIndicator" style="font-size:12px;color:var(--pink-deep);font-style:italic;opacity:0;transition:opacity 0.4s">Saved ✦</span>
+    </div>
+  </div>
+
+  <!-- MONTHLY RESET -->
+  <div id="growth-monthlyreset" class="growth-panel" style="display:none">
+    <div style="background:radial-gradient(ellipse at 20% 10%,#fff8fb,#fce0ee);border-radius:24px;padding:32px 36px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:32px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Monthly Reset. 📅</div>
+        <div style="font-size:14px;color:var(--text-mid);font-style:italic">Close the month with intention. Open the next one with purpose.</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:42px;font-weight:900;color:var(--pink-deep)" id="mResetProgressNum">0</div>
+        <div style="font-size:11px;color:var(--text-soft);font-weight:700;letter-spacing:1px">/ <span id="mResetProgressTotal">0</span> steps done</div>
+        <div style="height:8px;width:140px;background:var(--pink-glow);border-radius:4px;margin:8px auto 0;overflow:hidden">
+          <div id="mResetProgressBar" style="height:100%;background:linear-gradient(90deg,var(--pink-mid),var(--pink-deep));border-radius:4px;width:0%;transition:width 0.5s"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="monthlyResetChecklist"></div>
+
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;align-items:center">
+      <button class="pink-btn" onclick="saveMonthlyResetNotes()">💾 Save Notes</button>
+      <button class="pink-btn" onclick="resetMonthlyChecklist()">🔄 Start Fresh (New Month)</button>
+      <button class="pink-pill" style="font-size:12px" onclick="exportMonthlyResetSummary()">⬇ Export Monthly Notes</button>
+      <span id="mResetSaveIndicator" style="font-size:12px;color:var(--pink-deep);font-style:italic;opacity:0;transition:opacity 0.4s">Saved ✦</span>
     </div>
   </div>
 </div>
@@ -2009,6 +2038,11 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     </div>
     <div class="section-label">Prizes Claimed</div>
     <div id="achPrizes" style="margin-bottom:28px"></div>
+
+    <div class="section-label" style="margin-bottom:12px">XP History</div>
+    <div id="achXPLog" style="margin-bottom:28px"></div>
+    <div class="section-label" style="margin-bottom:12px">Level Roadmap</div>
+    <div id="achLevelRoadmap" style="margin-bottom:28px"></div>
   </div>
 
   <!-- CHALLENGES PANEL -->
@@ -2691,10 +2725,59 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{ if(e.target===e.currentTarget) m.classList.remove('open'); }));
 
 // ═══════════════════ HOME ═══════════════════
-document.getElementById('navDay').textContent = `Day 142 · ${DAYS[now.getDay()]}`;
-document.getElementById('sidebarDay').textContent = `Day 142 · ${DAYS[now.getDay()]}, ${fmtDate(now)}`;
-document.getElementById('heroDay').textContent = `Day 142 of Temi's Dental Journey · ${fmtDate(now)}`;
-document.getElementById('narrativeDay').textContent = `Day 142 of Temi's Dental Journey · ${fmtDate(now)}`;
+let homeIdentityNotes = [];
+let morningIntentions = [];
+let xpLog = [];
+// Journey day counter — persisted, auto-increments daily
+let journeyStartDate = localStorage.getItem('thatgirlhq_journey_start') || null;
+
+function getJourneyDay(){
+  if(!journeyStartDate) return 1;
+  const start = new Date(journeyStartDate);
+  const today = new Date();
+  start.setHours(0,0,0,0); today.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000);
+  return Math.max(1, diff + 1);
+}
+
+function setJourneyStartDate(dateStr){
+  journeyStartDate = dateStr;
+  localStorage.setItem('thatgirlhq_journey_start', dateStr);
+  updateJourneyDayUI();
+}
+
+function resetJourneyToToday(){
+  if(!confirm('Reset your journey counter to Day 1 starting today?')) return;
+  setJourneyStartDate(isoDate(now));
+  showToast('Journey reset — Day 1 starts today ✦');
+}
+
+function updateJourneyDayUI(){
+  const d = getJourneyDay();
+  document.getElementById('navDay').textContent = `Day ${d} · ${DAYS[now.getDay()]}`;
+  document.getElementById('sidebarDay').textContent = `Day ${d} · ${DAYS[now.getDay()]}, ${fmtDate(now)}`;
+  document.getElementById('heroDay').textContent = `Day ${d} of Temi's Dental Journey · ${fmtDate(now)}`;
+  const sdEl = document.getElementById('statDay'); if(sdEl) sdEl.textContent = d;
+  const nd = document.getElementById('narrativeDay');
+  if(nd) nd.textContent = `Day ${d} of Temi's Dental Journey · ${fmtDate(now)}`;
+}
+
+// If no start date saved yet, set it so Day 1 = today (first open)
+if(!journeyStartDate){
+  // Calculate backwards from Day 142 so existing feel is preserved
+  // Actually just start fresh from today so the reset-to-0 request works properly
+  journeyStartDate = isoDate(now);
+  localStorage.setItem('thatgirlhq_journey_start', journeyStartDate);
+}
+
+updateJourneyDayUI();
+
+// Auto-update at midnight without refresh
+(function scheduleMidnightRefresh(){
+  const now2 = new Date();
+  const msUntilMidnight = new Date(now2.getFullYear(),now2.getMonth(),now2.getDate()+1) - now2;
+  setTimeout(()=>{ updateJourneyDayUI(); scheduleMidnightRefresh(); }, msUntilMidnight);
+})();
 document.getElementById('agendaTitle').textContent = `Today — ${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
 
 function getLiveTimeOfDay(){
@@ -2720,9 +2803,11 @@ function updateHomeGreeting(){
   const tc = document.getElementById('timeCard');
   if(tc){
     if(t !== 'evening'){
-      tc.innerHTML = '<div class="section-label">Morning Intention</div><div style="font-family:\'Playfair Display\',serif;font-size:17px;font-style:italic;color:var(--pink-deep);margin-bottom:10px">What would make today feel like a good day?</div><textarea class="text-input" rows="4" placeholder="Finish Anki, gym, cook a proper meal…"></textarea><button class="pink-btn" style="margin-top:12px" onclick="flashSave(this,\'Save intention ✦\')">Save intention ✦</button>';
+      const todayInt = morningIntentions.find(n=>n.date===isoDate(new Date())&&!n.isEvening);
+      tc.innerHTML = '<div class="section-label">Morning Intention</div><div style="font-family:\'Playfair Display\',serif;font-size:17px;font-style:italic;color:var(--pink-deep);margin-bottom:10px">What would make today feel like a good day?</div><textarea class="text-input" rows="4" id="morningIntentionText" placeholder="Finish Anki, gym, cook a proper meal…">'+(todayInt?todayInt.text:'')+'</textarea><button class="pink-btn" style="margin-top:12px" onclick="saveMorningIntention(this)">Save intention ✦</button>'+(todayInt?'<div style="font-size:11px;color:var(--pink-deep);margin-top:6px;font-style:italic">✓ Saved for today</div>':'');
     } else {
-      tc.innerHTML = '<div class="section-label">Evening Reflection</div><div style="font-family:\'Playfair Display\',serif;font-size:17px;font-style:italic;color:var(--pink-deep);margin-bottom:10px">What felt satisfying today?</div><textarea class="text-input" rows="4" placeholder="Finishing Anki, gym pump, clean room…"></textarea><button class="pink-btn" style="margin-top:12px" onclick="flashSave(this,\'Log it ✦\')">Log it ✦</button>';
+      const todayEve = morningIntentions.find(n=>n.date===isoDate(new Date())&&n.isEvening);
+      tc.innerHTML = '<div class="section-label">Evening Reflection</div><div style="font-family:\'Playfair Display\',serif;font-size:17px;font-style:italic;color:var(--pink-deep);margin-bottom:10px">What felt satisfying today?</div><textarea class="text-input" rows="4" id="morningIntentionText" placeholder="Finishing Anki, gym pump, clean room…">'+(todayEve?todayEve.text:'')+'</textarea><button class="pink-btn" style="margin-top:12px" onclick="saveMorningIntention(this,true)">Log it ✦</button>'+(todayEve?'<div style="font-size:11px;color:var(--pink-deep);margin-top:6px;font-style:italic">✓ Saved for today</div>':'');
     }
   }
 }
@@ -2744,7 +2829,31 @@ function renderHeroCountdown(){
 updateHomeGreeting();
 // refresh greeting every minute so morning→afternoon→evening flips automatically
 setInterval(updateHomeGreeting, 60000);
+// restore today's saved widgets after data loads
+setTimeout(_restoreHomeWidgetsForToday, 500);
 function toggleChip(c){ c.classList.toggle('selected'); }
+
+function saveMorningIntention(btn, isEvening=false){
+  const ta = document.getElementById('morningIntentionText');
+  if(!ta||!ta.value.trim()){ showToast('Write something first ✦'); return; }
+  const today = isoDate(new Date());
+  const key = isEvening ? 'evening' : 'morning';
+  const existing = morningIntentions.findIndex(n=>n.date===today&&!!n.isEvening===isEvening);
+  const entry = {date:today, text:ta.value.trim(), isEvening};
+  if(existing>=0) morningIntentions[existing]=entry; else morningIntentions.unshift(entry);
+  btn.textContent='Saved ✦';
+  btn.style.background='var(--pink-mid)';
+  // show saved indicator
+  let ind = btn.nextElementSibling;
+  if(!ind||!ind.style.fontStyle){
+    ind = document.createElement('div');
+    ind.style.cssText='font-size:11px;color:var(--pink-deep);margin-top:6px;font-style:italic';
+    btn.insertAdjacentElement('afterend', ind);
+  }
+  ind.textContent='✓ Saved for today';
+  setTimeout(()=>{ btn.textContent=isEvening?'Log it ✦':'Save intention ✦'; btn.style.background=''; },2000);
+  scheduleSave();
+}
 
 // Home agenda preview
 let homeAgendaItems = [
@@ -2752,7 +2861,8 @@ let homeAgendaItems = [
   {time:'14:00',label:'Gym session 💪',cat:'Fitness',color:'#c8e4f8',done:false},
 ];
 function renderHomeAgenda(){
-  document.getElementById('homeAgendaPreview').innerHTML = homeAgendaItems.map((e,i)=>`
+  const _hap = document.getElementById('homeAgendaPreview'); if(!_hap) return;
+  _hap.innerHTML = homeAgendaItems.map((e,i)=>`
     <div class="agenda-item${e.done?' done':''}" onclick="homeAgendaItems[${i}].done=!homeAgendaItems[${i}].done;renderHomeAgenda()">
       <div class="agenda-time">${e.time}</div><div class="agenda-dot" style="background:${e.color}"></div>
       <div class="agenda-label">${e.label}</div><div class="tag">${e.cat}</div>
@@ -2780,7 +2890,7 @@ function renderSlowPlan(){
         const d=document.createElement('div');
         d.className='ritual-item'+(item.checked?' checked':'');
         d.style.marginBottom='6px';
-        d.innerHTML=`<div class="ritual-check" onclick="slowPlan['${p}'][${i}].checked=!slowPlan['${p}'][${i}].checked;renderSlowPlan()">${item.checked?'✓':''}</div>
+        d.innerHTML=`<div class="ritual-check" onclick="toggleSlowPlanItem('${p}',${i})">${item.checked?'✓':''}</div>
           <div class="ritual-text">${item.text}</div>
           <button onclick="openSlowPlanModal('${p}',${i})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">✎</button>
           <button onclick="slowPlan['${p}'].splice(${i},1);renderSlowPlan()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>`;
@@ -2825,6 +2935,17 @@ function deleteSlowPlanItem(){
   if(p&&i>=0)slowPlan[p].splice(i,1);
   closeModal('slowPlanModal'); renderSlowPlan();
 }
+function toggleSlowPlanItem(p,i){
+  const wasChecked = slowPlan[p][i].checked;
+  slowPlan[p][i].checked = !wasChecked;
+  if(!wasChecked){
+    awardXP(3,'Slow plan step ✦');
+    // Check if all done
+    const allItems = Object.values(slowPlan).flat();
+    if(allItems.every(x=>x.checked)){ awardXP(20,'Slow plan all done!'); checkAchievement('slowplan_all_done'); }
+  }
+  renderSlowPlan();
+}
 
 // ═══════════════════ RITUALS ═══════════════════
 const ritualData = {
@@ -2838,6 +2959,7 @@ let activeRitualKey='morning', editCtx=null;
 
 function renderRituals(){
   const tb=document.getElementById('ritualTabBar'), pp=document.getElementById('ritualPanels');
+  if(!tb||!pp) return;
   tb.innerHTML=''; pp.innerHTML='';
   Object.entries(ritualData).forEach(([key,cat])=>{
     const tab=document.createElement('button');
@@ -2856,7 +2978,7 @@ function renderRituals(){
     h+=`<div id="rlist-${key}">`;
     items.forEach((item,i)=>{
       h+=`<div class="ritual-item${item.checked?' checked':''}">
-        <div class="ritual-check" onclick="ritualData['${key}'].versions['${av}'][${i}].checked=!ritualData['${key}'].versions['${av}'][${i}].checked;renderRituals();renderHomeMorningRitual()">${item.checked?'✓':''}</div>
+        <div class="ritual-check" onclick="toggleRitualItem('${key}','${av}',${i})">${item.checked?'✓':''}</div>
         <div class="ritual-text">${item.text}</div>
         ${item.time?`<div class="ritual-time">${item.time}</div>`:''}
         <button onclick="openRitualEdit('${key}','${av}',${i})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px;margin-left:auto">✎</button>
@@ -2872,6 +2994,33 @@ function renderRituals(){
     panel.innerHTML=h; pp.appendChild(panel);
   });
   renderHomeMorningRitual();
+}
+function toggleRitualItem(key,av,i){
+  const wasChecked = ritualData[key].versions[av][i].checked;
+  ritualData[key].versions[av][i].checked = !wasChecked;
+  if(!wasChecked){ // just checked
+    awardXP(5,'Ritual step done');
+    checkAchievement('ritual_checked_all');
+    // Check if whole category complete
+    const items = ritualData[key].versions[av];
+    if(items.every(x=>x.checked)){
+      awardXP(25,'Ritual complete! ✦');
+      if(key==='morning') checkAchievement('ritual_first');
+      if(key==='evening') checkAchievement('ritual_evening');
+      if(key==='skincare') checkAchievement('ritual_skincare');
+      if(key==='study') checkAchievement('ritual_study');
+      if(key==='haircare') checkAchievement('ritual_haircare');
+      checkAchievement('ritual_full_complete');
+      // count total completions
+      if(!window._ritualCompletions) window._ritualCompletions = 0;
+      window._ritualCompletions++;
+      if(window._ritualCompletions>=5) checkAchievement('ritual_morning5');
+      if(window._ritualCompletions>=20) checkAchievement('ritual_20days');
+      if(window._ritualCompletions>=30) checkAchievement('ritual_30days');
+      if(window._ritualCompletions>=50) checkAchievement('ritual_50days');
+    }
+  }
+  renderRituals(); renderHomeMorningRitual();
 }
 function addRitualItem(key){
   const i=document.getElementById('ri-'+key), t=document.getElementById('rt-'+key);
@@ -2924,7 +3073,14 @@ function renderJoyEntries(){
 }
 function addJoy(){
   const i=document.getElementById('joyInput'); if(!i.value.trim())return;
-  joyItems.unshift({text:i.value.trim(),date:'Just now'}); i.value=''; renderJoyEntries();
+  joyItems.unshift({text:i.value.trim(),date:'Just now'}); i.value='';
+  awardXP(8,'Joy logged ✨');
+  checkAchievement('reflect_first');
+  if(joyItems.length>=5) checkAchievement('reflect_5joy');
+  if(joyItems.length>=10) checkAchievement('reflect_10joy');
+  if(joyItems.length>=20) checkAchievement('reflect_20joy');
+  if(joyItems.length>=30) checkAchievement('reflect_30joy');
+  renderJoyEntries();
 }
 function generateNarrative(){
   const lines=[
@@ -2950,6 +3106,12 @@ function logSpend(){
   if(!item||isNaN(amount))return;
   spendLog.unshift({item,amount,cat,emotion,date:new Date()});
   document.getElementById('spendItem').value=''; document.getElementById('spendAmount').value='';
+  awardXP(5,'Spend logged');
+  checkAchievement('spend_first_log');
+  if(spendLog.length>=10) checkAchievement('spend_10logs');
+  if(spendLog.length>=30) checkAchievement('spend_30logs');
+  if(spendLog.length>=50) checkAchievement('spend_50logs');
+  if(emotion) awardXP(10,'Impulse gate answered'); // impulse gate
   renderSpendLog(); updateBudgets();
 }
 function renderSpendLog(){
@@ -2985,11 +3147,14 @@ function updateEmotionBars(){
 }
 function addToWishlist(){
   const item=document.getElementById('spendItem')?.value?.trim()||'', price=document.getElementById('spendAmount')?.value||'';
-  if(!item)return; wishlist.unshift({text:item,price:price?`£${price}`:''}); renderWishlist();
+  if(!item)return; wishlist.unshift({text:item,price:price?`£${price}`:''}); if(wishlist.length>=5)checkAchievement('spend_wishlist5'); if(wishlist.length>=10)checkAchievement('spend_wishlist10'); renderWishlist();
 }
 function addWishlistItem(){
   const i=document.getElementById('wishlistInput'); if(!i.value.trim())return;
-  wishlist.unshift({text:i.value.trim(),price:''}); i.value=''; renderWishlist();
+  wishlist.unshift({text:i.value.trim(),price:''}); i.value='';
+  if(wishlist.length>=5) checkAchievement('spend_wishlist5');
+  if(wishlist.length>=10) checkAchievement('spend_wishlist10');
+  renderWishlist();
 }
 function renderWishlist(){
   document.getElementById('wishlistItems').innerHTML=wishlist.map((w,i)=>`<div class="agenda-item"><div class="agenda-label">🌸 ${w.text}</div><div class="tag">${w.price}</div><button onclick="wishlist.splice(${i},1);renderWishlist()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button></div>`).join('');
@@ -3025,6 +3190,7 @@ function saveGymScheduleInline(){
   gymSelectedDays.forEach(day=>{ gymSchedule[day]=name; });
   gymSelectedDays.clear();
   document.getElementById('gymScheduleInput').value='';
+  checkAchievement('gym_schedule');
   renderGymDayToggles();
   renderGymSchedulePreview();
   buildCalendar();
@@ -3064,6 +3230,28 @@ function saveGymLog(){
   document.getElementById('gymLogCals').value='400';
   gymSelectedFeel='';
   document.querySelectorAll('.gym-feel-btn').forEach(b=>b.classList.remove('selected'));
+  // XP
+  awardXP(25,'Gym session logged 💪');
+  if(dur>=60) awardXP(10,'60+ min session');
+  if(cals>=500) awardXP(10,'500+ cals burned');
+  // Achievements
+  checkAchievement('gym_first');
+  if(gymLogs.length>=10) checkAchievement('gym_10sessions');
+  if(gymLogs.length>=25) checkAchievement('gym_25sessions');
+  if(gymLogs.length>=50) checkAchievement('gym_50sessions');
+  if(gymLogs.length>=100) checkAchievement('gym_100sessions');
+  if(dur>=60) checkAchievement('gym_60min');
+  if(cals>=500) checkAchievement('gym_500cals');
+  if(gymRating===5) checkAchievement('gym_5star');
+  const wk=(actual||planned).toLowerCase();
+  if(wk.includes('leg')) checkAchievement('gym_legs');
+  if(wk.includes('upper')||wk.includes('push')||wk.includes('pull')||wk.includes('chest')||wk.includes('back')||wk.includes('shoulder')) checkAchievement('gym_upper');
+  if(wk.includes('cardio')||wk.includes('run')||wk.includes('cycle')||wk.includes('swim')) checkAchievement('gym_cardio');
+  // Weekly count
+  const thisWeekStart=new Date(); thisWeekStart.setDate(thisWeekStart.getDate()-thisWeekStart.getDay());
+  const thisWeekCount=gymLogs.filter(l=>{const d=new Date(l.date);return d>=thisWeekStart;}).length;
+  if(thisWeekCount>=3) checkAchievement('gym_3week');
+  if(thisWeekCount>=5) checkAchievement('gym_5week');
   renderGymLog(); renderGymFreqChart();
 }
 
@@ -3112,6 +3300,9 @@ function saveWeight(){
   if(isNaN(val)) return;
   weightLogs.push({val,date}); weightLogs.sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById('weightVal').value='';
+  checkAchievement('gym_weight_first');
+  if(weightLogs.length>=5) checkAchievement('gym_weight5');
+  if(weightLogs.length>=10) checkAchievement('gym_weight10');
   renderWeightChart();
 }
 function renderWeightChart(){
@@ -3236,6 +3427,11 @@ function saveDietMeal(){
   if(!mealPlan[day])mealPlan[day]={B:null,L:null,D:null,S:null};
   mealPlan[day][slot]={name,cals,rating:mealRating};
   if(!savedMeals.includes(name))savedMeals.push(name);
+  awardXP(5,'Meal logged 🥗');
+  checkAchievement('diet_first_meal');
+  if(mealRating===5) checkAchievement('diet_5star_meal');
+  // Check if all 4 slots filled for this day
+  const dayMeals=mealPlan[day]||{}; if(dayMeals.B&&dayMeals.L&&dayMeals.D&&dayMeals.S){ awardXP(30,'Full day tracked!'); checkAchievement('diet_full_day'); }
   closeModal('dietLogModal'); renderWeekMealGrid(); renderWeekCalGrid();
 }
 function openDietLogModal(){ openModal('dietLogModal'); document.getElementById('dietLogDay').value=isoDate(now); document.getElementById('dietLogSlot').value='B'; }
@@ -3281,6 +3477,10 @@ function saveHobbyLog(){
   if(!hobby)return;
   hobbyLogs.unshift({hobby,dur,notes,rating:hobbyRating,date:isoDate(now)});
   document.getElementById('hobbyDuration').value=''; document.getElementById('hobbyNotes').value='';
+  awardXP(10,'Hobby session logged 🎨');
+  checkAchievement('hobby_first');
+  if(hobbyLogs.length>=5) checkAchievement('hobby_5');
+  if(hobbyLogs.length>=10) checkAchievement('hobby_10');
   closeModal('hobbyModal'); renderHobbyLog(); renderHobbyList();
 }
 function renderHobbyLog(){
@@ -3302,6 +3502,15 @@ function logMeditation(){
   if(!mins)return;
   medLogs.unshift({mins,type,note,rating:medRating,date:isoDate(now)});
   document.getElementById('medMins').value=''; document.getElementById('medNote').value=''; medRating=0; updateStars('medStars',0);
+  awardXP(15,'Meditation session 🧘');
+  if(mins>=10) awardXP(10,'10+ min meditation');
+  checkAchievement('med_first');
+  if(medLogs.length>=5) checkAchievement('med_5sessions');
+  if(medLogs.length>=20) checkAchievement('med_20sessions');
+  if(medLogs.length>=50) checkAchievement('med_50sessions');
+  if(mins>=10) checkAchievement('med_10min');
+  if(mins>=30) checkAchievement('med_30min');
+  if(medRating===5) checkAchievement('med_5star');
   renderMedLog(); renderMedStreak();
 }
 function renderMedLog(){
@@ -3687,7 +3896,7 @@ function openEditPost(i){
 function savePost(){
   const title=document.getElementById('postTitle').value.trim(); if(!title)return;
   const post={platform:document.getElementById('postPlatform').value,title,date:document.getElementById('postDate').value,views:parseInt(document.getElementById('postViews').value)||0,likes:parseInt(document.getElementById('postLikes').value)||0,comments:parseInt(document.getElementById('postComments').value)||0,notes:document.getElementById('postNotes').value.trim(),rating:postRating};
-  if(postEditIdx>=0)contentPosts[postEditIdx]=post; else contentPosts.unshift(post);
+  if(postEditIdx>=0)contentPosts[postEditIdx]=post; else { contentPosts.unshift(post); awardXP(10,'Post logged 📱'); checkAchievement('content_first_post'); if(contentPosts.length>=10)checkAchievement('content_10posts'); if(contentPosts.length>=25)checkAchievement('content_25posts'); if(contentPosts.length>=50)checkAchievement('content_50posts'); if(post.views>=1000)checkAchievement('content_1k_views'); if(post.views>=10000)checkAchievement('content_10k_views'); if(post.rating===5)checkAchievement('content_5star_post'); }
   closeModal('postModal');
   renderContentOverview();
   const activePlatBtn=document.querySelector('#contentPlatformTabs .ritual-tab.active');
@@ -4277,7 +4486,11 @@ const ALL_ACHIEVEMENTS = [
   {id:'gen_level5',emoji:'⭐',title:'Level 5',desc:'Reach Level 5',section:'Journey',xp:200},
   {id:'gen_level10',emoji:'💫',title:'Level 10',desc:'Reach Level 10',section:'Journey',xp:400},
   {id:'gen_level20',emoji:'✨',title:'Level 20',desc:'Reach Level 20',section:'Journey',xp:800},
+  {id:'gen_level25',emoji:'🌟',title:'Level 25 — Rising',desc:'Reach Level 25',section:'Journey',xp:1200},
   {id:'gen_level30',emoji:'👑',title:'Level 30 — That Girl',desc:'Reach Level 30',section:'Journey',xp:1500},
+  {id:'gen_level35',emoji:'💎',title:'Level 35 — Diamond Era',desc:'Reach Level 35',section:'Journey',xp:2000},
+  {id:'gen_level40',emoji:'🔮',title:'Level 40 — Legendary',desc:'Reach Level 40',section:'Journey',xp:2500},
+  {id:'gen_level50',emoji:'👸',title:'Level 50 — That Girl, Always',desc:'Reach the maximum level',section:'Journey',xp:5000},
   {id:'gen_prize_claimed',emoji:'🎁',title:'Treat Yourself',desc:'Claim your first prize',section:'Journey',xp:100},
   {id:'gen_5prizes',emoji:'🎀',title:'Prize Queen',desc:'Claim 5 prizes',section:'Journey',xp:300},
   {id:'gen_wishlist_prize',emoji:'🛍️',title:'Wishlist Win',desc:'Claim a wishlist item as a prize',section:'Journey',xp:200},
@@ -4286,14 +4499,66 @@ const ALL_ACHIEVEMENTS = [
   {id:'chal_create_custom',emoji:'✍️',title:'Challenge Maker',desc:'Create your own custom challenge',section:'Journey',xp:75},
 ];
 
-let unlockedAchievements = new Set(['gen_first_day']);
+let unlockedAchievements = new Set();
 let claimedPrizes = [];
 let playerLevel = 0, totalXP = 0;
 let avatarChoice = 'a1';
 
-const LEVEL_XP = [0,50,150,300,500,750,1050,1400,1800,2250,2750,3300,3900,4550,5250,6000,6800,7650,8550,9500,10500];
+const LEVEL_XP = [
+  0,      // 0
+  50,     // 1
+  150,    // 2
+  300,    // 3
+  500,    // 4
+  750,    // 5
+  1050,   // 6
+  1400,   // 7
+  1800,   // 8
+  2250,   // 9
+  2750,   // 10
+  3300,   // 11
+  3900,   // 12
+  4550,   // 13
+  5250,   // 14
+  6000,   // 15
+  6800,   // 16
+  7650,   // 17
+  8550,   // 18
+  9500,   // 19
+  10500,  // 20
+  11600,  // 21
+  12800,  // 22
+  14100,  // 23
+  15500,  // 24
+  17000,  // 25
+  18700,  // 26
+  20500,  // 27
+  22500,  // 28
+  24700,  // 29
+  27000,  // 30
+  29500,  // 31
+  32200,  // 32
+  35100,  // 33
+  38200,  // 34
+  41500,  // 35
+  45000,  // 36
+  48800,  // 37
+  52900,  // 38
+  57300,  // 39
+  62000,  // 40
+  67000,  // 41
+  72400,  // 42
+  78200,  // 43
+  84400,  // 44
+  91000,  // 45
+  98000,  // 46
+  105500, // 47
+  113500, // 48
+  122000, // 49
+  131000, // 50
+];
 function xpForNextLevel(lvl){ return LEVEL_XP[Math.min(lvl+1,LEVEL_XP.length-1)]||LEVEL_XP[LEVEL_XP.length-1]+(lvl-LEVEL_XP.length+2)*2000; }
-function getTotalXP(){ return [...unlockedAchievements].reduce((a,id)=>{const ach=ALL_ACHIEVEMENTS.find(x=>x.id===id);return a+(ach?ach.xp:0);},0); }
+function getTotalXP(){ return totalXP; }
 function calcLevel(xp){
   let lvl=0;
   for(let i=1;i<LEVEL_XP.length;i++){if(xp>=LEVEL_XP[i])lvl=i; else break;}
@@ -4302,51 +4567,87 @@ function calcLevel(xp){
 
 // Tiered prizes — matched to level
 const PRIZES_TIERS = {
-  tiny:[ // levels 0–2
+  tiny: [ // levels 1–2 — free treats, no spend needed
     "☕ Make yourself a really good coffee at home",
     "🛁 Take a long shower and actually use the fancy products",
     "📺 Watch an episode guilt-free — no multitasking",
     "🌿 Take a slow walk and just be present",
     "🍫 Buy your favourite snack on the way home",
-    "📖 Read for 30 minutes uninterrupted",
+    "📖 Read for 30 minutes uninterrupted with no distractions",
     "🎵 Make a new playlist and listen to it in full",
-    "🌙 Early bedtime — no alarms, just rest",
+    "🌙 Early bedtime — no alarms, just proper rest",
+    "🕯️ Light a candle, make tea, do absolutely nothing",
+    "🧘 A full 20-minute stretch with your favourite music on",
   ],
-  small:[ // levels 3–5
-    "☕ Go to a nice café and order something you wouldn't usually",
+  small: [ // levels 3–5 — small spends, treats
+    "☕ Go to a nice café and order whatever you want",
     "🧁 Get a pastry and sit somewhere pretty with no phone",
-    "🌿 Buy yourself some flowers from the market",
+    "🌸 Buy yourself flowers from the market",
     "📚 Buy one book you've been wanting",
     "🍜 Order your favourite comfort food, no guilt",
-    "🎬 Movie night — snacks, blanket, the works",
-    "💅 Do your nails properly at home with music on",
-    "🛁 Fancy bath — face mask, candles, the works",
-    "🍰 Order the fancy dessert at a restaurant",
+    "🎬 Proper movie night — snacks, blanket, the works",
+    "💅 Do your nails at home with music and a face mask",
+    "🛁 Fancy bath — oils, candles, the full ritual",
+    "🍰 Order the fancy dessert or the overpriced cake",
+    "🎁 Pick one thing from Poundland/Primark just because",
   ],
-  medium:[ // levels 6–10
+  medium: [ // levels 6–10 — proper treats, under £40
     "💅 Get your nails done professionally",
-    "🍣 Dinner at that restaurant you've been saving for",
-    "🛍️ One item from your wishlist (under £30)",
-    "☕ Work from a new café for a whole day",
-    "🎨 Buy new stationery or art supplies",
-    "🌸 Buy a new skincare product you've wanted to try",
-    "📸 Plan a fun solo photoshoot afternoon",
-    "🥞 Go to your favourite brunch spot",
+    "🍣 Dinner at that restaurant you've been putting off",
+    "🛍️ One wishlist item under £35 — guilt-free",
+    "☕ Work from a new café for a whole day, order freely",
+    "🎨 Buy new stationery or art supplies you've wanted",
+    "🌸 That skincare product you keep saying you'll get",
+    "📸 Solo photoshoot afternoon — dress up, go somewhere nice",
+    "🥞 Brunch at your favourite spot, the full order",
+    "🎀 Pick a random small luxury — a nice candle, bath set, anything",
+    "🏛️ Do something cultural — gallery, exhibit, museum day",
   ],
-  big:[ // levels 11–15
-    "👗 One guilt-free clothing purchase",
+  big: [ // levels 11–17 — genuine splurge, £40–£80
+    "👗 One guilt-free clothing purchase, pick what you actually want",
     "💆 Book a massage or spa treatment",
-    "🎵 Buy tickets to a show or gig",
-    "🛍️ Proper wishlist item (up to £60)",
-    "🌊 Plan a day trip somewhere you've wanted to go",
-    "📷 New accessory you've had your eye on",
+    "🎵 Buy tickets to a show, gig, or event",
+    "🛍️ Proper wishlist item up to £60 — you earned it",
+    "🌊 Day trip somewhere you've been wanting to go",
+    "📷 New accessory or jewellery you've had your eye on",
+    "🎭 Night out — dinner and something fun after",
+    "🧴 Full skincare restock — get the good stuff",
+    "📚 Buy 3 books you've been putting off",
+    "🌿 A nice Sunday: farmers market, café, slow afternoon",
   ],
-  major:[ // levels 16+
-    "✈️ Book that weekend trip you've been planning",
-    "💎 Splurge on something you've wanted for months",
+  major: [ // levels 18–25 — big treat, £80–£150
+    "✈️ Book that weekend trip you keep talking about",
+    "💎 That one thing you've wanted for months — get it",
     "💆 Full day spa experience",
-    "🎓 Invest in a course or skill you want",
-    "🎁 Your biggest wishlist item — you earned it",
+    "🎓 Invest in a course, workshop, or skill you want",
+    "🎁 Your biggest current wishlist item — no justification needed",
+    "👗 Proper shopping day — set a budget and actually enjoy it",
+    "🍽️ Tasting menu or really special dinner experience",
+    "🎟️ Concert, theatre, or event you'd normally talk yourself out of",
+    "🌍 Book accommodation for a solo trip",
+    "🧖 Full pamper day — nails, hair, facial, the lot",
+  ],
+  epic: [ // levels 26–35 — seriously big, £150–£300
+    "✈️ Book a full weekend trip — flights and hotel",
+    "💻 That tech upgrade you've been debating",
+    "👜 The bag or item you've been saving up for in your head",
+    "🎓 Enrol in that course you've been putting off for months",
+    "🌊 A proper solo adventure day — wherever you've wanted to go",
+    "💎 Fine jewellery or a meaningful piece you'll wear forever",
+    "🧖 Multi-day pamper — spa hotel, overnight somewhere nice",
+    "🎪 VIP or premium experience at something you love",
+    "📸 Professional photoshoot — treat yourself like a brand",
+    "🌺 A holiday deposit — make it real",
+  ],
+  legendary: [ // levels 36–50 — life-changing treat
+    "✈️ Book the holiday. Properly. Flights, hotel, the whole thing.",
+    "💎 The luxury item you've wanted since forever — it's time.",
+    "🎓 Invest seriously in yourself — a proper course, mentor, programme.",
+    "🏠 Something for your future — savings, investment, or a big goal deposit.",
+    "👑 Whatever you want. You're Level ${lvl}. You decide.",
+    "🌍 A trip that actually changes you — go somewhere new and meaningful.",
+    "💆 A full week of doing whatever you want, guilt-free.",
+    "🎉 Throw yourself a celebration — you've been consistent for a long time.",
   ]
 };
 
@@ -4354,8 +4655,10 @@ function getPrizesForLevel(lvl){
   if(lvl<=2) return PRIZES_TIERS.tiny;
   if(lvl<=5) return PRIZES_TIERS.small;
   if(lvl<=10) return PRIZES_TIERS.medium;
-  if(lvl<=15) return PRIZES_TIERS.big;
-  return PRIZES_TIERS.major;
+  if(lvl<=17) return PRIZES_TIERS.big;
+  if(lvl<=25) return PRIZES_TIERS.major;
+  if(lvl<=35) return PRIZES_TIERS.epic;
+  return PRIZES_TIERS.legendary.map(p=>p.replace('${lvl}', lvl));
 }
 
 function offerPrize(level){
@@ -4387,8 +4690,53 @@ const AVATARS=[
   {id:'a1',emoji:'🌸',label:'Blossom Girl'},{id:'a2',emoji:'⭐',label:'Star Gazer'},{id:'a3',emoji:'🌙',label:'Moonchild'},{id:'a4',emoji:'🦋',label:'Butterfly'},{id:'a5',emoji:'🌿',label:'Nature Soul'},{id:'a6',emoji:'💫',label:'Cosmic Girlie'},{id:'a7',emoji:'🌺',label:'Hibiscus Queen'},{id:'a8',emoji:'🔮',label:'Crystal Babe'},{id:'a9',emoji:'🌊',label:'Ocean Mind'},{id:'a10',emoji:'🎀',label:'Bow Era'},
 ];
 
+
+function renderXPLog(){
+  const el = document.getElementById('achXPLog'); if(!el) return;
+  if(!xpLog.length){ el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No XP earned yet — start using the app! ✦</div>'; return; }
+  // Group by level milestone
+  el.innerHTML = xpLog.slice(0,40).map(e=>{
+    const d = new Date(e.date);
+    const timeStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;margin-bottom:4px;background:${e.isAchievement?'radial-gradient(ellipse at 20% 50%,#fff0f8,#fce8f4)':'white'};border:1.5px solid ${e.isAchievement?'var(--pink-mid)':'var(--border)'}">
+      <div style="font-size:13px;font-weight:700;color:var(--pink-deep);min-width:44px">+${e.xp} XP</div>
+      <div style="flex:1;font-size:13px;color:var(--text)">${e.label}</div>
+      <div style="font-size:10px;color:var(--text-soft);white-space:nowrap">${timeStr}</div>
+      ${e.isAchievement?`<div style="font-size:10px;padding:2px 8px;background:var(--pink-mid);border-radius:10px;color:var(--text);font-weight:700">Lv ${e.level}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderLevelRoadmap(){
+  const el = document.getElementById('achLevelRoadmap'); if(!el) return;
+  const xp = totalXP, lvl = calcLevel(xp);
+  const tierLabel = l => {
+    if(l<=2) return {label:'Free treats', colour:'#f8c8dc'};
+    if(l<=5) return {label:'Small spends', colour:'#fce8f4'};
+    if(l<=10) return {label:'Proper treats ~£40', colour:'#f0c0d8'};
+    if(l<=17) return {label:'Splurge ~£40–80', colour:'#e8a8c8'};
+    if(l<=25) return {label:'Big treat ~£80–150', colour:'#d890b8'};
+    if(l<=35) return {label:'Epic ~£150–300', colour:'#c878a8'};
+    return {label:'Legendary 👑', colour:'#b86098'};
+  };
+  const rows = LEVEL_XP.map((xpReq, l) => {
+    if(l === 0) return '';
+    const done = xp >= xpReq;
+    const isCurrent = l === lvl;
+    const tier = tierLabel(l);
+    const prizeHint = l<=2?'🎁 Free treat':l<=5?'🎁 Small treat':l<=10?'💅 Proper treat':l<=17?'👗 Splurge':l<=25?'✈️ Big treat':l<=35?'💎 Epic prize':'👑 Legendary prize';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;margin-bottom:4px;background:${isCurrent?'radial-gradient(ellipse at 20% 50%,#fff0f8,#fce8f4)':done?'var(--pink-glow)':'white'};border:1.5px solid ${isCurrent?'var(--pink)':done?'var(--pink-mid)':'var(--border)'};${done&&!isCurrent?'opacity:0.65':''}">
+      <div style="font-size:${isCurrent?'22':'16'}px;width:28px;text-align:center">${done?'✓':'○'}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:${isCurrent?'18':'14'}px;font-weight:700;color:var(--text);min-width:40px">Lv ${l}</div>
+      <div style="font-size:12px;color:var(--text-mid);flex:1">${xpReq.toLocaleString()} XP</div>
+      <div style="font-size:11px;padding:3px 8px;border-radius:20px;background:${tier.colour};color:var(--text);font-weight:600">${prizeHint}</div>
+      ${isCurrent?'<div style="font-size:11px;font-weight:700;color:var(--pink-deep);letter-spacing:1px">← YOU</div>':''}
+    </div>`;
+  }).join('');
+  el.innerHTML = rows;
+}
 function renderAchievementsTab(){
-  const xp=getTotalXP(), lvl=calcLevel(xp);
+  const xp=totalXP, lvl=calcLevel(xp);
   playerLevel=lvl;
   const nextXP=xpForNextLevel(lvl), prevXP=xpForNextLevel(lvl-1)||0;
   const progress=Math.min(((xp-prevXP)/(nextXP-prevXP))*100,100);
@@ -4443,6 +4791,9 @@ function renderAchievementsTab(){
       <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">${p.prize}</div><div style="font-size:11px;color:var(--text-soft)">Level ${p.level} reward · ${p.date}</div></div>
       <button onclick="claimedPrizes.splice(${i},1);renderAchievementsTab()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
     </div>`).join(''):'<div style="font-size:13px;color:var(--text-soft);font-style:italic">No prizes yet — level up to earn them! 🎁</div>';
+
+  renderLevelRoadmap();
+  renderXPLog();
 }
 
 function renderAvatarPicker(){
@@ -4454,25 +4805,20 @@ function renderAvatarPicker(){
 }
 
 // ═══════════════════ INIT RENDERS ═══════════════════
-renderRituals();
-renderSlowPlan();
-renderJoyEntries();
-renderSpendLog(); updateBudgets(); renderWishlist();
-renderGymDayToggles(); renderGymSchedulePreview(); renderGymLog(); renderGymFreqChart(); renderWeightChart();
-renderWeekMealGrid(); renderWeekCalGrid(); renderDietImpulses();
-renderHobbyList(); renderHobbyLog(); updateHobbySelect();
-renderMedLog(); renderMedStreak();
-renderTimeline();
-renderContentOverview();
-renderNotesList();
-renderUrgeLog();
-renderHrmDailyLog();
-renderHrmWeekChart();
-renderViceTiers();
-renderAchievementsTab();
-renderAvatarPicker();
-buildCalendar();
-checkAchievement('gen_first_day');
+(function safeInit(){
+  const fns = [
+    renderRituals, renderSlowPlan, renderJoyEntries,
+    ()=>{ renderSpendLog(); updateBudgets(); renderWishlist(); },
+    ()=>{ renderGymDayToggles(); renderGymSchedulePreview(); renderGymLog(); renderGymFreqChart(); renderWeightChart(); },
+    ()=>{ renderWeekMealGrid(); renderWeekCalGrid(); renderDietImpulses(); },
+    ()=>{ renderHobbyList(); renderHobbyLog(); updateHobbySelect(); },
+    ()=>{ renderMedLog(); renderMedStreak(); },
+    renderTimeline, renderContentOverview, renderNotesList,
+    renderUrgeLog, renderHrmDailyLog, renderHrmWeekChart, renderViceTiers,
+    renderAchievementsTab, renderAvatarPicker, buildCalendar,
+  ];
+  fns.forEach(fn=>{ try{ fn(); } catch(e){ console.warn('Init render error:', e); } });
+})();
 
 // ════════════════════════════════════════════════
 // ══  ACHIEVEMENT TOAST (corner popup)  ══════════
@@ -4501,12 +4847,29 @@ function checkAchievement(id){
   const ach=ALL_ACHIEVEMENTS.find(a=>a.id===id);
   if(!ach) return;
   unlockedAchievements.add(id);
-  const oldXP=getTotalXP()-ach.xp, newXP=getTotalXP();
-  const oldLvl=calcLevel(oldXP), newLvl=calcLevel(newXP);
-  const levelUp=newLvl>oldLvl;
-  showAchievementToast(ach, levelUp, newLvl);
-  if(levelUp){ playerLevel=newLvl; offerPrize(newLvl); }
-  if(document.getElementById('page-achievements').classList.contains('active')) renderAchievementsTab();
+  const oldLvl=calcLevel(totalXP);
+  totalXP+=ach.xp;
+  playerLevel=calcLevel(totalXP);
+  xpLog.unshift({xp:ach.xp, label:'🏆 '+ach.title, date:new Date().toISOString(), level:playerLevel, total:totalXP, isAchievement:true});
+  if(xpLog.length>200) xpLog.length=200;
+  const levelUp=playerLevel>oldLvl;
+  showAchievementToast(ach, levelUp, playerLevel);
+  if(levelUp){ offerPrize(playerLevel); }
+  scheduleSave();
+  if(document.getElementById('page-achievements')?.classList.contains('active')) renderAchievementsTab();
+  // level achievements
+  if(playerLevel>=5) _checkLevelAch();
+}
+
+function _checkLevelAch(){
+  if(playerLevel>=5) checkAchievement('gen_level5');
+  if(playerLevel>=10) checkAchievement('gen_level10');
+  if(playerLevel>=20) checkAchievement('gen_level20');
+  if(playerLevel>=25) checkAchievement('gen_level25');
+  if(playerLevel>=30) checkAchievement('gen_level30');
+  if(playerLevel>=35) checkAchievement('gen_level35');
+  if(playerLevel>=40) checkAchievement('gen_level40');
+  if(playerLevel>=50) checkAchievement('gen_level50');
 }
 
 // ════════════════════════════════════════════════
@@ -4522,6 +4885,7 @@ function addIncome(){
   incomeItems.push({source,amount,type,date:isoDate(now)});
   document.getElementById('incomeSource').value='';
   document.getElementById('incomeAmount').value='';
+  awardXP(10,'Income logged 💰');
   renderIncomeList(); renderFinOverview();
   checkAchievement('fin_first_income');
 }
@@ -4593,6 +4957,7 @@ function addToSavings(i){
   const amt=parseFloat(prompt(`Add how much to "${savingsGoals[i].name}"? (£)`))||0;
   if(!amt) return;
   savingsGoals[i].current=Math.min(savingsGoals[i].current+amt,savingsGoals[i].target);
+  awardXP(10,'Savings deposit 🏦');
   renderSavingsList(); renderFinOverview();
   if(savingsGoals[i].current>=savingsGoals[i].target) checkAchievement('fin_goal_reached');
 }
@@ -4646,6 +5011,7 @@ function saveTherapySession(){
   if(!entry.date) return;
   if(idx!=='') therapySessions[parseInt(idx)]=entry; else therapySessions.unshift(entry);
   closeModal('therapyModal'); renderTherapyList();
+  awardXP(20,'Therapy session logged 🧠');
   checkAchievement('well_first_therapy');
   if(therapySessions.length>=5) checkAchievement('well_5therapy');
 }
@@ -4684,6 +5050,7 @@ function logIE(){
   ieLog.unshift({meal,before:ieBefore,after:ieAfter,notes,date:isoDate(now),time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
   document.getElementById('ieMeal').value=''; document.getElementById('ieNotes').value='';
   ieBefore=0; ieAfter=0; buildIEScales(); renderIELog();
+  awardXP(8,'Meal awareness logged');
   checkAchievement('well_first_ie');
   if(ieLog.length>=7) checkAchievement('well_7days_ie');
 }
@@ -4755,6 +5122,7 @@ function addCustomAffirmation(){
   if(!val) return;
   customAffirmations.unshift(val);
   document.getElementById('customAffirmInput').value='';
+  checkAchievement('motiv_affirmation');
   renderCustomAffirms();
 }
 function renderCustomAffirms(){
@@ -4832,6 +5200,7 @@ function saveGrade(){
   const entry={type:gradeEntryType,module:document.getElementById('gradeModule').value.trim(),year:document.getElementById('gradeYear').value,format:document.getElementById('gradeFormat').value,mockReal:document.getElementById('gradeMockReal').value,date:document.getElementById('gradeDate').value,score:parseFloat(document.getElementById('gradeScore').value)||0,pass:parseFloat(document.getElementById('gradePass').value)||50,notes:document.getElementById('gradeNotes').value.trim()};
   if(!entry.module||!entry.date) return;
   if(idx!=='') grades[parseInt(idx)]=entry; else grades.unshift(entry);
+  awardXP(10,'Grade logged 📊');
   closeModal('gradeModal'); renderGradeList(); renderGradeAvgs();
   checkAchievement('acad_first_grade');
   if(entry.score>=entry.pass) checkAchievement('acad_first_pass');
@@ -5005,7 +5374,13 @@ function renderMilestones(p){
     </div>`;
   }).join('');
 }
-function toggleMilestone(pi,mi){ projects[pi].milestones[mi].done=!projects[pi].milestones[mi].done; renderProjectDetail(); renderProjectList(); if(projects[pi].milestones.every(m=>m.done)&&projects[pi].milestones.length) checkAchievement('acad_project_done'); }
+function toggleMilestone(pi,mi){
+  const wasDone=projects[pi].milestones[mi].done;
+  projects[pi].milestones[mi].done=!wasDone;
+  if(!wasDone){ awardXP(15,'Project milestone done ✦'); }
+  renderProjectDetail(); renderProjectList();
+  if(projects[pi].milestones.every(m=>m.done)&&projects[pi].milestones.length) checkAchievement('acad_project_done');
+}
 function saveProjMilestone(){
   const pi=parseInt(document.getElementById('pmProjIdx').value);
   const title=document.getElementById('pmTitle').value.trim();
@@ -5024,7 +5399,7 @@ let masterTodos=[], quickTodos=[];
 function addMasterTodo(){
   const val=document.getElementById('masterTodoInput').value.trim(); if(!val) return;
   masterTodos.push({text:val,done:false}); document.getElementById('masterTodoInput').value='';
-  renderTodos('master'); checkAchievement('acad_first_todo');
+  renderTodos('master'); checkAchievement('acad_first_todo'); checkAchievement('prod_first_todo');
 }
 function addQuickTodo(){
   const val=document.getElementById('quickTodoInput').value.trim(); if(!val) return;
@@ -5032,7 +5407,18 @@ function addQuickTodo(){
   quickTodos.push({text:val,done:false}); document.getElementById('quickTodoInput').value='';
   renderTodos('quick');
 }
-function toggleTodo(list,i){ if(list==='master') masterTodos[i].done=!masterTodos[i].done; else quickTodos[i].done=!quickTodos[i].done; renderTodos(list); }
+function toggleTodo(list,i){
+  if(list==='master'){
+    const wasDone=masterTodos[i].done;
+    masterTodos[i].done=!masterTodos[i].done;
+    if(!wasDone){ awardXP(5,'Todo done ✓'); const doneCount=masterTodos.filter(t=>t.done).length; if(doneCount>=10)checkAchievement('prod_10todos'); }
+  } else {
+    const wasDone=quickTodos[i].done;
+    quickTodos[i].done=!quickTodos[i].done;
+    if(!wasDone) awardXP(5,'Quick todo done ✓');
+  }
+  renderTodos(list);
+}
 function renderTodos(which){
   if(which==='master'||which==='both'){
     const el=document.getElementById('masterTodoList'); if(el)
@@ -5124,14 +5510,23 @@ function showPage(id){
   if(tnav){ tnav.classList.add('active'); tnav.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}); }
   if(id==='calendar') buildCalendar();
   if(id==='travel') renderTripCards();
-  if(id==='content') setTimeout(drawContentCharts,50);
+  if(id==='home'){ renderHomeAgenda(); renderSlowPlan(); renderHeroCountdown(); updateHomeGreeting(); }
+  if(id==='gym'){ renderGymLog(); renderGymFreqChart(); renderGymSchedulePreview(); renderWeightChart(); }
+  if(id==='diet'){ renderDietImpulses(); renderWeekMealGrid(); renderWeekCalGrid(); }
+  if(id==='meditate'){ renderMedLog(); renderMedStreak(); }
+  if(id==='hobbies'){ renderHobbyList(); renderHobbyLog(); updateHobbySelect(); }
+  if(id==='finance'){ renderFinOverview(); renderIncomeList(); renderBillsList(); renderSavingsList(); renderSpendLog(); renderGiftIdeas(); }
+  if(id==='reflect'){ renderReflectionHistory(); renderJoyEntries(); }
+  if(id==='growth'){ renderMilestones(); renderSlowPlan(); }
+  if(id==='content'){ renderContentOverview(); renderAllPosts(); setTimeout(drawContentCharts,50); }
   if(id==='achievements'){ renderAchievementsTab(); renderAvatarPicker(); }
   if(id==='stats') renderStats();
-  if(id==='wellness') renderTherapyList();
-  if(id==='motivation') initAffirmations();
+  if(id==='wellness'){ renderTherapyList(); renderWaterTracker(); renderIELog(); renderIllnessList(); }
+  if(id==='motivation'){ initAffirmations(); renderIdentityList(); renderAntiGoals(); renderQuotes(); }
   if(id==='productivity'){
     renderTodos('both'); renderGradeList(); renderGradeAvgs();
     renderCountdowns(); renderProjectList(); renderLectureList();
+    renderUrgeLog(); renderHrmDailyLog(); renderTGNList();
   }
 }
 
@@ -5153,7 +5548,68 @@ function switchGrowthTab(btn, panel){
   document.querySelectorAll('.growth-panel').forEach(p=>p.style.display='none');
   document.getElementById('growth-'+panel).style.display='block';
   if(panel==='reset') renderWeeklyReset();
+  if(panel==='monthlyreset') renderMonthlyReset();
 }
+// ══════════════════════════════════════════════
+// MONTHLY RESET
+// ══════════════════════════════════════════════
+const MONTHLY_RESET_STEPS = [
+  {section:'🏆 Wins', emoji:'🏆', title:"Celebrate this month's wins", desc:'What did you actually accomplish? No filter — big and small count equally.', hasNote:true, notePlaceholder:'My wins this month…'},
+  {section:'💰 Finance', emoji:'💰', title:'Review finances & savings progress', desc:'Check your spend log. Did you hit savings targets? Any patterns or surprises?', hasNote:true, notePlaceholder:'Financial review…'},
+  {section:'📚 Academic', emoji:'📚', title:'Academic review', desc:'Check your grades, lecture vault, and upcoming countdowns. What needs more focus next month?', hasNote:true, notePlaceholder:'Academic check-in…'},
+  {section:'🏋️ Body', emoji:'🏋️', title:'Body check-in', desc:'Review gym consistency, weight trend, and water habit. How did you show up for your body?', hasNote:true, notePlaceholder:'How I treated my body this month…'},
+  {section:'🧠 Mental health', emoji:'🧠', title:'Mental health check-in', desc:'Therapy sessions, mood patterns, urge log — any themes? What did you learn about yourself?', hasNote:true, notePlaceholder:'My mental health this month…'},
+  {section:'🎬 Creative', emoji:'🎬', title:'Content & creative review', desc:'Review posts created, content ideas, hobbies. Did you make space for creativity?', hasNote:true, notePlaceholder:'Creative review…'},
+  {section:'🎯 Next month goals', emoji:'🎯', title:'Set 3 big intentions for next month', desc:"Not a task list — 3 meaningful things you want to move toward. What would make next month feel like a win?", hasNote:true, notePlaceholder:'Next month I want to…'},
+  {section:'📊 Habit score', emoji:'📊', title:'Self-rate your habits', desc:'Out of 10: sleep, movement, nutrition, consistency with rituals, screen time. Be honest.', hasNote:true, notePlaceholder:'Sleep /10, Movement /10, Nutrition /10, Rituals /10…'},
+  {section:'🫂 People', emoji:'🫂', title:'Relationship & social check-in', desc:'Who energised you? Who drained you? Did you nurture the friendships that matter?', hasNote:true, notePlaceholder:'Reflections on connection this month…'},
+  {section:'💫 Affirmation', emoji:'💫', title:'Write your affirmation for the month ahead', desc:"One bold sentence for the new month. Put it somewhere you'll see it.", hasNote:true, notePlaceholder:'Next month I am…'},
+];
+
+function renderMonthlyReset(){
+  const el = document.getElementById('monthlyResetChecklist'); if(!el) return;
+  const done = monthlyResetDone.size, total = MONTHLY_RESET_STEPS.length;
+  const numEl = document.getElementById('mResetProgressNum');
+  const totEl = document.getElementById('mResetProgressTotal');
+  const barEl = document.getElementById('mResetProgressBar');
+  if(numEl) numEl.textContent = done;
+  if(totEl) totEl.textContent = total;
+  const pct = Math.round((done/total)*100);
+  if(barEl) barEl.style.width = pct+'%';
+
+  el.innerHTML = MONTHLY_RESET_STEPS.map((s,i) => `
+    <div class="reset-step${monthlyResetDone.has(i)?' done':''}" id="mrstep-${i}" style="margin-bottom:12px">
+      <div class="reset-step-num">${s.emoji||i+1}</div>
+      <div class="reset-step-body" style="flex:1">
+        <div class="reset-step-title">${s.title}</div>
+        <div class="reset-step-desc">${s.desc}</div>
+        ${s.hasNote?`<textarea class="text-input" style="margin-top:10px;font-size:13px;min-height:60px" placeholder="${s.notePlaceholder||''}" onchange="monthlyResetNotes[${i}]=this.value;saveMonthlyResetNotes()">${monthlyResetNotes[i]||''}</textarea>`:''}
+      </div>
+      <div class="reset-step-check" onclick="toggleMonthlyResetStep(${i})">${monthlyResetDone.has(i)?'✓':''}</div>
+    </div>`).join('');
+
+  if(done===total){ checkAchievement('fin_monthly_reset'); awardXP(80,'Monthly Reset Complete'); }
+}
+
+function toggleMonthlyResetStep(i){
+  if(monthlyResetDone.has(i)) monthlyResetDone.delete(i); else monthlyResetDone.add(i);
+  renderMonthlyReset();
+}
+function resetMonthlyChecklist(){
+  if(!confirm('Start a fresh month? Notes will be cleared.')) return;
+  monthlyResetDone.clear(); monthlyResetNotes={}; renderMonthlyReset();
+}
+function saveMonthlyResetNotes(){
+  scheduleSave();
+  const ind=document.getElementById('mResetSaveIndicator'); if(!ind)return;
+  ind.style.opacity='1'; setTimeout(()=>{ind.style.opacity='0';},1800);
+}
+function exportMonthlyResetSummary(){
+  const lines = MONTHLY_RESET_STEPS.map((s,i)=>`${monthlyResetDone.has(i)?'✓':'○'} ${s.title}${monthlyResetNotes[i]?'\n   Notes: '+monthlyResetNotes[i]:''}`).join('\n\n');
+  const blob = new Blob([`Monthly Reset — ${new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})}\n${'═'.repeat(40)}\n\n${lines}`],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='monthly-reset.txt'; a.click();
+}
+
 
 // ══════════════════════════════════════════════
 // DETAILED WEEKLY RESET
@@ -5240,6 +5696,8 @@ const RESET_STEPS = [
 ];
 let resetDone = new Set();
 let resetNotes = {};
+let monthlyResetDone = new Set();
+let monthlyResetNotes = {};
 function renderWeeklyReset(){
   const el = document.getElementById('weeklyResetChecklist'); if(!el) return;
   const done = resetDone.size, total = RESET_STEPS.length;
@@ -5254,15 +5712,20 @@ function renderWeeklyReset(){
       <div class="reset-step-body" style="flex:1">
         <div class="reset-step-title">${s.title}</div>
         <div class="reset-step-desc">${s.desc}</div>
-        ${s.hasNote?`<textarea class="text-input" style="margin-top:10px;font-size:13px;min-height:60px" placeholder="${s.notePlaceholder||''}" onchange="resetNotes[${i}]=this.value">${resetNotes[i]||''}</textarea>`:''}
+        ${s.hasNote?`<textarea class="text-input" style="margin-top:10px;font-size:13px;min-height:60px" placeholder="${s.notePlaceholder||''}" onchange="resetNotes[${i}]=this.value;saveResetNotes()">${resetNotes[i]||''}</textarea>`:''}
       </div>
       <div class="reset-step-check" onclick="toggleResetStep(${i})">${resetDone.has(i)?'✓':''}</div>
     </div>`).join('');
 
-  if(done===total) checkAchievement('fin_weekly_reset');
+  if(done===total){ checkAchievement('fin_weekly_reset'); if(!resetDone._xpAwarded){ resetDone._xpAwarded=true; awardXP(50,'Sunday Reset complete!'); } }
 }
 function toggleResetStep(i){ if(resetDone.has(i)) resetDone.delete(i); else resetDone.add(i); renderWeeklyReset(); }
 function resetWeeklyChecklist(){ if(!confirm('Start a fresh week? Notes will be cleared.')) return; resetDone.clear(); resetNotes={}; renderWeeklyReset(); }
+function saveResetNotes(){
+  scheduleSave();
+  const ind=document.getElementById('resetSaveIndicator'); if(!ind)return;
+  ind.style.opacity='1'; setTimeout(()=>{ind.style.opacity='0';},1800);
+}
 function exportResetSummary(){
   const lines = RESET_STEPS.map((s,i)=>`${resetDone.has(i)?'✓':'○'} ${s.title}${resetNotes[i]?'\n   Notes: '+resetNotes[i]:''}`).join('\n\n');
   const blob = new Blob([`Sunday Reset — ${new Date().toLocaleDateString()}\n${'═'.repeat(40)}\n\n${lines}`],{type:'text/plain'});
@@ -5277,7 +5740,7 @@ let identityStatements = [], featuredIdentityIdx = -1;
 function addIdentityStatement(){
   const val = document.getElementById('identityInput').value.trim();
   if(!val) return;
-  identityStatements.push({text:val, featured:false});
+  identityStatements.push({text:val, featured:false}); checkAchievement('motiv_identity');
   document.getElementById('identityInput').value='';
   renderIdentityList();
   updateHomeIdentity();
@@ -5401,7 +5864,7 @@ function clearTherapyPin(){
 // ══════════════════════════════════════════════
 // WATER TRACKER
 // ══════════════════════════════════════════════
-let waterCount=0, waterGoal=8, waterHistory=[];
+let waterCount=0, waterGoal=8, waterHistory=[]; let _lastWaterXPDate='';
 function renderWaterTracker(){
   const goal=waterGoal, count=waterCount;
   document.getElementById('waterGoalDisplay').textContent=goal;
@@ -5418,7 +5881,12 @@ function renderWaterTracker(){
   renderWaterHistory();
   if(count>=goal) checkAchievement('well_water_goal');
 }
-function addWaterGlass(){ waterCount=Math.min(waterCount+1,20); renderWaterTracker(); }
+function addWaterGlass(){
+  waterCount=Math.min(waterCount+1,20);
+  renderWaterTracker();
+  const today=new Date().toISOString().slice(0,10);
+  if(waterCount>=waterGoal && _lastWaterXPDate!==today){ _lastWaterXPDate=today; awardXP(15,'Water goal hit 💧'); }
+}
 function removeWaterGlass(){ waterCount=Math.max(0,waterCount-1); renderWaterTracker(); }
 function resetWater(){
   if(waterCount>0) waterHistory.unshift({date:isoDate(now),count:waterCount,goal:waterGoal});
@@ -7210,11 +7678,11 @@ function updateAuthUI(connected){
 // ── Data collection / restore ──────────────────
 function collectAllData(){
   return {
-    homeAgendaItems, slowPlan, ritualData, joyItems,
+    homeAgendaItems, slowPlan, ritualData, joyItems, journeyStartDate, morningIntentions, xpLog,
     gymSchedule, gymLogs, weightLogs,
     mealPlan, savedMeals, dietImpulses,
     medLogs, hobbies, hobbyLogs,
-    milestones, resetDone: [...resetDone], resetNotes,
+    milestones, resetDone: [...resetDone], resetNotes, monthlyResetDone: [...monthlyResetDone], monthlyResetNotes,
     contentIdeas, contentPosts, platformPages,
     notes, masterTodos, quickTodos, lectures, grades, countdowns, projects,
     urges, hrmDailyLog, viceTiers, hrmResetLog,
@@ -7232,6 +7700,9 @@ function collectAllData(){
 function restoreAllData(d){
   if(!d) return;
   try {
+    if(d.journeyStartDate){ journeyStartDate=d.journeyStartDate; localStorage.setItem('thatgirlhq_journey_start',journeyStartDate); updateJourneyDayUI(); }
+    if(d.morningIntentions) morningIntentions.splice(0,morningIntentions.length,...d.morningIntentions);
+    if(d.xpLog) xpLog.splice(0,xpLog.length,...d.xpLog);
     if(d.homeAgendaItems) homeAgendaItems.splice(0,homeAgendaItems.length,...d.homeAgendaItems);
     if(d.slowPlan) Object.assign(slowPlan, d.slowPlan);
     if(d.ritualData) Object.assign(ritualData, d.ritualData);
@@ -7248,6 +7719,8 @@ function restoreAllData(d){
     if(d.milestones) milestones.splice(0,milestones.length,...d.milestones);
     if(d.resetDone){ resetDone.clear(); d.resetDone.forEach(x=>resetDone.add(x)); }
     if(d.resetNotes) Object.assign(resetNotes, d.resetNotes);
+    if(d.monthlyResetDone){ monthlyResetDone.clear(); d.monthlyResetDone.forEach(x=>monthlyResetDone.add(x)); }
+    if(d.monthlyResetNotes) Object.assign(monthlyResetNotes, d.monthlyResetNotes);
     if(d.contentIdeas) contentIdeas.splice(0,contentIdeas.length,...d.contentIdeas);
     if(d.contentPosts) contentPosts.splice(0,contentPosts.length,...d.contentPosts);
     if(d.platformPages) Object.assign(platformPages, d.platformPages);
@@ -7370,7 +7843,7 @@ function importData(e){
 // ── Re-render everything ───────────────────────
 function refreshAllRenderers(){
   try {
-    renderHomeAgenda(); renderSlowPlan();
+    renderHomeAgenda(); renderSlowPlan(); renderRituals();
     renderGymWeekGrid(); renderGymLog(); renderGymFreqChart(); renderWeightChart();
     renderJoyEntries();
     renderIllnessList();
@@ -7447,6 +7920,9 @@ function awardXP(amount, label){
   totalXP += amount;
   const oldLvl = playerLevel;
   playerLevel = calcLevel(totalXP);
+  // Record in log (keep last 200)
+  xpLog.unshift({xp:amount, label, date:new Date().toISOString(), level:playerLevel, total:totalXP});
+  if(xpLog.length>200) xpLog.length=200;
   const t = document.createElement('div');
   t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--pink-deep);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-family:Outfit,sans-serif;z-index:99999;font-weight:700;box-shadow:0 4px 16px rgba(224,120,152,0.4)';
   t.textContent = '+' + amount + ' XP — ' + label;
@@ -7569,14 +8045,39 @@ function renderReflectionHistory(){
 // ══════════════════════════════════════════════
 // HOME IDENTITY NOTE
 // ══════════════════════════════════════════════
-let homeIdentityNotes = [];
+// (moved to top)
 function saveHomeIdentityNote(){
   const note = (document.getElementById('homeIdentityNote')||{value:''}).value.trim();
-  const chips = [...document.querySelectorAll('#identityChips .id-chip.active')].map(c=>c.textContent);
+  const chips = [...document.querySelectorAll('#identityChips .id-chip.selected')].map(c=>c.textContent);
   if(!note&&!chips.length){ showToast('Select a chip or write something ✦'); return; }
-  homeIdentityNotes.unshift({date:isoDate(now), note, chips});
-  showToast('Identity note saved ✦');
+  const today = isoDate(new Date());
+  const existing = homeIdentityNotes.findIndex(n=>n.date===today);
+  if(existing>=0) homeIdentityNotes[existing] = {date:today, note, chips};
+  else homeIdentityNotes.unshift({date:today, note, chips});
+  const btn = document.querySelector('#identityChips').closest('.card').querySelector('button.pink-btn');
+  if(btn){ const orig=btn.textContent; btn.textContent='Saved ✦'; btn.style.background='var(--pink-mid)'; setTimeout(()=>{btn.textContent=orig;btn.style.background='';},2000); }
+  showToast('Identity reminder saved ✦');
   scheduleSave();
+  _restoreHomeWidgetsForToday();
+}
+
+function _restoreHomeWidgetsForToday(){
+  const today = isoDate(new Date());
+  // Restore identity chips + note
+  const idEntry = homeIdentityNotes.find(n=>n.date===today);
+  if(idEntry){
+    document.querySelectorAll('#identityChips .id-chip').forEach(c=>{
+      c.classList.toggle('selected', idEntry.chips.includes(c.textContent));
+    });
+    const noteEl = document.getElementById('homeIdentityNote');
+    if(noteEl && !noteEl.value) noteEl.value = idEntry.note;
+  }
+  // Restore morning intention
+  const intEntry = morningIntentions.find(n=>n.date===today);
+  if(intEntry){
+    const ta = document.querySelector('#timeCard textarea');
+    if(ta && !ta.value) ta.value = intEntry.text;
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -7723,7 +8224,9 @@ ALL_ACHIEVEMENTS.push(
   {id:'slowplan_all_done', emoji:'🌸', title:'Slow Life ✦', desc:'Complete your entire slow plan in one day', xp:50, section:'Growth'},
   {id:'reflect_streak_3', emoji:'🌙', title:'Nightly Ritual', desc:'Save 3 reflections', xp:40, section:'Reflect'},
   {id:'reflect_streak_7', emoji:'💫', title:'Deep Thinker', desc:'Save 7 reflections', xp:80, section:'Reflect'},
-  {id:'tips_first', emoji:'💡', title:'Wisdom Keeper', desc:'Add your first tip', xp:20, section:'Productivity'}
+  {id:'tips_first', emoji:'💡', title:'Wisdom Keeper', desc:'Add your first tip', xp:20, section:'Productivity'},
+  {id:'fin_monthly_reset', emoji:'📅', title:'Monthly Closer', desc:'Complete the full Monthly Reset', xp:100, section:'Growth'},
+  {id:'fin_weekly_reset', emoji:'🔄', title:'Weekly Reset Queen', desc:'Complete the full Sunday Reset', xp:75, section:'Growth'}
 );
 
 // ══════════════════════════════════════════════
