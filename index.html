@@ -7961,13 +7961,16 @@ function deleteXPEntry(id){
     xpLog.splice(idx, 1);
     totalXP = Math.max(0, totalXP - entry.xp);
     playerLevel = calcLevel(totalXP);
+    // If it's an achievement entry, remove the badge too
+    if(entry.isAchievement){
+      const title = entry.label.replace(/^🏆 /, '');
+      const ach = ALL_ACHIEVEMENTS.find(a => a.title === title);
+      if(ach) unlockedAchievements.delete(ach.id);
+    }
     scheduleSave();
     renderXPLog();
-    renderAchievements && renderAchievements();
-    // update XP display
-    const xpEls = document.querySelectorAll('.player-xp-val, #hud-xp, #xpValDisplay');
-    xpEls.forEach(el => { if(el) el.textContent = totalXP + ' XP'; });
-    updateHUD && updateHUD();
+    renderAchievementsTab();
+    renderLevelRoadmap();
   } else {
     row.dataset.confirming = '1';
     const delBtn = row.querySelector('.xp-del-btn');
