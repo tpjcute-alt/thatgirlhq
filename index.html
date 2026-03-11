@@ -7798,7 +7798,7 @@ async function loginWithSyncID(){
     if(!data){ errEl.textContent = 'Sync ID not found — double-check for typos or spaces.'; return; }
     localStorage.setItem(SYNC_ID_KEY, id);
     _syncID = id;
-    restoreAllData(data.data);
+    restoreAllData(typeof data.data === 'string' ? JSON.parse(data.data) : data.data);
     saveLocal();
     refreshAllRenderers();
     hideAuthOverlay();
@@ -7943,9 +7943,10 @@ async function syncToCloud(){
   _isSyncing = true;
   setSaveIndicator('Syncing…');
   try {
+    const payload = JSON.stringify(collectAllData());
     const { error } = await _sb.from('sync_data').upsert({
       sync_id: _syncID,
-      data: collectAllData(),
+      data: payload,
       updated_at: new Date().toISOString()
     }, { onConflict: 'sync_id' });
     if(error) throw error;
@@ -8056,7 +8057,7 @@ document.addEventListener('change', ()=>scheduleSave(), {passive:true});
       const { data, error } = await _sb.from('sync_data')
         .select('data').eq('sync_id', _syncID).single();
       if(!error && data){
-        restoreAllData(data.data);
+        restoreAllData(typeof data.data === 'string' ? JSON.parse(data.data) : data.data);
         saveLocal();
         refreshAllRenderers();
         setSaveIndicator('✓ Synced');
