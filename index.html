@@ -2938,9 +2938,9 @@ function deleteSlowPlanItem(){
 function toggleSlowPlanItem(p,i){
   const wasChecked = slowPlan[p][i].checked;
   slowPlan[p][i].checked = !wasChecked;
-  if(!wasChecked){
+  if(!wasChecked && !slowPlan[p][i].xpAwarded){
+    slowPlan[p][i].xpAwarded = true;
     awardXP(3,'Slow plan step ✦');
-    // Check if all done
     const allItems = Object.values(slowPlan).flat();
     if(allItems.every(x=>x.checked)){ awardXP(20,'Slow plan all done!'); checkAchievement('slowplan_all_done'); }
   }
@@ -2977,12 +2977,12 @@ function renderRituals(){
     const items=cat.versions[av]||[];
     h+=`<div id="rlist-${key}">`;
     items.forEach((item,i)=>{
-      h+=`<div class="ritual-item${item.checked?' checked':''}">
-        <div class="ritual-check" onclick="toggleRitualItem('${key}','${av}',${i})">${item.checked?'✓':''}</div>
+      h+=`<div class="ritual-item${item.checked?' checked':''}" onclick="toggleRitualItem('${key}','${av}',${i})">
+        <div class="ritual-check">${item.checked?'✓':''}</div>
         <div class="ritual-text">${item.text}</div>
         ${item.time?`<div class="ritual-time">${item.time}</div>`:''}
-        <button onclick="openRitualEdit('${key}','${av}',${i})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px;margin-left:auto">✎</button>
-        <button onclick="ritualData['${key}'].versions['${av}'].splice(${i},1);renderRituals()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>
+        <button onclick="event.stopPropagation();openRitualEdit('${key}','${av}',${i})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px;margin-left:auto">✎</button>
+        <button onclick="event.stopPropagation();ritualData['${key}'].versions['${av}'].splice(${i},1);renderRituals()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>
       </div>`;
     });
     h+=`</div><div class="add-ritual">
@@ -2998,12 +2998,14 @@ function renderRituals(){
 function toggleRitualItem(key,av,i){
   const wasChecked = ritualData[key].versions[av][i].checked;
   ritualData[key].versions[av][i].checked = !wasChecked;
-  if(!wasChecked){ // just checked
+  if(!wasChecked && !ritualData[key].versions[av][i].xpAwarded){ // just checked
+    ritualData[key].versions[av][i].xpAwarded = true;
     awardXP(5,'Ritual step done');
     checkAchievement('ritual_checked_all');
     // Check if whole category complete
     const items = ritualData[key].versions[av];
-    if(items.every(x=>x.checked)){
+    if(items.every(x=>x.checked) && !ritualData[key].versions[av]._completionXPAwarded){
+      ritualData[key].versions[av]._completionXPAwarded = true;
       awardXP(25,'Ritual complete! ✦');
       if(key==='morning') checkAchievement('ritual_first');
       if(key==='evening') checkAchievement('ritual_evening');
@@ -4694,15 +4696,17 @@ const AVATARS=[
 function renderXPLog(){
   const el = document.getElementById('achXPLog'); if(!el) return;
   if(!xpLog.length){ el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No XP earned yet — start using the app! ✦</div>'; return; }
-  // Group by level milestone
+  // ensure all entries have ids (back-compat)
+  xpLog.forEach(e=>{ if(!e.id) e.id = _xpId(); });
   el.innerHTML = xpLog.slice(0,40).map(e=>{
     const d = new Date(e.date);
     const timeStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;margin-bottom:4px;background:${e.isAchievement?'radial-gradient(ellipse at 20% 50%,#fff0f8,#fce8f4)':'white'};border:1.5px solid ${e.isAchievement?'var(--pink-mid)':'var(--border)'}">
+    return `<div id="xprow_${e.id}" data-confirming="0" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;margin-bottom:4px;background:${e.isAchievement?'radial-gradient(ellipse at 20% 50%,#fff0f8,#fce8f4)':'white'};border:1.5px solid ${e.isAchievement?'var(--pink-mid)':'var(--border)'}">
       <div style="font-size:13px;font-weight:700;color:var(--pink-deep);min-width:44px">+${e.xp} XP</div>
       <div style="flex:1;font-size:13px;color:var(--text)">${e.label}</div>
       <div style="font-size:10px;color:var(--text-soft);white-space:nowrap">${timeStr}</div>
       ${e.isAchievement?`<div style="font-size:10px;padding:2px 8px;background:var(--pink-mid);border-radius:10px;color:var(--text);font-weight:700">Lv ${e.level}</div>`:''}
+      <button class="xp-del-btn" onclick="deleteXPEntry('${e.id}')" title="Delete this XP entry" style="padding:2px 7px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--text-soft);font-size:10px;font-family:Outfit,sans-serif;cursor:pointer;flex-shrink:0;transition:all 0.15s">🗑</button>
     </div>`;
   }).join('');
 }
@@ -4850,7 +4854,7 @@ function checkAchievement(id){
   const oldLvl=calcLevel(totalXP);
   totalXP+=ach.xp;
   playerLevel=calcLevel(totalXP);
-  xpLog.unshift({xp:ach.xp, label:'🏆 '+ach.title, date:new Date().toISOString(), level:playerLevel, total:totalXP, isAchievement:true});
+  xpLog.unshift({id: _xpId(), xp:ach.xp, label:'🏆 '+ach.title, date:new Date().toISOString(), level:playerLevel, total:totalXP, isAchievement:true});
   if(xpLog.length>200) xpLog.length=200;
   const levelUp=playerLevel>oldLvl;
   showAchievementToast(ach, levelUp, playerLevel);
@@ -5377,7 +5381,7 @@ function renderMilestones(p){
 function toggleMilestone(pi,mi){
   const wasDone=projects[pi].milestones[mi].done;
   projects[pi].milestones[mi].done=!wasDone;
-  if(!wasDone){ awardXP(15,'Project milestone done ✦'); }
+  if(!wasDone && !projects[pi].milestones[mi].xpAwarded){ projects[pi].milestones[mi].xpAwarded=true; awardXP(15,'Project milestone done ✦'); }
   renderProjectDetail(); renderProjectList();
   if(projects[pi].milestones.every(m=>m.done)&&projects[pi].milestones.length) checkAchievement('acad_project_done');
 }
@@ -5411,11 +5415,20 @@ function toggleTodo(list,i){
   if(list==='master'){
     const wasDone=masterTodos[i].done;
     masterTodos[i].done=!masterTodos[i].done;
-    if(!wasDone){ awardXP(5,'Todo done ✓'); const doneCount=masterTodos.filter(t=>t.done).length; if(doneCount>=10)checkAchievement('prod_10todos'); }
+    if(!wasDone && !masterTodos[i].xpAwarded){
+      masterTodos[i].xpAwarded=true;
+      awardXP(5,'Todo done ✓');
+      const doneCount=masterTodos.filter(t=>t.done).length;
+      if(doneCount>=1) checkAchievement('prod_first_todo');
+      if(doneCount>=10) checkAchievement('prod_10todos');
+    }
   } else {
     const wasDone=quickTodos[i].done;
     quickTodos[i].done=!quickTodos[i].done;
-    if(!wasDone) awardXP(5,'Quick todo done ✓');
+    if(!wasDone && !quickTodos[i].xpAwarded){
+      quickTodos[i].xpAwarded=true;
+      awardXP(5,'Quick todo done ✓');
+    }
   }
   renderTodos(list);
 }
@@ -5517,7 +5530,7 @@ function showPage(id){
   if(id==='hobbies'){ renderHobbyList(); renderHobbyLog(); updateHobbySelect(); }
   if(id==='finance'){ renderFinOverview(); renderIncomeList(); renderBillsList(); renderSavingsList(); renderSpendLog(); renderGiftIdeas(); }
   if(id==='reflect'){ renderReflectionHistory(); renderJoyEntries(); }
-  if(id==='growth'){ renderMilestones(); renderSlowPlan(); }
+  if(id==='growth'){ renderTimeline(); renderSlowPlan(); }
   if(id==='content'){ renderContentOverview(); renderAllPosts(); setTimeout(drawContentCharts,50); }
   if(id==='achievements'){ renderAchievementsTab(); renderAvatarPicker(); }
   if(id==='stats') renderStats();
@@ -7614,15 +7627,28 @@ function copySyncID(){
 
 async function connectWithSyncID(id){
   id = id?.trim();
-  if(!id){ document.getElementById('syncGenError').textContent = 'No ID found.'; return; }
-  // Save to localStorage and connect
-  localStorage.setItem(SYNC_ID_KEY, id);
+  const errEl = document.getElementById('syncGenError');
+  if(!id){ errEl.textContent = 'No ID found.'; return; }
+  errEl.textContent = 'Saving to cloud…';
   _syncID = id;
-  // Push current local data up to cloud under this ID
-  await syncToCloud();
-  hideAuthOverlay();
-  updateAuthUI(true);
-  showToast('✦ Sync ID connected! Your data is saved to the cloud.');
+  try {
+    const { error } = await _sb.from('sync_data').upsert({
+      sync_id: id,
+      data: collectAllData(),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'sync_id' });
+    if(error) throw error;
+    localStorage.setItem(SYNC_ID_KEY, id);
+    saveLocal();
+    errEl.textContent = '';
+    hideAuthOverlay();
+    updateAuthUI(true);
+    showToast('✦ Sync ID saved! Use it to load your data on any device.');
+  } catch(e){
+    console.error('Sync connect error:', e);
+    _syncID = null;
+    errEl.textContent = '❌ Could not save to cloud: ' + (e.message || 'Check your connection.');
+  }
 }
 
 async function loginWithSyncID(){
@@ -7636,7 +7662,8 @@ async function loginWithSyncID(){
       .select('data')
       .eq('sync_id', id)
       .single();
-    if(error || !data){ errEl.textContent = 'Sync ID not found. Check for typos.'; return; }
+    if(error){ errEl.textContent = '❌ Error: ' + (error.message || 'Could not connect to cloud.'); return; }
+    if(!data){ errEl.textContent = 'Sync ID not found — double-check for typos or spaces.'; return; }
     localStorage.setItem(SYNC_ID_KEY, id);
     _syncID = id;
     restoreAllData(data.data);
@@ -7795,7 +7822,7 @@ async function syncToCloud(){
   } catch(e){
     console.warn('Sync error:', e);
     saveLocal();
-    setSaveIndicator('✓ Saved locally');
+    setSaveIndicator('⚠ Cloud sync failed');
   }
   _isSyncing = false;
 }
@@ -7840,6 +7867,8 @@ function importData(e){
   e.target.value='';
 }
 
+let reflectionLog = [];
+
 // ── Re-render everything ───────────────────────
 function refreshAllRenderers(){
   try {
@@ -7848,21 +7877,21 @@ function refreshAllRenderers(){
     renderJoyEntries();
     renderIllnessList();
     renderIELog(); buildIEScales();
-    renderWaterBottles();
+    renderWaterTracker();
     renderTodos('both'); renderGradeList(); renderGradeAvgs();
     renderCountdowns(); renderProjectList(); renderLectureList();
-    renderIdentityList(); renderAntiGoals(); renderCustomAffirmations();
+    renderIdentityList(); renderAntiGoals(); renderCustomAffirms();
     renderGiftIdeas(); renderQuotes();
     renderFinOverview(); renderIncomeList(); renderBillsList(); renderSavingsList(); renderSpendLog();
     renderTherapyList();
-    renderHobbies(); renderHobbyLog();
+    renderHobbyList(); renderHobbyLog();
     renderMedLog();
     renderUrgeLog();
-    renderMilestones();
+    renderTimeline();
     renderTripCards();
     initAffirmations();
     renderAchievementsTab();
-    renderHRMLog();
+    renderHrmDailyLog(); renderHrmResetLog();
     renderReflectionHistory();
   } catch(e){ console.warn('Refresh error:', e); }
 }
@@ -7900,7 +7929,7 @@ document.addEventListener('change', ()=>scheduleSave(), {passive:true});
         refreshAllRenderers();
         setSaveIndicator('✓ Synced');
       }
-    } catch(e){ console.warn('Boot sync error:', e); }
+    } catch(e){ console.warn('Boot sync error:', e); setSaveIndicator('⚠ Could not reach cloud'); }
   } else if(!hadLocal){
     // First time ever — show the sync ID overlay
     showAuthOverlay();
@@ -7916,12 +7945,53 @@ document.addEventListener('change', ()=>scheduleSave(), {passive:true});
 // ══════════════════════════════════════════════
 // XP AWARD
 // ══════════════════════════════════════════════
+let _xpIdCounter = Date.now();
+function _xpId(){ return 'xp_' + (++_xpIdCounter); }
+
+function deleteXPEntry(id){
+  const idx = xpLog.findIndex(e => e.id === id);
+  if(idx === -1) return;
+  const entry = xpLog[idx];
+  // show inline confirm
+  const row = document.getElementById('xprow_' + id);
+  if(!row) return;
+  // Check if confirm already shown
+  if(row.dataset.confirming === '1'){
+    // Actually delete
+    xpLog.splice(idx, 1);
+    totalXP = Math.max(0, totalXP - entry.xp);
+    playerLevel = calcLevel(totalXP);
+    scheduleSave();
+    renderXPLog();
+    renderAchievements && renderAchievements();
+    // update XP display
+    const xpEls = document.querySelectorAll('.player-xp-val, #hud-xp, #xpValDisplay');
+    xpEls.forEach(el => { if(el) el.textContent = totalXP + ' XP'; });
+    updateHUD && updateHUD();
+  } else {
+    row.dataset.confirming = '1';
+    const delBtn = row.querySelector('.xp-del-btn');
+    if(delBtn){
+      delBtn.textContent = '✓ yes, delete';
+      delBtn.style.background = '#e07898';
+      delBtn.style.color = 'white';
+      delBtn.style.borderColor = '#e07898';
+      // add cancel
+      const cancel = document.createElement('button');
+      cancel.textContent = 'cancel';
+      cancel.style.cssText = 'margin-left:4px;padding:2px 8px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--text-soft);font-size:10px;font-family:Outfit,sans-serif;cursor:pointer;';
+      cancel.onclick = (ev) => { ev.stopPropagation(); row.dataset.confirming='0'; delBtn.textContent='🗑'; delBtn.style.background=''; delBtn.style.color='var(--text-soft)'; delBtn.style.borderColor='var(--border)'; cancel.remove(); };
+      delBtn.after(cancel);
+    }
+  }
+}
+
 function awardXP(amount, label){
   totalXP += amount;
   const oldLvl = playerLevel;
   playerLevel = calcLevel(totalXP);
   // Record in log (keep last 200)
-  xpLog.unshift({xp:amount, label, date:new Date().toISOString(), level:playerLevel, total:totalXP});
+  xpLog.unshift({id: _xpId(), xp:amount, label, date:new Date().toISOString(), level:playerLevel, total:totalXP});
   if(xpLog.length>200) xpLog.length=200;
   const t = document.createElement('div');
   t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--pink-deep);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-family:Outfit,sans-serif;z-index:99999;font-weight:700;box-shadow:0 4px 16px rgba(224,120,152,0.4)';
@@ -7981,32 +8051,25 @@ window.claimPrize = function(){
 // RITUAL / SLOW PLAN XP
 // ══════════════════════════════════════════════
 document.addEventListener('click', function(e){
-  const check = e.target.closest('.ritual-check');
-  if(!check) return;
-  const item = check.closest('.ritual-item');
+  const item = e.target.closest('.ritual-item');
   if(!item) return;
+  const inSlowPlan = !!item.closest('#slowPlanGrid, #growthPlanGrid, #calSlowPlanGrid');
+  if(!inSlowPlan) return; // rituals handle their own XP in toggleRitualItem
   const wasChecked = item.classList.contains('checked');
   if(wasChecked) return; // unchecking, no XP
-  const inSlowPlan = !!check.closest('#slowPlanGrid, #growthPlanGrid, #calSlowPlanGrid');
-  const inRituals = document.getElementById('page-rituals').classList.contains('active');
-  if(inSlowPlan){
-    setTimeout(()=>{
-      awardXP(3, 'Slow plan task ✦');
-      const all = [...document.querySelectorAll('#slowPlanGrid .ritual-item')];
-      if(all.length && all.every(i=>i.classList.contains('checked'))){
-        checkAchievement('slowplan_all_done');
-        showToast('🌸 Entire slow plan done! Well done.');
-      }
-    }, 60);
-  } else if(inRituals){
-    setTimeout(()=> awardXP(5, 'Ritual step ✦'), 60);
-  }
+  setTimeout(()=>{
+    awardXP(3, 'Slow plan task ✦');
+    const all = [...document.querySelectorAll('#slowPlanGrid .ritual-item')];
+    if(all.length && all.every(i=>i.classList.contains('checked'))){
+      checkAchievement('slowplan_all_done');
+      showToast('🌸 Entire slow plan done! Well done.');
+    }
+  }, 60);
 }, {passive:true});
 
 // ══════════════════════════════════════════════
 // REFLECTIONS
 // ══════════════════════════════════════════════
-let reflectionLog = [];
 
 function saveReflection(){
   const get = id => (document.getElementById(id)||{value:''}).value.trim();
