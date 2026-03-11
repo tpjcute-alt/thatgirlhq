@@ -383,6 +383,13 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 .todo-text.done { text-decoration:line-through; opacity:0.5; }
 
 /* ── VISION BOARD ── */
+.vision-board-tab { padding:8px 18px; border-radius:50px; border:1.5px solid var(--border); background:var(--white); font-family:'Outfit',sans-serif; font-size:12px; font-weight:700; color:var(--text-soft); cursor:pointer; transition:all 0.18s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.vision-board-tab:hover { border-color:var(--pink-mid); color:var(--pink-deep); background:var(--pink-glow); }
+.vision-board-tab.active { background:var(--pink-light); border-color:var(--pink); color:var(--pink-deep); }
+.vision-board-tab-del { font-size:14px; line-height:1; opacity:0.5; margin-left:2px; transition:opacity 0.15s; }
+.vision-board-tab-del:hover { opacity:1; }
+.vision-board-add { padding:8px 14px; border-radius:50px; border:1.5px dashed var(--pink-mid); background:none; font-family:'Outfit',sans-serif; font-size:14px; font-weight:700; color:var(--pink-deep); cursor:pointer; transition:all 0.18s; }
+.vision-board-add:hover { background:var(--pink-glow); }
 .vision-img-wrap { position:relative; border-radius:16px; overflow:hidden; aspect-ratio:1; background:var(--pink-glow); }
 .vision-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
 .vision-img-wrap .vision-del { position:absolute; top:6px; right:6px; background:rgba(255,255,255,0.85); border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; font-size:12px; display:none; align-items:center; justify-content:center; }
@@ -788,6 +795,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 
   <div class="ritual-tabs" id="finTabBar">
     <button class="ritual-tab active" onclick="switchFinTab(this,'overview')">📊 Overview</button>
+    <button class="ritual-tab" onclick="switchFinTab(this,'accounts')">🏦 Accounts</button>
     <button class="ritual-tab" onclick="switchFinTab(this,'income')">💚 Income</button>
     <button class="ritual-tab" onclick="switchFinTab(this,'bills')">📋 Bills</button>
     <button class="ritual-tab" onclick="switchFinTab(this,'savings')">🎯 Savings</button>
@@ -795,8 +803,19 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <button class="ritual-tab" onclick="switchFinTab(this,'gifts')">🎁 Gifts</button>
   </div>
 
+  <!-- ACCOUNTS -->
+  <div id="fin-accounts" class="fin-panel" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="section-label" style="margin-bottom:0">My Accounts</div>
+      <button class="pink-btn" onclick="openAddAccountModal()">＋ Add Account</button>
+    </div>
+    <div id="accountsTotalBar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px"></div>
+    <div id="accountsList"></div>
+  </div>
+
   <!-- OVERVIEW -->
   <div id="fin-overview" class="fin-panel">
+    <div id="finOverviewBalance" style="margin-bottom:20px"></div>
     <div class="grid3" style="margin-bottom:20px">
       <div class="card" style="text-align:center">
         <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">Monthly Income</div>
@@ -811,6 +830,8 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
         <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--text)" id="finOverviewRemaining">£0</div>
       </div>
     </div>
+    <div class="section-label">My Accounts</div>
+    <div id="finOverviewAccounts" style="margin-bottom:20px"></div>
     <div class="section-label">Savings Progress</div>
     <div id="finOverviewSavings"></div>
     <div class="section-label" style="margin-top:20px">Budget Trackers</div>
@@ -886,7 +907,20 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
         <div class="section-label">Spend Log</div><div id="spendLog"></div>
         <div class="section-label" style="margin-top:16px">Wishlist 🌸</div>
         <div id="wishlistItems"></div>
-        <div style="display:flex;gap:8px;margin-top:10px"><input class="text-input" style="flex:1" id="wishlistInput" placeholder="Add to wishlist…"><button class="pink-btn" onclick="addWishlistItem()">Add</button></div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px">
+            <input class="text-input" style="flex:1;font-size:13px" id="wishlistInput" placeholder="Add to wishlist…">
+            <input class="text-input" style="width:70px;font-size:13px" id="wishlistPrice" placeholder="£" type="text">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label style="flex:1;cursor:pointer;padding:8px 12px;background:var(--pink-glow);border:1.5px dashed var(--border);border-radius:10px;font-size:12px;color:var(--text-soft);text-align:center">
+              📷 Add photo (optional) <input type="file" accept="image/*" style="display:none" id="wishlistImageInput" onchange="previewWishlistImage(event)">
+            </label>
+            <button class="pink-btn" style="padding:10px 18px" onclick="addWishlistItem()">Add</button>
+          </div>
+          <img id="wishlistImagePreview" style="display:none;width:100%;max-height:120px;object-fit:cover;border-radius:10px">
+          <input type="hidden" id="wishlistImageData">
+        </div>
       </div>
       <div>
         <div class="section-label">Impulse Patterns</div>
@@ -913,6 +947,80 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   </div>
 </div>
 
+<!-- Add Booking Modal -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal-box" style="max-width:500px"><button class="modal-close" onclick="closeModal('bookingModal')">×</button>
+    <div class="modal-title" id="bookingModalTitle">Add Booking. ✈️</div>
+    <input type="hidden" id="bookingEditIdx">
+
+    <!-- Type selector -->
+    <div class="form-row">
+      <label class="form-label">Type</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="bookingTypeTabs">
+        <button class="ritual-tab active" onclick="switchBookingType(this,'flight')" style="flex:1">✈️ Flight</button>
+        <button class="ritual-tab" onclick="switchBookingType(this,'hotel')" style="flex:1">🏨 Hotel</button>
+        <button class="ritual-tab" onclick="switchBookingType(this,'transport')" style="flex:1">🚗 Transport</button>
+        <button class="ritual-tab" onclick="switchBookingType(this,'other')" style="flex:1">🎟 Other</button>
+      </div>
+    </div>
+    <input type="hidden" id="bookingType" value="flight">
+
+    <div class="form-row"><label class="form-label" id="bookingNameLabel">Airline / Flight no.</label><input class="text-input" id="bookingName" placeholder="e.g. Ryanair FR1234"></div>
+
+    <!-- Flight-specific fields -->
+    <div id="bookingFlightFields">
+      <div class="grid2">
+        <div class="form-row"><label class="form-label">From</label><input class="text-input" id="bookingFrom" placeholder="e.g. LHR, Manchester"></div>
+        <div class="form-row"><label class="form-label">To</label><input class="text-input" id="bookingTo" placeholder="e.g. BCN, Rome"></div>
+      </div>
+      <div class="grid2">
+        <div class="form-row"><label class="form-label">Departure</label><input class="text-input" type="datetime-local" id="bookingDepart"></div>
+        <div class="form-row"><label class="form-label">Arrival</label><input class="text-input" type="datetime-local" id="bookingArrive"></div>
+      </div>
+    </div>
+
+    <!-- Hotel-specific fields -->
+    <div id="bookingHotelFields" style="display:none">
+      <div class="grid2">
+        <div class="form-row"><label class="form-label">Check-in</label><input class="text-input" type="date" id="bookingCheckin"></div>
+        <div class="form-row"><label class="form-label">Check-out</label><input class="text-input" type="date" id="bookingCheckout"></div>
+      </div>
+      <div class="form-row"><label class="form-label">Address / Location</label><input class="text-input" id="bookingAddress" placeholder="Hotel address or area"></div>
+    </div>
+
+    <!-- Transport fields -->
+    <div id="bookingTransportFields" style="display:none">
+      <div class="grid2">
+        <div class="form-row"><label class="form-label">Pick-up</label><input class="text-input" id="bookingPickup" placeholder="e.g. Airport, Hotel…"></div>
+        <div class="form-row"><label class="form-label">Drop-off</label><input class="text-input" id="bookingDropoff" placeholder="e.g. City centre…"></div>
+      </div>
+      <div class="form-row"><label class="form-label">Date & Time</label><input class="text-input" type="datetime-local" id="bookingTransportTime"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="form-row"><label class="form-label">Confirmation no.</label><input class="text-input" id="bookingRef" placeholder="e.g. ABC123"></div>
+      <div class="form-row"><label class="form-label">Cost (£)</label><input class="text-input" type="number" id="bookingCost" placeholder="0"></div>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea class="text-input" rows="2" id="bookingNotes" placeholder="Seat number, luggage info, contact details…"></textarea></div>
+
+    <!-- Photo upload -->
+    <div class="form-row">
+      <label class="form-label">Photo / Screenshot (optional)</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <span style="background:var(--pink-glow);border:1.5px dashed var(--border);border-radius:10px;padding:7px 16px;font-size:12px;color:var(--text-soft)">📷 Add screenshot or photo</span>
+        <input type="file" accept="image/*" style="display:none" onchange="previewBookingImage(event)">
+      </label>
+      <img id="bookingImagePreview" style="display:none;width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-top:8px">
+      <input type="hidden" id="bookingImageData">
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="pink-btn" style="flex:1" onclick="saveBooking()">Save Booking ✦</button>
+      <button id="bookingDeleteBtn" class="pink-pill" style="display:none;color:#e08080;border-color:#e08080" onclick="deleteBooking()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- New Trip Modal -->
 <div class="modal-overlay" id="newTripModal">
   <div class="modal-box" style="max-width:520px"><button class="modal-close" onclick="closeModal('newTripModal')">×</button>
@@ -933,6 +1041,35 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   </div>
 </div>
 
+<!-- Add Account Modal -->
+<div class="modal-overlay" id="addAccountModal">
+  <div class="modal-box" style="max-width:460px"><button class="modal-close" onclick="closeModal('addAccountModal')">×</button>
+    <div class="modal-title" id="addAccountModalTitle">Add Account. 🏦</div>
+    <input type="hidden" id="editAccountIdx">
+    <div class="form-row"><label class="form-label">Account Name</label><input class="text-input" id="accountName" placeholder="e.g. Main Current Account, Rainy Day…"></div>
+    <div class="grid2">
+      <div class="form-row"><label class="form-label">Bank / Provider</label><input class="text-input" id="accountBank" placeholder="e.g. Monzo, Barclays, Revolut…"></div>
+      <div class="form-row"><label class="form-label">Account Type</label>
+        <select class="form-select" id="accountType">
+          <option value="current">Current Account</option>
+          <option value="savings">Savings Account</option>
+          <option value="isa">ISA</option>
+          <option value="credit">Credit Card</option>
+          <option value="investment">Investment</option>
+          <option value="cash">Cash / Wallet</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label class="form-label">Current Balance (£) — can be negative</label><input class="text-input" type="number" id="accountBalance" placeholder="e.g. 1250 or -300" step="0.01"></div>
+    <div class="form-row"><label class="form-label">Notes (optional)</label><input class="text-input" id="accountNotes" placeholder="e.g. Emergency fund, Don't touch…"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="pink-btn" style="flex:1" onclick="saveAccount()">Save Account ✦</button>
+      <button id="deleteAccountBtn" class="pink-pill" style="display:none;color:#e08080;border-color:#e08080" onclick="deleteAccount()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- Gift Idea Modal -->
 <div class="modal-overlay" id="giftIdeaModal">
   <div class="modal-box" style="max-width:460px"><button class="modal-close" onclick="closeModal('giftIdeaModal')">×</button>
@@ -942,6 +1079,16 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <div class="grid2">
       <div class="form-row"><label class="form-label">Approx. Cost</label><input class="text-input" id="giftCost" placeholder="£" type="number"></div>
       <div class="form-row"><label class="form-label">Occasion</label><input class="text-input" id="giftOccasion" placeholder="Birthday, Christmas…"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Photo (optional)</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;background:var(--pink-glow);border:1.5px dashed var(--border);border-radius:12px">
+        <span style="font-size:20px">📷</span>
+        <span style="font-size:13px;color:var(--text-soft)">Tap to add a photo…</span>
+        <input type="file" accept="image/*" style="display:none" onchange="previewGiftImage(event)">
+      </label>
+      <img id="giftImagePreview" style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:8px">
+      <input type="hidden" id="giftImageData">
     </div>
     <button class="pink-btn" style="width:100%" onclick="saveGiftIdea()">Save ✦</button>
   </div>
@@ -1199,6 +1346,12 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
             <input class="text-input" style="flex:1" placeholder="What happened?" id="milestoneTitle">
           </div>
           <textarea class="text-input" rows="2" placeholder="A little more detail…" id="milestoneDesc"></textarea>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;font-size:12px;color:var(--text-soft)">
+            <span style="background:var(--pink-glow);border:1.5px dashed var(--border);border-radius:10px;padding:6px 14px">📷 Add photo (optional)</span>
+            <input type="file" accept="image/*" style="display:none" id="milestoneImageInput" onchange="previewMilestoneImage(event)">
+          </label>
+          <img id="milestoneImagePreview" style="display:none;width:100%;max-height:130px;object-fit:cover;border-radius:10px;margin-top:8px">
+          <input type="hidden" id="milestoneImageData">
           <button class="pink-btn" style="margin-top:10px" onclick="addMilestone()">Add ✦</button>
         </div>
       </div>
@@ -1479,7 +1632,8 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
       <div class="section-label" style="margin-bottom:0">Lecture Vault</div>
       <div style="display:flex;gap:8px">
         <label class="pink-pill" style="font-size:11px;cursor:pointer">📂 Import Slides <input type="file" accept=".pdf" style="display:none" onchange="importLecture(event)"></label>
-        <button class="pink-pill" style="font-size:11px" onclick="downloadLecturePackage()">⬇ Download Package</button>
+        <button class="pink-pill" style="font-size:11px" onclick="downloadLectureNotesPDF()">⬇ Notes PDF</button>
+        <button class="pink-pill" style="font-size:11px" onclick="downloadLectureSlidesPDF()">⬇ Slides PDF</button>
       </div>
     </div>
     <div id="lectureListView">
@@ -2075,10 +2229,14 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 
   <!-- VISION BOARD -->
   <div id="motiv-vision" class="motiv-panel" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="section-label" style="margin-bottom:0">Vision Board</div>
-      <label class="pink-btn" style="cursor:pointer">＋ Add Image <input type="file" accept="image/*" style="display:none" onchange="addVisionImage(event)" multiple></label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="visionBoardCount" style="font-size:11px;color:var(--text-soft);font-style:italic"></span>
+        <label class="pink-btn" style="cursor:pointer">＋ Add Image <input type="file" accept="image/*" style="display:none" onchange="addVisionImage(event)" multiple></label>
+      </div>
     </div>
+    <div id="visionBoardTabs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center"></div>
     <div style="font-size:13px;color:var(--text-soft);font-style:italic;margin-bottom:16px">Upload images of your goals, dreams, aesthetic. Make it yours. ✦</div>
     <div id="visionBoard" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
     <div id="visionEmpty" style="font-size:13px;color:var(--text-soft);font-style:italic;padding:24px 0;text-align:center">No images yet — add your first vision ✦</div>
@@ -2335,6 +2493,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <!-- Sub-tabs -->
     <div class="ritual-tabs" id="tripDetailTabBar" style="margin-bottom:24px">
       <button class="ritual-tab active" onclick="switchTripDetailTab(this,'overview')">📋 Overview</button>
+      <button class="ritual-tab" onclick="switchTripDetailTab(this,'bookings')">🏨 Bookings</button>
       <button class="ritual-tab" onclick="switchTripDetailTab(this,'before')">✅ Before You Go</button>
       <button class="ritual-tab" onclick="switchTripDetailTab(this,'itinerary')">🗺 Itinerary</button>
       <button class="ritual-tab" onclick="switchTripDetailTab(this,'packing')">🧳 Packing</button>
@@ -2359,6 +2518,53 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
       <div class="card" style="margin-top:16px">
         <div class="section-label">Quick Stats</div>
         <div id="tripOverviewStats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px"></div>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div id="tripTab-bookings" class="trip-panel" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">Bookings & Travel. 🏨</div>
+          <div style="font-size:13px;color:var(--text-mid)">Flights, hotels, transfers — all in one place.</div>
+        </div>
+        <button class="pink-btn" onclick="openBookingModal()">＋ Add Booking</button>
+      </div>
+
+      <!-- Flights -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:20px">✈️</span>
+          <div class="section-label" style="margin-bottom:0">Flights</div>
+        </div>
+        <div id="bookingList-flight"><div style="font-size:13px;color:var(--text-soft);font-style:italic">No flights added yet ✦</div></div>
+      </div>
+
+      <!-- Hotels -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:20px">🏨</span>
+          <div class="section-label" style="margin-bottom:0">Hotels & Accommodation</div>
+        </div>
+        <div id="bookingList-hotel"><div style="font-size:13px;color:var(--text-soft);font-style:italic">No hotels added yet ✦</div></div>
+      </div>
+
+      <!-- Transport -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:20px">🚗</span>
+          <div class="section-label" style="margin-bottom:0">Transport & Transfers</div>
+        </div>
+        <div id="bookingList-transport"><div style="font-size:13px;color:var(--text-soft);font-style:italic">No transport added yet ✦</div></div>
+      </div>
+
+      <!-- Other -->
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:20px">🎟</span>
+          <div class="section-label" style="margin-bottom:0">Experiences & Other</div>
+        </div>
+        <div id="bookingList-other"><div style="font-size:13px;color:var(--text-soft);font-style:italic">No other bookings yet ✦</div></div>
       </div>
     </div>
 
@@ -2795,6 +3001,15 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <input type="hidden" id="tlEditIdx">
     <div style="display:grid;grid-template-columns:80px 1fr;gap:10px" class="form-row"><div><label class="form-label">Year</label><input class="text-input" id="tlYear"></div><div><label class="form-label">Title</label><input class="text-input" id="tlTitle"></div></div>
     <div class="form-row"><label class="form-label">Description</label><textarea class="text-input" rows="3" id="tlDesc"></textarea></div>
+    <div class="form-row">
+      <label class="form-label">Photo</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text-soft)">
+        <span style="background:var(--pink-glow);border:1.5px dashed var(--border);border-radius:10px;padding:6px 14px">📷 Change photo</span>
+        <input type="file" accept="image/*" style="display:none" id="tlImageInput" onchange="previewTlImage(event)">
+      </label>
+      <img id="tlImagePreview" style="display:none;width:100%;max-height:130px;object-fit:cover;border-radius:10px;margin-top:8px">
+      <input type="hidden" id="tlImageData">
+    </div>
     <div style="display:flex;gap:10px"><button class="pink-btn" style="flex:1" onclick="saveTimeline()">Save ✦</button><button class="pink-pill" onclick="deleteTimeline()" style="color:#c04040">🗑 Delete</button></div>
   </div>
 </div>
@@ -2815,13 +3030,52 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   <div class="modal-box"><button class="modal-close" onclick="closeModal('dietLogModal')">×</button>
     <div class="modal-title" id="dietLogModalTitle">Log Meal.</div>
     <input type="hidden" id="dietLogDay"><input type="hidden" id="dietLogSlot">
-    <div class="form-row"><label class="form-label">Meal</label>
-      <input class="text-input" id="dietMealName" placeholder="e.g. Chicken & rice, Smoothie bowl…" list="savedMealsList">
-      <datalist id="savedMealsList"></datalist>
+
+    <!-- Type tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:14px" id="dietTypeTabs">
+      <button class="ritual-tab active" onclick="switchDietType(this,'meal')" style="flex:1">🍽 Meal</button>
+      <button class="ritual-tab" onclick="switchDietType(this,'snack')" style="flex:1">🍎 Snack</button>
+      <button class="ritual-tab" onclick="switchDietType(this,'drink')" style="flex:1">🥤 Drink</button>
     </div>
-    <div class="form-row"><label class="form-label">Calories</label><input class="text-input" type="number" id="dietMealCals" placeholder="e.g. 450"></div>
-    <div class="form-row"><label class="form-label">How good was it?</label><div class="star-rating" id="mealStars" onclick="rateMeal(event)"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div></div>
-    <button class="pink-btn" style="width:100%" onclick="saveDietMeal()">Save Meal ✦</button>
+
+    <!-- Quick-select saved items -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">Saved — tap to fill in</div>
+      <div id="dietQuickSelect" style="display:flex;flex-wrap:wrap;gap:6px">
+        <span style="font-size:12px;color:var(--text-soft);font-style:italic">No saved items yet — they appear here after you log them ✦</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label" id="dietMealNameLabel">Name</label>
+      <input class="text-input" id="dietMealName" placeholder="e.g. Buldak, Green tea…">
+    </div>
+    <div class="form-row"><label class="form-label">Calories (kcal)</label><input class="text-input" type="number" id="dietMealCals" placeholder="e.g. 200"></div>
+    <div class="form-row"><label class="form-label">Rating</label><div class="star-rating" id="mealStars" onclick="rateMeal(event)"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="pink-btn" style="flex:1" onclick="saveDietMeal()">Save ✦</button>
+      <button class="pink-pill" style="font-size:11px" onclick="openManageSavedMeals()">⚙ Manage Saved</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage Saved Meals modal -->
+<div class="modal-overlay" id="manageSavedMealsModal">
+  <div class="modal-box"><button class="modal-close" onclick="closeModal('manageSavedMealsModal')">×</button>
+    <div class="modal-title">Saved Items. ✦</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+      <input class="text-input" style="flex:1;min-width:120px" id="newSavedName" placeholder="Name (e.g. Buldak, Oat milk latte…)">
+      <input class="text-input" style="width:80px" id="newSavedCals" type="number" placeholder="kcal">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <select class="form-select" id="newSavedType" style="flex:1">
+        <option value="meal">🍽 Meal</option>
+        <option value="snack">🍎 Snack</option>
+        <option value="drink">🥤 Drink</option>
+      </select>
+      <button class="pink-btn" onclick="addManualSavedItem()">Add ✦</button>
+    </div>
+    <div id="manageSavedList"></div>
   </div>
 </div>
 
@@ -2987,21 +3241,34 @@ function saveMorningIntention(btn, isEvening=false){
   scheduleSave();
 }
 
-// Home agenda preview
-let homeAgendaItems = [
-  {time:'9:00',label:'UCP — Oral Pathology',cat:'Study',color:'var(--pink)',done:false},
-  {time:'14:00',label:'Gym session 💪',cat:'Fitness',color:'#c8e4f8',done:false},
-];
+// Home agenda preview — live from calEvents
+let homeAgendaItems = []; // legacy compat only
 function renderHomeAgenda(){
   const _hap = document.getElementById('homeAgendaPreview'); if(!_hap) return;
-  _hap.innerHTML = homeAgendaItems.map((e,i)=>`
-    <div class="agenda-item${e.done?' done':''}" onclick="homeAgendaItems[${i}].done=!homeAgendaItems[${i}].done;renderHomeAgenda()">
-      <div class="agenda-time">${e.time}</div><div class="agenda-dot" style="background:${e.color}"></div>
-      <div class="agenda-label">${e.label}</div><div class="tag">${e.cat}</div>
-    </div>`).join('') + `<div style="margin-top:10px"><button class="pink-pill" onclick="showPage('calendar')" style="font-size:11px">View full calendar →</button></div>`;
+  let evs = [];
+  try {
+    const todayStr = isoDate(now);
+    evs = calEvents.filter(e=>e.date===todayStr)
+      .concat(
+        Object.entries(gymSchedule).filter(([day,w])=>w&&w!=='Rest'&&DAYS[now.getDay()]===day)
+          .map(([,w])=>({title:'🏋️ '+w,time:'',timeFrom:'',timeTo:'',cat:'Gym',color:'#a0c8a0',done:false,_gym:true}))
+      )
+      .sort((a,b)=>(a.timeFrom||a.time||'').localeCompare(b.timeFrom||b.time||''));
+  } catch(e){ return; }
+  if(!evs.length){
+    _hap.innerHTML = '<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0 12px">Nothing on the calendar today ✦</div><div><button class="pink-pill" onclick="showPage(\'calendar\')" style="font-size:11px">Open calendar →</button></div>';
+    return;
+  }
+  _hap.innerHTML = evs.map(e=>{
+    const timeStr = e.timeFrom&&e.timeTo?`${e.timeFrom}–${e.timeTo}`:e.timeFrom?e.timeFrom:(e.time||'—');
+    return `<div class="agenda-item${e.done?' done':''}">
+      <div class="agenda-time">${timeStr}</div>
+      <div class="agenda-dot" style="background:${e.color||'var(--pink)'}"></div>
+      <div class="agenda-label">${e.title}</div>
+      <div class="tag">${e.cat}</div>
+    </div>`;
+  }).join('') + '<div style="margin-top:10px"><button class="pink-pill" onclick="showPage(\'calendar\')" style="font-size:11px">View full calendar →</button></div>';
 }
-renderHomeAgenda();
-
 // Home morning rituals (pull from ritualData morning weekday)
 function renderHomeMorningRitual(){ /* ritual card removed from home page */ }
 
@@ -3117,7 +3384,9 @@ function renderRituals(){
         <button onclick="event.stopPropagation();ritualData['${key}'].versions['${av}'].splice(${i},1);renderRituals()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>
       </div>`;
     });
-    h+=`</div><div class="add-ritual">
+    h+=`</div>`;
+    if(items.length>0) h+=`<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button onclick="resetRitualItems('${key}','${av}')" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--text-soft);cursor:pointer;font-family:'Outfit',sans-serif">↺ Reset all</button></div>`;
+    h+=`<div class="add-ritual">
       <input class="text-input" style="flex:1" placeholder="Add a step…" id="ri-${key}" onkeydown="if(event.key==='Enter')addRitualItem('${key}')">
       <input class="text-input" style="width:80px" placeholder="time" id="rt-${key}">
       <button class="pink-btn" onclick="addRitualItem('${key}')">Add</button>
@@ -3155,6 +3424,13 @@ function toggleRitualItem(key,av,i){
     }
   }
   renderRituals(); renderHomeMorningRitual();
+}
+function resetRitualItems(key,av){
+  const items = ritualData[key]?.versions?.[av];
+  if(!items) return;
+  items.forEach(item=>{ item.checked=false; item.xpAwarded=false; });
+  ritualData[key].versions[av]._completionXPAwarded=false;
+  renderRituals(); scheduleSave();
 }
 function addRitualItem(key){
   const i=document.getElementById('ri-'+key), t=document.getElementById('rt-'+key);
@@ -3281,17 +3557,45 @@ function updateEmotionBars(){
 }
 function addToWishlist(){
   const item=document.getElementById('spendItem')?.value?.trim()||'', price=document.getElementById('spendAmount')?.value||'';
-  if(!item)return; wishlist.unshift({text:item,price:price?`£${price}`:''}); if(wishlist.length>=5)checkAchievement('spend_wishlist5'); if(wishlist.length>=10)checkAchievement('spend_wishlist10'); renderWishlist();
+  if(!item)return; wishlist.unshift({text:item,price:price?`£${price}`:'',image:''}); if(wishlist.length>=5)checkAchievement('spend_wishlist5'); if(wishlist.length>=10)checkAchievement('spend_wishlist10'); renderWishlist(); scheduleSave();
+}
+function previewWishlistImage(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const prev=document.getElementById('wishlistImagePreview');
+    const data=document.getElementById('wishlistImageData');
+    if(prev){ prev.src=ev.target.result; prev.style.display='block'; }
+    if(data) data.value=ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 function addWishlistItem(){
   const i=document.getElementById('wishlistInput'); if(!i.value.trim())return;
-  wishlist.unshift({text:i.value.trim(),price:''}); i.value='';
+  const price=document.getElementById('wishlistPrice')?.value?.trim()||'';
+  const image=document.getElementById('wishlistImageData')?.value||'';
+  wishlist.unshift({text:i.value.trim(),price:price?`£${price}`:'',image});
+  i.value='';
+  if(document.getElementById('wishlistPrice')) document.getElementById('wishlistPrice').value='';
+  if(document.getElementById('wishlistImageData')) document.getElementById('wishlistImageData').value='';
+  if(document.getElementById('wishlistImagePreview')){ document.getElementById('wishlistImagePreview').style.display='none'; document.getElementById('wishlistImagePreview').src=''; }
+  if(document.getElementById('wishlistImageInput')) document.getElementById('wishlistImageInput').value='';
   if(wishlist.length>=5) checkAchievement('spend_wishlist5');
   if(wishlist.length>=10) checkAchievement('spend_wishlist10');
-  renderWishlist();
+  renderWishlist(); scheduleSave();
 }
 function renderWishlist(){
-  document.getElementById('wishlistItems').innerHTML=wishlist.map((w,i)=>`<div class="agenda-item"><div class="agenda-label">🌸 ${w.text}</div><div class="tag">${w.price}</div><button onclick="wishlist.splice(${i},1);renderWishlist()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button></div>`).join('');
+  const el=document.getElementById('wishlistItems'); if(!el) return;
+  if(!wishlist.length){ el.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">Your wishlist is empty ✦</div>`; return; }
+  el.innerHTML=wishlist.map((w,i)=>`
+    <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;background:white;border:1.5px solid var(--border);border-radius:12px;margin-bottom:7px">
+      ${w.image?`<img src="${w.image}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">`:'<span style="font-size:18px;flex-shrink:0">🌸</span>'}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${w.text}</div>
+        ${w.price?`<div style="font-size:11px;color:var(--text-soft)">${w.price}</div>`:''}
+      </div>
+      <button onclick="wishlist.splice(${i},1);renderWishlist();scheduleSave();checkAchievement('spend_wishlist_clear')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+    </div>`).join('');
 }
 
 // ═══════════════════ GYM ═══════════════════
@@ -3483,11 +3787,83 @@ function rateGym(e){ const s=e.target.closest('.star'); if(!s)return; gymRating=
 // ═══════════════════ DIET ═══════════════════
 let dietSettings={dayLimit:1800,weekLimit:12600};
 let mealPlan={}; // {dayKey: {B:null, L:null, D:null, S:null}}
-let savedMeals=[];
+let savedMeals=[]; // [{name, cals, type}] — legacy plain strings handled gracefully
 let dietImpulses=[];
 let dietRating=0, mealRating=0;
+let currentDietType='meal'; // 'meal' | 'snack' | 'drink'
 const MEAL_SLOTS=['B','L','D','S'];
 const MEAL_LABELS={B:'Breakfast',L:'Lunch',D:'Dinner',S:'Snack'};
+const DIET_TYPE_ICON={meal:'',snack:'🍎 ',drink:'🥤 '};
+
+function switchDietType(btn, type){
+  document.querySelectorAll('#dietTypeTabs .ritual-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentDietType=type;
+  const labels={meal:'Meal name',snack:'Snack name',drink:'Drink name'};
+  const placeholders={meal:'e.g. Buldak, Chicken & rice…',snack:'e.g. Banana, Almonds…',drink:'e.g. Green tea, Protein shake…'};
+  document.getElementById('dietMealNameLabel').textContent=labels[type];
+  document.getElementById('dietMealName').placeholder=placeholders[type];
+  renderDietQuickSelect(type);
+}
+
+function renderDietQuickSelect(type){
+  const el=document.getElementById('dietQuickSelect'); if(!el) return;
+  const items=savedMeals.filter(m=>{
+    const t=typeof m==='string'?'meal':m.type;
+    return t===type;
+  });
+  if(!items.length){
+    el.innerHTML=`<span style="font-size:12px;color:var(--text-soft);font-style:italic">No saved ${type}s yet — they'll appear here after you log them ✦</span>`;
+    return;
+  }
+  el.innerHTML=items.map(m=>{
+    const name=typeof m==='string'?m:m.name;
+    const cals=typeof m==='string'?null:m.cals;
+    return `<button class="pink-pill" style="font-size:12px;padding:5px 12px" onclick="fillDietFromSaved('${name.replace(/'/g,"\\'")}',${cals||0})">${name}${cals?' · '+cals+'kcal':''}</button>`;
+  }).join('');
+}
+
+function fillDietFromSaved(name, cals){
+  document.getElementById('dietMealName').value=name;
+  if(cals) document.getElementById('dietMealCals').value=cals;
+}
+
+function openManageSavedMeals(){
+  renderManageSavedList();
+  openModal('manageSavedMealsModal');
+}
+
+function renderManageSavedList(){
+  const el=document.getElementById('manageSavedList'); if(!el) return;
+  const structured=savedMeals.map(m=>typeof m==='string'?{name:m,cals:0,type:'meal'}:m);
+  if(!structured.length){ el.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic">Nothing saved yet ✦</div>`; return; }
+  const icons={meal:'🍽',snack:'🍎',drink:'🥤'};
+  el.innerHTML=structured.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;margin-bottom:7px">
+      <span style="font-size:16px">${icons[m.type]||'🍽'}</span>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${m.name}</div>
+        <div style="font-size:11px;color:var(--text-soft)">${m.cals?m.cals+' kcal · ':''}${m.type}</div>
+      </div>
+      <button onclick="removeSavedMealItem(${i})" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft)">🗑</button>
+    </div>`).join('');
+}
+
+function addManualSavedItem(){
+  const name=document.getElementById('newSavedName').value.trim();
+  const cals=parseInt(document.getElementById('newSavedCals').value)||0;
+  const type=document.getElementById('newSavedType').value;
+  if(!name) return;
+  const idx=savedMeals.findIndex(m=>(typeof m==='string'?m:m.name).toLowerCase()===name.toLowerCase());
+  if(idx>=0) savedMeals.splice(idx,1);
+  savedMeals.unshift({name,cals,type});
+  document.getElementById('newSavedName').value=''; document.getElementById('newSavedCals').value='';
+  renderManageSavedList(); scheduleSave(); showToast(name+' saved ✦');
+}
+
+function removeSavedMealItem(i){
+  savedMeals.splice(i,1); renderManageSavedList(); scheduleSave();
+}
 
 function getWeekDays(){
   const mon=new Date(now); mon.setDate(now.getDate()-(now.getDay()===0?6:now.getDay()-1));
@@ -3507,7 +3883,7 @@ function renderWeekMealGrid(){
       const s=document.createElement('div');
       if(meal){
         s.className='meal-slot';
-        s.innerHTML=`<div class="meal-slot-label">${MEAL_LABELS[slot]}</div><div style="font-size:12px;font-weight:600">${meal.name}</div><div style="font-size:10px;color:var(--text-soft)">${meal.cals}kcal ${'★'.repeat(meal.rating||0)}</div>`;
+        s.innerHTML=`<div class="meal-slot-label">${MEAL_LABELS[slot]}</div><div style="font-size:12px;font-weight:600">${DIET_TYPE_ICON[meal.type]||''}${meal.name}</div><div style="font-size:10px;color:var(--text-soft)">${meal.cals}kcal ${'★'.repeat(meal.rating||0)}</div>`;
         s.onclick=()=>openDietLogMeal(key,slot,meal);
       } else {
         s.className='meal-add-btn';
@@ -3547,26 +3923,29 @@ function openDietLogMeal(day,slot,existing){
   document.getElementById('dietMealCals').value=existing?.cals||'';
   mealRating=existing?.rating||0;
   updateStars('mealStars',mealRating);
-  updateSavedMealsDatalist();
+  // Set type from existing or sensible default
+  const type=existing?.type||(slot==='S'?'snack':'meal');
+  currentDietType=type;
+  document.querySelectorAll('#dietTypeTabs .ritual-tab').forEach((t,i)=>t.classList.toggle('active',['meal','snack','drink'][i]===type));
+  const labels={meal:'Meal name',snack:'Snack name',drink:'Drink name'};
+  document.getElementById('dietMealNameLabel').textContent=labels[type];
+  renderDietQuickSelect(type);
   openModal('dietLogModal');
-}
-function updateSavedMealsDatalist(){
-  const dl=document.getElementById('savedMealsList');
-  dl.innerHTML=savedMeals.map(m=>`<option value="${m}">`).join('');
 }
 function saveDietMeal(){
   const day=document.getElementById('dietLogDay').value, slot=document.getElementById('dietLogSlot').value;
   const name=document.getElementById('dietMealName').value.trim(), cals=parseInt(document.getElementById('dietMealCals').value)||0;
-  if(!name)return;
+  if(!name) return;
   if(!mealPlan[day])mealPlan[day]={B:null,L:null,D:null,S:null};
-  mealPlan[day][slot]={name,cals,rating:mealRating};
-  if(!savedMeals.includes(name))savedMeals.push(name);
+  mealPlan[day][slot]={name,cals,rating:mealRating,type:currentDietType};
+  // Auto-save to savedMeals with cals + type (avoid duplicates)
+  const existing=savedMeals.find(m=>(typeof m==='string'?m:m.name).toLowerCase()===name.toLowerCase());
+  if(!existing) savedMeals.unshift({name,cals,type:currentDietType});
   awardXP(5,'Meal logged 🥗');
   checkAchievement('diet_first_meal');
   if(mealRating===5) checkAchievement('diet_5star_meal');
-  // Check if all 4 slots filled for this day
   const dayMeals=mealPlan[day]||{}; if(dayMeals.B&&dayMeals.L&&dayMeals.D&&dayMeals.S){ awardXP(30,'Full day tracked!'); checkAchievement('diet_full_day'); }
-  closeModal('dietLogModal'); renderWeekMealGrid(); renderWeekCalGrid();
+  closeModal('dietLogModal'); renderWeekMealGrid(); renderWeekCalGrid(); scheduleSave();
 }
 function openDietLogModal(){ openModal('dietLogModal'); document.getElementById('dietLogDay').value=isoDate(now); document.getElementById('dietLogSlot').value='B'; }
 function openDietSettingsModal(){
@@ -3666,31 +4045,70 @@ let milestones=[
   {year:'2026',title:'Becoming her.',desc:'Confident with instrumentation. Day 142 of becoming.'},
 ];
 function renderTimeline(){
-  document.getElementById('timelineEl').innerHTML=milestones.map((m,i)=>`<div class="timeline-item"><div class="timeline-dot"></div>${m.year?`<div class="timeline-year">${m.year}</div>`:''}<div class="timeline-title">${m.title}</div>${m.desc?`<div class="timeline-desc">${m.desc}</div>`:''}<div style="display:flex;gap:6px;margin-top:6px"><button onclick="openTimelineEdit(${i})" style="background:var(--pink-glow);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text-soft);cursor:pointer">✎ Edit</button><button onclick="milestones.splice(${i},1);renderTimeline()" style="background:#fee8e8;border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#c04040;cursor:pointer">🗑</button></div></div>`).join('');
+  document.getElementById('timelineEl').innerHTML=milestones.map((m,i)=>`
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      ${m.year?`<div class="timeline-year">${m.year}</div>`:''}
+      <div class="timeline-title">${m.title}</div>
+      ${m.desc?`<div class="timeline-desc">${m.desc}</div>`:''}
+      ${m.image?`<img src="${m.image}" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-top:8px;border:1.5px solid var(--border)">`:''}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="openTimelineEdit(${i})" style="background:var(--pink-glow);border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text-soft);cursor:pointer">✎ Edit</button>
+        <button onclick="milestones.splice(${i},1);renderTimeline();scheduleSave()" style="background:#fee8e8;border:none;border-radius:8px;padding:4px 10px;font-size:11px;color:#c04040;cursor:pointer">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function previewMilestoneImage(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('milestoneImagePreview').src=ev.target.result;
+    document.getElementById('milestoneImagePreview').style.display='block';
+    document.getElementById('milestoneImageData').value=ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+function previewTlImage(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('tlImagePreview').src=ev.target.result;
+    document.getElementById('tlImagePreview').style.display='block';
+    document.getElementById('tlImageData').value=ev.target.result;
+  };
+  r.readAsDataURL(file);
 }
 function addMilestone(){
   const y=document.getElementById('milestoneYear').value.trim(), t=document.getElementById('milestoneTitle').value.trim(), d=document.getElementById('milestoneDesc').value.trim();
   if(!t)return;
-  milestones.push({year:y,title:t,desc:d});
-  ['milestoneYear','milestoneTitle','milestoneDesc'].forEach(id=>document.getElementById(id).value='');
-  renderTimeline();
+  const image=document.getElementById('milestoneImageData').value||'';
+  milestones.push({year:y,title:t,desc:d,image});
+  ['milestoneYear','milestoneTitle','milestoneDesc','milestoneImageData'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('milestoneImagePreview').style.display='none';
+  document.getElementById('milestoneImageInput').value='';
+  renderTimeline(); scheduleSave();
 }
 function openTimelineEdit(i){
   const m=milestones[i];
   document.getElementById('tlEditIdx').value=i;
-  document.getElementById('tlYear').value=m.year;
-  document.getElementById('tlTitle').value=m.title;
-  document.getElementById('tlDesc').value=m.desc;
+  document.getElementById('tlYear').value=m.year||'';
+  document.getElementById('tlTitle').value=m.title||'';
+  document.getElementById('tlDesc').value=m.desc||'';
+  document.getElementById('tlImageData').value=m.image||'';
+  const prev=document.getElementById('tlImagePreview');
+  if(m.image){ prev.src=m.image; prev.style.display='block'; }
+  else { prev.style.display='none'; prev.src=''; }
   openModal('timelineModal');
 }
 function saveTimeline(){
   const i=parseInt(document.getElementById('tlEditIdx').value);
-  milestones[i]={year:document.getElementById('tlYear').value.trim(),title:document.getElementById('tlTitle').value.trim(),desc:document.getElementById('tlDesc').value.trim()};
-  closeModal('timelineModal'); renderTimeline();
+  const image=document.getElementById('tlImageData').value||milestones[i]?.image||'';
+  milestones[i]={year:document.getElementById('tlYear').value.trim(),title:document.getElementById('tlTitle').value.trim(),desc:document.getElementById('tlDesc').value.trim(),image};
+  closeModal('timelineModal'); renderTimeline(); scheduleSave();
 }
 function deleteTimeline(){
   const i=parseInt(document.getElementById('tlEditIdx').value);
-  milestones.splice(i,1); closeModal('timelineModal'); renderTimeline();
+  milestones.splice(i,1); closeModal('timelineModal'); renderTimeline(); scheduleSave();
 }
 
 // ═══════════════════ CALENDAR ═══════════════════
@@ -3731,7 +4149,7 @@ function renderAgenda(){
       <div class="agenda-label">${e.title}</div>
       <div class="tag">${e.cat}</div>
       ${ri>=0?`<button onclick="event.stopPropagation();openEditEvent(${ri})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">✎</button>
-      <button onclick="event.stopPropagation();calEvents.splice(${ri},1);renderAgenda()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>`:''}
+      <button onclick="event.stopPropagation();calEvents.splice(${ri},1);renderAgenda();renderHomeAgenda();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>`:''}
     </div>`;
   }).join(''):'<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:12px 0">Nothing scheduled — add something ✦</div>';
 }
@@ -3847,9 +4265,10 @@ function saveEvent(){
   const cat=document.getElementById('evCat').value;
   const ev={title,...timeData,date:document.getElementById('evDate').value,cat,color:cat==='Gym'?'#a0c8a0':cat==='Content'?'#c8b4f8':'var(--pink)',done:false};
   if(evEditIdx>=0)calEvents[evEditIdx]={...calEvents[evEditIdx],...ev}; else calEvents.push(ev);
+  closeModal('addEventModal'); buildCalendar(); scheduleSave(); renderHomeAgenda();
   closeModal('addEventModal'); buildCalendar();
 }
-function deleteEvent(){ if(evEditIdx>=0)calEvents.splice(evEditIdx,1); closeModal('addEventModal'); buildCalendar(); }
+function deleteEvent(){ if(evEditIdx>=0)calEvents.splice(evEditIdx,1); closeModal('addEventModal'); buildCalendar(); scheduleSave(); renderHomeAgenda(); }
 
 // ═══════════════════ CONTENT CREATION ═══════════════════
 const PLATFORM_META = {
@@ -5062,6 +5481,73 @@ function renderBillsList(){
     </div>`).join('');
 }
 
+// ═══════════════════ ACCOUNTS ═══════════════════
+let bankAccounts = [];
+const ACCOUNT_TYPE_LABELS = {current:'Current',savings:'Savings',isa:'ISA',credit:'Credit Card',investment:'Investment',cash:'Cash',other:'Other'};
+const ACCOUNT_TYPE_ICONS  = {current:'🏦',savings:'🐷',isa:'📈',credit:'💳',investment:'📊',cash:'💵',other:'🏦'};
+
+function openAddAccountModal(idx){
+  document.getElementById('addAccountModalTitle').textContent = idx!==undefined ? 'Edit Account. 🏦' : 'Add Account. 🏦';
+  document.getElementById('editAccountIdx').value = idx!==undefined ? idx : '';
+  document.getElementById('deleteAccountBtn').style.display = idx!==undefined ? 'inline-flex' : 'none';
+  document.getElementById('accountName').value = '';
+  document.getElementById('accountBank').value = '';
+  document.getElementById('accountType').value = 'current';
+  document.getElementById('accountBalance').value = '';
+  document.getElementById('accountNotes').value = '';
+  if(idx!==undefined){
+    const a=bankAccounts[idx];
+    document.getElementById('accountName').value=a.name||'';
+    document.getElementById('accountBank').value=a.bank||'';
+    document.getElementById('accountType').value=a.type||'current';
+    document.getElementById('accountBalance').value=a.balance!==undefined?a.balance:'';
+    document.getElementById('accountNotes').value=a.notes||'';
+  }
+  openModal('addAccountModal');
+}
+function saveAccount(){
+  const idx=document.getElementById('editAccountIdx').value;
+  const entry={name:document.getElementById('accountName').value.trim(),bank:document.getElementById('accountBank').value.trim(),type:document.getElementById('accountType').value,balance:parseFloat(document.getElementById('accountBalance').value)||0,notes:document.getElementById('accountNotes').value.trim(),updated:new Date().toLocaleDateString('en-GB')};
+  if(!entry.name) return;
+  if(idx!=='') bankAccounts[parseInt(idx)]=entry; else bankAccounts.unshift(entry);
+  closeModal('addAccountModal'); renderAccountsList(); scheduleSave(); showToast('Account saved ✦');
+}
+function deleteAccount(){
+  const idx=parseInt(document.getElementById('editAccountIdx').value);
+  bankAccounts.splice(idx,1); closeModal('addAccountModal'); renderAccountsList(); scheduleSave();
+}
+function renderAccountsList(){
+  const listEl=document.getElementById('accountsList');
+  const totalEl=document.getElementById('accountsTotalBar');
+  if(!listEl) return;
+  if(!bankAccounts.length){
+    listEl.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:16px 0">No accounts yet — add your first one ✦</div>`;
+    if(totalEl) totalEl.innerHTML=''; return;
+  }
+  const total=bankAccounts.reduce((s,a)=>s+a.balance,0);
+  const pos=bankAccounts.filter(a=>a.balance>=0).reduce((s,a)=>s+a.balance,0);
+  const neg=bankAccounts.filter(a=>a.balance<0).reduce((s,a)=>s+a.balance,0);
+  if(totalEl) totalEl.innerHTML=`
+    <div class="card" style="flex:1;text-align:center;min-width:130px;padding:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px">Overall Balance</div>
+      <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:${total>=0?'#3d7a3d':'#c04040'}">${total>=0?'£'+total.toFixed(2):'-£'+Math.abs(total).toFixed(2)}</div>
+    </div>
+    ${pos?`<div class="card" style="flex:1;text-align:center;min-width:120px;padding:14px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px">In Credit</div><div style="font-size:22px;font-weight:700;color:#3d7a3d">£${pos.toFixed(2)}</div></div>`:''}
+    ${neg?`<div class="card" style="flex:1;text-align:center;min-width:120px;padding:14px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px">In Debt</div><div style="font-size:22px;font-weight:700;color:#c04040">-£${Math.abs(neg).toFixed(2)}</div></div>`:''}`;
+  listEl.innerHTML=bankAccounts.map((a,i)=>`
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:white;border:1.5px solid ${a.balance<0?'#fde8e8':'var(--border)'};border-radius:16px;margin-bottom:10px;cursor:pointer" onclick="openAddAccountModal(${i})">
+      <div style="font-size:28px">${ACCOUNT_TYPE_ICONS[a.type]||'🏦'}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">${a.name}</div>
+        <div style="font-size:12px;color:var(--text-soft)">${a.bank?a.bank+' · ':''}${ACCOUNT_TYPE_LABELS[a.type]||a.type}${a.notes?' · '+a.notes:''}</div>
+        <div style="font-size:10px;color:var(--text-soft);margin-top:2px">Updated ${a.updated||'—'}</div>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:${a.balance<0?'#c04040':'#3d7a3d'};text-align:right">
+        ${a.balance<0?'-£'+Math.abs(a.balance).toFixed(2):'£'+a.balance.toFixed(2)}
+      </div>
+    </div>`).join('');
+}
+
 function renderFinOverview(){
   const totalIncome=incomeItems.filter(i=>i.type!=='One-off').reduce((s,i)=>s+i.amount,0);
   const totalBills=billItems.filter(b=>b.freq==='Monthly').reduce((s,b)=>s+b.amount,0);
@@ -5069,6 +5555,47 @@ function renderFinOverview(){
   const inc=document.getElementById('finOverviewIncome'); if(inc) inc.textContent='£'+totalIncome.toFixed(2);
   const bil=document.getElementById('finOverviewBills'); if(bil) bil.textContent='£'+totalBills.toFixed(2);
   const rem=document.getElementById('finOverviewRemaining'); if(rem){ rem.textContent='£'+remaining.toFixed(2); rem.style.color=remaining>=0?'var(--text)':'#c04040'; }
+  // Overall balance hero card
+  const balEl=document.getElementById('finOverviewBalance');
+  if(balEl){
+    const totalBalance=bankAccounts.reduce((s,a)=>s+a.balance,0);
+    const isPos=totalBalance>=0;
+    balEl.innerHTML=`<div style="background:radial-gradient(ellipse at 20% 50%,${isPos?'#eef7ee':'#fdf0f0'} 0%,${isPos?'#d4edda':'#fde0e0'} 100%);border-radius:20px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:${isPos?'#5a8a5a':'#a04040'};margin-bottom:6px">Overall Balance</div>
+        <div style="font-family:'Playfair Display',serif;font-size:48px;font-weight:900;line-height:1;color:${isPos?'#2d6a2d':'#c04040'}">${isPos?'£'+totalBalance.toFixed(2):'-£'+Math.abs(totalBalance).toFixed(2)}</div>
+        <div style="font-size:12px;color:${isPos?'#5a8a5a':'#a04040'};margin-top:6px;font-style:italic">${bankAccounts.length} account${bankAccounts.length===1?'':'s'} linked</div>
+      </div>
+      <div style="font-size:48px;opacity:0.25">${isPos?'💷':'📊'}</div>
+    </div>`;
+  }
+  // Accounts mini summary
+  const accEl=document.getElementById('finOverviewAccounts');
+  if(accEl){
+    if(!bankAccounts.length){
+      accEl.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic">No accounts yet — add one in the Accounts tab ✦</div>`;
+    } else {
+      const netWorth=bankAccounts.reduce((s,a)=>s+a.balance,0);
+      accEl.innerHTML=`
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <div class="card" style="flex:1;min-width:120px;text-align:center;padding:12px 10px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:4px">Overall Balance</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:${netWorth>=0?'#3d7a3d':'#c04040'}">${netWorth>=0?'£'+netWorth.toFixed(2):'-£'+Math.abs(netWorth).toFixed(2)}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${bankAccounts.map((a,i)=>`
+            <div onclick="document.querySelector('#finTabBar .ritual-tab:nth-child(2)').click()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border:1.5px solid ${a.balance<0?'#fde8e8':'var(--border)'};border-radius:12px;cursor:pointer;min-width:180px;flex:1" title="Go to Accounts tab">
+              <span style="font-size:20px">${ACCOUNT_TYPE_ICONS[a.type]||'🏦'}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+                <div style="font-size:11px;color:var(--text-soft)">${a.bank||ACCOUNT_TYPE_LABELS[a.type]||a.type}</div>
+              </div>
+              <div style="font-size:14px;font-weight:700;color:${a.balance<0?'#c04040':'#3d7a3d'};white-space:nowrap">${a.balance<0?'-£'+Math.abs(a.balance).toFixed(2):'£'+a.balance.toFixed(2)}</div>
+            </div>`).join('')}
+        </div>`;
+    }
+  }
   // Savings mini preview
   const sg=document.getElementById('finOverviewSavings'); if(!sg) return;
   if(!savingsGoals.length){ sg.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic">No savings goals yet — add one in the Savings tab ✦</div>`; return; }
@@ -5267,13 +5794,69 @@ function renderCustomAffirms(){
   el.innerHTML=customAffirmations.map((a,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--pink-glow);border-radius:10px;margin-bottom:6px;font-size:13px;color:var(--text);font-style:italic">${a}<button onclick="customAffirmations.splice(${i},1);renderCustomAffirms()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px;margin-left:auto">🗑</button></div>`).join('');
 }
 
-// Vision Board
-let visionImages=[];
+// Vision Board — multi-board
+let visionBoards = {
+  'That Girl': [],
+  'Study': [],
+  'Travel': []
+};
+let activeVisionBoard = 'That Girl';
+
+// Legacy migration: if old visionImages array exists, move it to "That Girl"
+let visionImages = []; // kept for legacy save/restore compat
+
+function getCurrentBoardImages(){
+  if(!visionBoards[activeVisionBoard]) visionBoards[activeVisionBoard]=[];
+  return visionBoards[activeVisionBoard];
+}
+
+function switchVisionBoard(name){
+  activeVisionBoard = name;
+  renderVisionBoardTabs();
+  renderVisionBoard();
+}
+
+function addVisionBoard(){
+  const name = prompt('Board name:');
+  if(!name || !name.trim()) return;
+  const key = name.trim();
+  if(visionBoards[key]){ alert('A board with that name already exists.'); return; }
+  visionBoards[key] = [];
+  activeVisionBoard = key;
+  renderVisionBoardTabs();
+  renderVisionBoard();
+  scheduleSave();
+}
+
+function deleteVisionBoard(name){
+  const keys = Object.keys(visionBoards);
+  if(keys.length <= 1){ alert("You need at least one board."); return; }
+  if(!confirm(`Delete board "${name}" and all its images?`)) return;
+  delete visionBoards[name];
+  activeVisionBoard = Object.keys(visionBoards)[0];
+  renderVisionBoardTabs();
+  renderVisionBoard();
+  scheduleSave();
+}
+
+function renderVisionBoardTabs(){
+  const container = document.getElementById('visionBoardTabs');
+  if(!container) return;
+  const keys = Object.keys(visionBoards);
+  container.innerHTML = keys.map(k=>`
+    <button class="vision-board-tab${k===activeVisionBoard?' active':''}" onclick="switchVisionBoard(${JSON.stringify(k)})" title="${k}">
+      ${k}
+      ${keys.length > 1 ? `<span class="vision-board-tab-del" onclick="event.stopPropagation();deleteVisionBoard(${JSON.stringify(k)})">×</span>` : ''}
+    </button>`).join('')
+  + `<button class="vision-board-add" onclick="addVisionBoard()" title="New board">＋</button>`;
+}
+
 function addVisionImage(e){
+  const imgs = getCurrentBoardImages();
   const files=Array.from(e.target.files);
   files.forEach(file=>{
     const reader=new FileReader();
-    reader.onload=ev=>{ visionImages.unshift({src:ev.target.result,caption:''}); renderVisionBoard(); checkAchievement('motiv_vision_add'); };
+    reader.onload=ev=>{ imgs.unshift({src:ev.target.result,caption:''}); renderVisionBoard(); checkAchievement('motiv_vision_add'); scheduleSave(); };
     reader.readAsDataURL(file);
   });
   e.target.value='';
@@ -5281,14 +5864,17 @@ function addVisionImage(e){
 function renderVisionBoard(){
   const board=document.getElementById('visionBoard');
   const empty=document.getElementById('visionEmpty');
+  const countEl=document.getElementById('visionBoardCount');
   if(!board) return;
-  if(!visionImages.length){ board.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  const imgs = getCurrentBoardImages();
+  if(countEl) countEl.textContent = imgs.length ? `${imgs.length} image${imgs.length===1?'':'s'}` : '';
+  if(!imgs.length){ board.innerHTML=''; if(empty) empty.style.display='block'; return; }
   if(empty) empty.style.display='none';
-  board.innerHTML=visionImages.map((img,i)=>`
+  board.innerHTML=imgs.map((img,i)=>`
     <div class="vision-img-wrap">
       <img src="${img.src}" alt="vision">
-      <button class="vision-del" onclick="visionImages.splice(${i},1);renderVisionBoard()">×</button>
-      <div class="vision-caption"><input value="${img.caption}" placeholder="Add a caption…" oninput="visionImages[${i}].caption=this.value"></div>
+      <button class="vision-del" onclick="getCurrentBoardImages().splice(${i},1);renderVisionBoard();scheduleSave()">×</button>
+      <div class="vision-caption"><input value="${img.caption||''}" placeholder="Add a caption…" oninput="getCurrentBoardImages()[${i}].caption=this.value;scheduleSave()"></div>
     </div>`).join('');
 }
 
@@ -5632,14 +6218,61 @@ function saveLectureNote(){
   flashSave(document.querySelector('#prod-lecture .pink-btn:last-child'),'Saved ✦');
   checkAchievement('acad_lecture_notes');
 }
-async function downloadLecturePackage(){
-  if(!lectures.length){ alert('No lectures to download yet.'); return; }
-  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lecture Notes Package</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;color:#3a1a28}h1{color:#e07898;font-style:italic}h2{color:#b06888;margin-top:40px;border-bottom:2px solid #fde8f2;padding-bottom:8px}.notes{white-space:pre-wrap;line-height:1.8;font-size:15px}.divider{border:none;border-top:1px solid #f5dde8;margin:30px 0}</style></head><body>`;
-  html+=`<h1>📚 Lecture Notes Package</h1><p style="color:#b06888;font-style:italic">Exported from That Girl HQ · ${new Date().toLocaleDateString('en-GB')}</p><hr class="divider">`;
-  lectures.forEach(l=>{ html+=`<h2>📄 ${l.title}</h2>${l.notes?`<div class="notes">${l.notes.replace(/</g,'&lt;')}</div>`:'<p style="color:#d8a8c0;font-style:italic">No notes added yet.</p>'}<hr class="divider">`; });
-  html+='</body></html>';
-  const blob=new Blob([html],{type:'text/html'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='lecture-notes-package.html'; a.click(); URL.revokeObjectURL(url);
+async function downloadLectureNotesPDF(){
+  if(!lectures.length){ showToast('No lectures yet ✦'); return; }
+  const lec = activeLectureIdx!==null ? lectures[activeLectureIdx] : null;
+  const title = lec ? lec.noteTitle||lec.title : 'All Lecture Notes';
+  const css = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Outfit:wght@400;600&display=swap');
+    *{box-sizing:border-box} body{font-family:'Outfit',sans-serif;max-width:750px;margin:40px auto;padding:24px;color:#3a1a28;background:#fff5f9}
+    h1{font-family:'Playfair Display',serif;font-size:28px;font-style:italic;color:#e07898;margin-bottom:4px}
+    .meta{font-size:12px;color:#b06888;margin-bottom:28px;border-bottom:2px solid #fde8f2;padding-bottom:12px}
+    h2{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:#c05878;margin-top:36px;margin-bottom:8px;border-bottom:1px solid #fde8f2;padding-bottom:6px}
+    pre{font-family:'Outfit',sans-serif;white-space:pre-wrap;font-size:14px;line-height:1.9;color:#3a1a28}
+    .empty{color:#d8a8c0;font-style:italic;font-size:13px} @media print{body{background:white}}`;
+  let body = '';
+  if(lec){
+    body = `<h1>${lec.noteTitle||lec.title}</h1><div class="meta">That Girl HQ · ${new Date().toLocaleDateString('en-GB')}</div><pre>${(lec.notes||'').replace(/</g,'&lt;')}</pre>`;
+  } else {
+    body = `<h1>📚 Lecture Notes</h1><div class="meta">That Girl HQ · ${new Date().toLocaleDateString('en-GB')} · ${lectures.length} lecture${lectures.length!==1?'s':''}</div>`;
+    lectures.forEach(l=>{ body+=`<h2>📄 ${l.title}</h2>${l.notes?`<pre>${l.notes.replace(/</g,'&lt;')}</pre>`:'<p class="empty">No notes added yet.</p>'}`; });
+  }
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>${css}</style></head><body>${body}<script>window.onload=()=>window.print()<\/script></body></html>`;
+  const win=window.open('','_blank'); win.document.write(html); win.document.close();
+}
+
+async function downloadLectureSlidesPDF(){
+  if(activeLectureIdx===null||!lectures[activeLectureIdx]?.pdfDataUrl){ showToast('Open a lecture first to download its slides ✦'); return; }
+  const lec=lectures[activeLectureIdx];
+  // Re-render all pages onto canvases then print them
+  const pdfData=lec.pdfDataUrl;
+  const loadTask=pdfjsLib.getDocument(pdfData);
+  const doc=await loadTask.promise;
+  const totalPages=doc.numPages;
+  const css=`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&family=Outfit:wght@400;600&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0} body{background:#fff5f9;font-family:'Outfit',sans-serif}
+    .header{padding:16px 24px;background:white;border-bottom:2px solid #fde8f2;display:flex;justify-content:space-between;align-items:center}
+    h1{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:#e07898}
+    .slide-page{page-break-after:always;padding:16px 24px;text-align:center;display:flex;flex-direction:column;align-items:center}
+    .slide-num{font-size:10px;color:#b06888;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase}
+    img{max-width:100%;border-radius:8px;border:1.5px solid #fde8f2;box-shadow:0 2px 12px rgba(200,100,140,0.08)}
+    @media print{body{background:white}.header{display:none}.slide-page{page-break-after:always;padding:8px}}`;
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lec.title} — Slides</title><style>${css}</style></head><body><div class="header"><h1>📄 ${lec.title}</h1><span style="font-size:12px;color:#b06888">That Girl HQ · ${new Date().toLocaleDateString('en-GB')}</span></div><div id="slides"></div><script>window.__ready=false<\/script></body></html>`);
+  win.document.close();
+  // Render each page to canvas, convert to image, inject into new window
+  const offscreen=document.createElement('canvas');
+  const ctx=offscreen.getContext('2d');
+  let slidesHTML='';
+  for(let i=1;i<=totalPages;i++){
+    const page=await doc.getPage(i);
+    const vp=page.getViewport({scale:2});
+    offscreen.width=vp.width; offscreen.height=vp.height;
+    await page.render({canvasContext:ctx,viewport:vp}).promise;
+    const dataUrl=offscreen.toDataURL('image/jpeg',0.85);
+    slidesHTML+=`<div class="slide-page"><div class="slide-num">Slide ${i} of ${totalPages}</div><img src="${dataUrl}"></div>`;
+  }
+  win.document.getElementById('slides').innerHTML=slidesHTML;
+  setTimeout(()=>win.print(),800);
 }
 
 // ════════════════════════════════════════════════
@@ -5660,7 +6293,7 @@ function showPage(id){
   if(id==='diet'){ renderDietImpulses(); renderWeekMealGrid(); renderWeekCalGrid(); }
   if(id==='meditate'){ renderMedLog(); renderMedStreak(); }
   if(id==='hobbies'){ renderHobbyList(); renderHobbyLog(); updateHobbySelect(); }
-  if(id==='finance'){ renderFinOverview(); renderIncomeList(); renderBillsList(); renderSavingsList(); renderSpendLog(); renderGiftIdeas(); }
+  if(id==='finance'){ renderFinOverview(); renderIncomeList(); renderBillsList(); renderSavingsList(); renderSpendLog(); renderGiftIdeas(); renderAccountsList(); }
   if(id==='reflect'){ renderReflectionHistory(); renderJoyEntries(); }
   if(id==='growth'){ renderTimeline(); renderSlowPlan(); }
   if(id==='content'){ renderContentOverview(); renderAllPosts(); setTimeout(drawContentCharts,50); }
@@ -6324,6 +6957,7 @@ function saveTrip(){
     expenses: [],
     journalEntries: [],
     photos: [],
+    bookings: [],
     afterBest:'', afterSurprise:'', afterDifferently:'', afterGoBack:'', rating:0,
     budgetType:'Solo',
     createdAt: Date.now()
@@ -6420,6 +7054,142 @@ function closeTripDetail(){
   renderTripCards();
 }
 
+// ── BOOKINGS ────────────────────────────────────────────
+const BOOKING_ICONS={flight:'✈️',hotel:'🏨',transport:'🚗',other:'🎟'};
+const BOOKING_LABELS={flight:'Flight',hotel:'Hotel / Accommodation',transport:'Transport',other:'Experience / Other'};
+
+function switchBookingType(btn, type){
+  document.querySelectorAll('#bookingTypeTabs .ritual-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('bookingType').value=type;
+  ['flight','hotel','transport'].forEach(t=>{
+    const el=document.getElementById('booking'+t.charAt(0).toUpperCase()+t.slice(1)+'Fields');
+    if(el) el.style.display=t===type?'block':'none';
+  });
+  const labels={flight:'Airline / Flight no.',hotel:'Hotel name',transport:'Provider / Company',other:'Name / Description'};
+  const placeholders={flight:'e.g. Ryanair FR1234',hotel:'e.g. Hotel Barceló',transport:'e.g. Uber, National Express',other:'e.g. Sagrada Família tickets'};
+  document.getElementById('bookingNameLabel').textContent=labels[type];
+  document.getElementById('bookingName').placeholder=placeholders[type];
+}
+
+function openBookingModal(idx){
+  document.getElementById('bookingModalTitle').textContent = idx!==undefined ? 'Edit Booking.' : 'Add Booking. ✈️';
+  document.getElementById('bookingEditIdx').value = idx!==undefined ? idx : '';
+  document.getElementById('bookingDeleteBtn').style.display = idx!==undefined ? 'inline-flex' : 'none';
+  // Reset
+  ['bookingName','bookingFrom','bookingTo','bookingRef','bookingNotes','bookingAddress','bookingPickup','bookingDropoff'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  ['bookingDepart','bookingArrive','bookingCheckin','bookingCheckout','bookingTransportTime','bookingCost'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('bookingImageData').value='';
+  document.getElementById('bookingImagePreview').style.display='none';
+  // Default to flight type
+  let type='flight';
+  if(idx!==undefined && currentTripIdx>=0){
+    const b=(trips[currentTripIdx].bookings||[])[idx];
+    if(b){
+      type=b.type||'flight';
+      document.getElementById('bookingName').value=b.name||'';
+      document.getElementById('bookingFrom').value=b.from||'';
+      document.getElementById('bookingTo').value=b.to||'';
+      document.getElementById('bookingDepart').value=b.depart||'';
+      document.getElementById('bookingArrive').value=b.arrive||'';
+      document.getElementById('bookingCheckin').value=b.checkin||'';
+      document.getElementById('bookingCheckout').value=b.checkout||'';
+      document.getElementById('bookingAddress').value=b.address||'';
+      document.getElementById('bookingPickup').value=b.pickup||'';
+      document.getElementById('bookingDropoff').value=b.dropoff||'';
+      document.getElementById('bookingTransportTime').value=b.transportTime||'';
+      document.getElementById('bookingRef').value=b.ref||'';
+      document.getElementById('bookingCost').value=b.cost||'';
+      document.getElementById('bookingNotes').value=b.notes||'';
+      document.getElementById('bookingImageData').value=b.image||'';
+      if(b.image){ document.getElementById('bookingImagePreview').src=b.image; document.getElementById('bookingImagePreview').style.display='block'; }
+    }
+  }
+  // Set type tabs
+  document.querySelectorAll('#bookingTypeTabs .ritual-tab').forEach((t,i)=>t.classList.toggle('active',['flight','hotel','transport','other'][i]===type));
+  document.getElementById('bookingType').value=type;
+  ['flight','hotel','transport'].forEach(t=>{
+    const el=document.getElementById('booking'+t.charAt(0).toUpperCase()+t.slice(1)+'Fields');
+    if(el) el.style.display=t===type?'block':'none';
+  });
+  const labels={flight:'Airline / Flight no.',hotel:'Hotel name',transport:'Provider / Company',other:'Name / Description'};
+  document.getElementById('bookingNameLabel').textContent=labels[type]||'Name';
+  openModal('bookingModal');
+}
+
+function previewBookingImage(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('bookingImagePreview').src=ev.target.result;
+    document.getElementById('bookingImagePreview').style.display='block';
+    document.getElementById('bookingImageData').value=ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function saveBooking(){
+  if(currentTripIdx<0) return;
+  if(!trips[currentTripIdx].bookings) trips[currentTripIdx].bookings=[];
+  const type=document.getElementById('bookingType').value;
+  const entry={
+    type, name:document.getElementById('bookingName').value.trim(),
+    from:document.getElementById('bookingFrom').value, to:document.getElementById('bookingTo').value,
+    depart:document.getElementById('bookingDepart').value, arrive:document.getElementById('bookingArrive').value,
+    checkin:document.getElementById('bookingCheckin').value, checkout:document.getElementById('bookingCheckout').value,
+    address:document.getElementById('bookingAddress').value.trim(),
+    pickup:document.getElementById('bookingPickup').value.trim(), dropoff:document.getElementById('bookingDropoff').value.trim(),
+    transportTime:document.getElementById('bookingTransportTime').value,
+    ref:document.getElementById('bookingRef').value.trim(),
+    cost:parseFloat(document.getElementById('bookingCost').value)||0,
+    notes:document.getElementById('bookingNotes').value.trim(),
+    image:document.getElementById('bookingImageData').value
+  };
+  if(!entry.name) return;
+  const idx=document.getElementById('bookingEditIdx').value;
+  if(idx!=='') trips[currentTripIdx].bookings[parseInt(idx)]=entry;
+  else trips[currentTripIdx].bookings.push(entry);
+  closeModal('bookingModal'); renderBookingsTab(); scheduleSave(); showToast('Booking saved ✦');
+}
+
+function deleteBooking(){
+  if(currentTripIdx<0) return;
+  const idx=parseInt(document.getElementById('bookingEditIdx').value);
+  trips[currentTripIdx].bookings.splice(idx,1);
+  closeModal('bookingModal'); renderBookingsTab(); scheduleSave();
+}
+
+function renderBookingsTab(){
+  if(currentTripIdx<0) return;
+  const bookings=trips[currentTripIdx].bookings||[];
+  ['flight','hotel','transport','other'].forEach(type=>{
+    const el=document.getElementById('bookingList-'+type); if(!el) return;
+    const filtered=bookings.map((b,i)=>({...b,idx:i})).filter(b=>b.type===type);
+    if(!filtered.length){ el.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic">No ${type==='other'?'other bookings':type+'s'} added yet ✦</div>`; return; }
+    el.innerHTML=filtered.map(b=>{
+      let details='';
+      if(type==='flight') details=`${b.from&&b.to?`<div style="font-size:13px;font-weight:700;color:var(--text);margin:4px 0">${b.from} → ${b.to}</div>`:''}${b.depart?`<div style="font-size:11px;color:var(--text-soft)">Dep: ${new Date(b.depart).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}${b.arrive?`<div style="font-size:11px;color:var(--text-soft)">Arr: ${new Date(b.arrive).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`;
+      if(type==='hotel') details=`${b.address?`<div style="font-size:12px;color:var(--text-mid);margin-top:2px">📍 ${b.address}</div>`:''}${b.checkin?`<div style="font-size:11px;color:var(--text-soft);margin-top:2px">Check-in: ${b.checkin} ${b.checkout?'→ Check-out: '+b.checkout:''}</div>`:''}`;
+      if(type==='transport') details=`${b.pickup||b.dropoff?`<div style="font-size:12px;color:var(--text-mid);margin-top:2px">${b.pickup||'?'} → ${b.dropoff||'?'}</div>`:''}${b.transportTime?`<div style="font-size:11px;color:var(--text-soft)">${new Date(b.transportTime).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}`;
+      return `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px">
+        ${b.image?`<img src="${b.image}" style="width:100%;max-height:160px;object-fit:cover">`:''}
+        <div style="padding:14px 16px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:var(--text)">${b.name}</div>
+              ${details}
+              ${b.ref?`<div style="font-size:11px;color:var(--text-soft);margin-top:4px">Ref: <strong>${b.ref}</strong></div>`:''}
+              ${b.cost?`<div style="font-size:12px;color:var(--pink-deep);font-weight:600;margin-top:4px">£${b.cost.toFixed(2)}</div>`:''}
+              ${b.notes?`<div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-top:6px;line-height:1.5">${b.notes}</div>`:''}
+            </div>
+            <button onclick="openBookingModal(${b.idx})" style="background:var(--pink-glow);border:none;border-radius:8px;padding:5px 10px;font-size:11px;color:var(--text-soft);cursor:pointer;flex-shrink:0">✎ Edit</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
 function saveTripField(field, value){
   if(currentTripIdx<0) return;
   trips[currentTripIdx][field]=value;
@@ -6444,6 +7214,7 @@ function switchTripDetailTab(btn, tab){
   document.querySelectorAll('.trip-panel').forEach(p=>p.style.display='none');
   document.getElementById('tripTab-'+tab).style.display='block';
   if(tab==='overview') renderTripOverview();
+  if(tab==='bookings') renderBookingsTab();
   if(tab==='before') renderBeforeChecklist();
   if(tab==='itinerary') renderItinerary();
   if(tab==='packing'){ activePackingListKey='suitcase'; renderPackingTab(); }
@@ -6808,12 +7579,23 @@ function switchGiftsTab(btn,panel){
   // Only gift ideas now — quotes moved to Motivation
   renderGiftIdeas();
 }
+function previewGiftImage(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    document.getElementById('giftImagePreview').src=ev.target.result;
+    document.getElementById('giftImagePreview').style.display='block';
+    document.getElementById('giftImageData').value=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 function saveGiftIdea(){
   const person=document.getElementById('giftPerson').value.trim(); if(!person) return;
-  giftIdeas.push({person,idea:document.getElementById('giftIdea').value.trim(),cost:document.getElementById('giftCost').value,occasion:document.getElementById('giftOccasion').value.trim(),done:false});
+  giftIdeas.push({person,idea:document.getElementById('giftIdea').value.trim(),cost:document.getElementById('giftCost').value,occasion:document.getElementById('giftOccasion').value.trim(),done:false,image:document.getElementById('giftImageData').value||''});
   closeModal('giftIdeaModal');
-  ['giftPerson','giftIdea','giftCost','giftOccasion'].forEach(id=>document.getElementById(id).value='');
-  renderGiftIdeas();
+  ['giftPerson','giftIdea','giftCost','giftOccasion','giftImageData'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('giftImagePreview').style.display='none';
+  renderGiftIdeas(); scheduleSave();
 }
 function renderGiftIdeas(){
   const el=document.getElementById('giftIdeasList'); if(!el) return;
@@ -6821,12 +7603,21 @@ function renderGiftIdeas(){
   const byPerson={};
   giftIdeas.forEach((g,i)=>{ if(!byPerson[g.person]) byPerson[g.person]=[]; byPerson[g.person].push({...g,idx:i}); });
   el.innerHTML=Object.entries(byPerson).map(([person,ideas])=>`
-    <div style="margin-bottom:18px">
-      <div style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">${person}</div>
-      ${ideas.map(g=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border:1.5px solid var(--border);border-radius:12px;margin-bottom:6px;${g.done?'opacity:0.5':''}">
-        <div style="font-size:18px;cursor:pointer" onclick="giftIdeas[${g.idx}].done=!giftIdeas[${g.idx}].done;renderGiftIdeas()">${g.done?'🎁':'☐'}</div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);${g.done?'text-decoration:line-through':''}">${g.idea}</div>${g.occasion?`<div style="font-size:11px;color:var(--text-soft)">${g.occasion}${g.cost?` · £${g.cost}`:''}</div>`:''}</div>
-        <button onclick="giftIdeas.splice(${g.idx},1);renderGiftIdeas()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:11px">🗑</button>
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">${person}</div>
+      ${ideas.map(g=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:white;border:1.5px solid ${g.done?'var(--border)':'var(--pink-mid)'};border-radius:14px;margin-bottom:8px;${g.done?'opacity:0.55':''}">
+        <button onclick="giftIdeas[${g.idx}].done=!giftIdeas[${g.idx}].done;renderGiftIdeas();scheduleSave()" title="${g.done?'Mark undone':'Mark bought'}" style="flex-shrink:0;width:36px;height:36px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;background:${g.done?'var(--pink)':'var(--pink-glow)'}">
+          ${g.done
+            ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><polyline points="3,9 7,13 15,5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+            : `<div style="width:18px;height:18px;border-radius:50%;background:white;border:1.5px solid #f0c8d8"></div>`
+          }
+        </button>
+        ${g.image?`<img src="${g.image}" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0">`:''}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--text);${g.done?'text-decoration:line-through':''};margin-bottom:3px">${g.idea}</div>
+          ${g.occasion||g.cost?`<div style="font-size:11px;color:var(--text-soft)">${g.occasion||''}${g.cost?' · £'+g.cost:''}</div>`:''}
+        </div>
+        <button onclick="giftIdeas.splice(${g.idx},1);renderGiftIdeas();scheduleSave()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px;flex-shrink:0">🗑</button>
       </div>`).join('')}
     </div>`).join('');
 }
@@ -6891,6 +7682,7 @@ function switchFinTab(btn, panel){
   const el=document.getElementById('fin-'+panel);
   if(el) el.style.display='block';
   if(panel==='overview') renderFinOverview();
+  if(panel==='accounts') renderAccountsList();
   if(panel==='income') renderIncomeList();
   if(panel==='bills') renderBillsList();
   if(panel==='savings'){ renderSavingsList(); renderFinOverview(); }
@@ -6922,6 +7714,7 @@ function switchMotivTab(btn, panel){
   document.querySelectorAll('.motiv-panel').forEach(p=>p.style.display='none');
   document.getElementById('motiv-'+panel).style.display='block';
   if(panel==='affirmations') initAffirmations();
+  if(panel==='vision'){ renderVisionBoardTabs(); renderVisionBoard(); }
   if(panel==='identity'){ renderIdentityList(); }
   if(panel==='antigoals') renderAntiGoals();
   if(panel==='quotes') renderQuotes();
@@ -7846,12 +8639,13 @@ function collectAllData(){
     notes, masterTodos, quickTodos, lectures, grades, countdowns, projects,
     urges, hrmDailyLog, viceTiers, hrmResetLog,
     unlockedAchievements: [...unlockedAchievements], claimedPrizes, playerLevel, totalXP, avatarChoice,
-    incomeItems, billItems, savingsGoals,
+    incomeItems, billItems, savingsGoals, bankAccounts,
     spendLog: spendLog.map(l=>({...l, date: l.date instanceof Date ? l.date.toISOString() : l.date})),
     wishlist, therapySessions, ieLog,
     waterCount, waterGoal, waterHistory,
     illnessLog, correlationNotes, deadTimeLog,
-    customAffirmations, identityStatements, featuredIdentityIdx, antiGoals, visionImages,
+    customAffirmations, identityStatements, featuredIdentityIdx, antiGoals,
+    visionBoards: JSON.parse(JSON.stringify(visionBoards)), activeVisionBoard,
     trips, giftIdeas, quotes, calEvents,
   };
 }
@@ -7902,6 +8696,7 @@ function restoreAllData(d){
     if(d.incomeItems) incomeItems.splice(0,incomeItems.length,...d.incomeItems);
     if(d.billItems) billItems.splice(0,billItems.length,...d.billItems);
     if(d.savingsGoals) savingsGoals.splice(0,savingsGoals.length,...d.savingsGoals);
+    if(d.bankAccounts) bankAccounts.splice(0,bankAccounts.length,...d.bankAccounts);
     if(d.spendLog) spendLog.splice(0,spendLog.length,...d.spendLog.map(l=>({...l,date:l.date?new Date(l.date):new Date()})));
     if(d.wishlist) wishlist.splice(0,wishlist.length,...d.wishlist);
     if(d.therapySessions) therapySessions.splice(0,therapySessions.length,...d.therapySessions);
@@ -7916,7 +8711,10 @@ function restoreAllData(d){
     if(d.identityStatements) identityStatements.splice(0,identityStatements.length,...d.identityStatements);
     if(d.featuredIdentityIdx!==undefined) featuredIdentityIdx=d.featuredIdentityIdx;
     if(d.antiGoals) antiGoals.splice(0,antiGoals.length,...d.antiGoals);
-    if(d.visionImages) visionImages.splice(0,visionImages.length,...d.visionImages);
+    // Vision boards — with legacy migration from old single visionImages array
+    if(d.visionBoards){ Object.keys(visionBoards).forEach(k=>delete visionBoards[k]); Object.assign(visionBoards, d.visionBoards); }
+    else if(d.visionImages && d.visionImages.length){ visionBoards['That Girl'] = [...d.visionImages]; }
+    if(d.activeVisionBoard && visionBoards[d.activeVisionBoard]) activeVisionBoard = d.activeVisionBoard;
     if(d.trips) trips.splice(0,trips.length,...d.trips);
     if(d.giftIdeas) giftIdeas.splice(0,giftIdeas.length,...d.giftIdeas);
     if(d.quotes) quotes.splice(0,quotes.length,...d.quotes);
