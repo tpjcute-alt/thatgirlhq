@@ -3522,13 +3522,13 @@ function logSpend(){
   if(spendLog.length>=30) checkAchievement('spend_30logs');
   if(spendLog.length>=50) checkAchievement('spend_50logs');
   if(emotion) awardXP(10,'Impulse gate answered'); // impulse gate
-  renderSpendLog(); updateBudgets();
+  renderSpendLog(); updateBudgets(); scheduleSave();
 }
 function renderSpendLog(){
   const catS={need:{dot:'#a8d8a8',tag:'background:#eef7ee;color:#3d7a3d',label:'🛒 Need'},want:{dot:'var(--pink)',tag:'',label:'✨ Want'},impulse:{dot:'#e8b0b0',tag:'background:#fee8e8;color:#c04040',label:'⚡ Impulse'}};
   document.getElementById('spendLog').innerHTML=spendLog.map((s,i)=>{
     const st=catS[s.cat]||catS.want;
-    return `<div class="agenda-item"><div class="agenda-dot" style="background:${st.dot}"></div><div class="agenda-label">${s.item}</div><div class="tag" style="${st.tag}">${st.label} · £${s.amount.toFixed(2)}</div><button onclick="spendLog.splice(${i},1);renderSpendLog();updateBudgets()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button></div>`;
+    return `<div class="agenda-item"><div class="agenda-dot" style="background:${st.dot}"></div><div class="agenda-label">${s.item}</div><div class="tag" style="${st.tag}">${st.label} · £${s.amount.toFixed(2)}</div><button onclick="spendLog.splice(${i},1);renderSpendLog();updateBudgets();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button></div>`;
   }).join('');
   updateEmotionBars();
 }
@@ -5441,7 +5441,7 @@ function addIncome(){
   document.getElementById('incomeSource').value='';
   document.getElementById('incomeAmount').value='';
   awardXP(10,'Income logged 💰');
-  renderIncomeList(); renderFinOverview();
+  renderIncomeList(); renderFinOverview(); scheduleSave();
   checkAchievement('fin_first_income');
 }
 function renderIncomeList(){
@@ -5452,7 +5452,7 @@ function renderIncomeList(){
     <div class="fin-row">
       <div style="flex:1"><div class="fin-row-label">${it.source}</div><div class="fin-row-meta">${it.type}</div></div>
       <div class="fin-row-amount" style="color:#3d7a3d">+£${it.amount.toFixed(2)}</div>
-      <button onclick="incomeItems.splice(${i},1);renderIncomeList();renderFinOverview()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:14px;padding:4px">🗑</button>
+      <button onclick="incomeItems.splice(${i},1);renderIncomeList();renderFinOverview();scheduleSave()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:14px;padding:4px">🗑</button>
     </div>`).join('');
 }
 
@@ -5466,7 +5466,7 @@ function addBill(){
   billItems.push({name,amount,freq,cat,due});
   document.getElementById('billName').value='';
   document.getElementById('billAmount').value='';
-  renderBillsList(); renderFinOverview();
+  renderBillsList(); renderFinOverview(); scheduleSave();
   checkAchievement('fin_first_bill');
 }
 function renderBillsList(){
@@ -5477,7 +5477,7 @@ function renderBillsList(){
     <div class="fin-row">
       <div style="flex:1"><div class="fin-row-label">${it.cat} ${it.name}</div><div class="fin-row-meta">${it.freq}${it.due?' · Due: '+it.due:''}</div></div>
       <div class="fin-row-amount" style="color:#c04040">-£${it.amount.toFixed(2)}</div>
-      <button onclick="billItems.splice(${i},1);renderBillsList();renderFinOverview()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:14px;padding:4px">🗑</button>
+      <button onclick="billItems.splice(${i},1);renderBillsList();renderFinOverview();scheduleSave()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:14px;padding:4px">🗑</button>
     </div>`).join('');
 }
 
@@ -5613,7 +5613,7 @@ function saveSavingsGoal(){
   const emoji=document.getElementById('sgEmoji').value||'🎯';
   if(!name||!target) return;
   savingsGoals.push({name,target,current,emoji});
-  closeModal('savingsGoalModal'); renderSavingsList(); renderFinOverview();
+  closeModal('savingsGoalModal'); renderSavingsList(); renderFinOverview(); scheduleSave();
   checkAchievement('fin_first_goal');
 }
 function addToSavings(i){
@@ -5621,7 +5621,7 @@ function addToSavings(i){
   if(!amt) return;
   savingsGoals[i].current=Math.min(savingsGoals[i].current+amt,savingsGoals[i].target);
   awardXP(10,'Savings deposit 🏦');
-  renderSavingsList(); renderFinOverview();
+  renderSavingsList(); renderFinOverview(); scheduleSave();
   if(savingsGoals[i].current>=savingsGoals[i].target) checkAchievement('fin_goal_reached');
 }
 function renderSavingsList(){
@@ -8559,7 +8559,7 @@ async function connectWithSyncID(id){
   try {
     const { error } = await _sb.from('sync_data').upsert({
       sync_id: id,
-      data: collectAllData(),
+      data: collectCloudData(),
       updated_at: new Date().toISOString()
     }, { onConflict: 'sync_id' });
     if(error) throw error;
@@ -8735,13 +8735,43 @@ function loadLocal(){
   } catch(e){ return false; }
 }
 
+// ── Strip base64 images for cloud (kept local only) ─
+function collectCloudData(){
+  const d = collectAllData();
+  // Strip vision board images (base64 is too large for cloud rows)
+  if(d.visionBoards){
+    const stripped = {};
+    Object.entries(d.visionBoards).forEach(([k,imgs])=>{
+      stripped[k] = imgs.map(img=>({...img, src:''}));
+    });
+    d.visionBoards = stripped;
+  }
+  // Strip trip photos and cover images
+  if(d.trips){
+    d.trips = d.trips.map(t=>({
+      ...t,
+      cover: '',
+      photos: (t.photos||[]).map(p=>({...p, src:''}))
+    }));
+  }
+  return d;
+}
+
 // ── Supabase cloud sync (no auth, just sync_id) ─
 async function syncToCloud(){
   if(!_syncID || _isSyncing) return;
   _isSyncing = true;
   setSaveIndicator('Syncing…');
   try {
-    const payload = JSON.stringify(collectAllData());
+    const payload = JSON.stringify(collectCloudData());
+    // Warn if still huge (> 4MB)
+    if(payload.length > 4 * 1024 * 1024){
+      console.warn('Payload too large for cloud sync:', payload.length);
+      saveLocal();
+      setSaveIndicator('⚠ Data too large to sync');
+      _isSyncing = false;
+      return;
+    }
     const { error } = await _sb.from('sync_data').upsert({
       sync_id: _syncID,
       data: payload,
@@ -8753,7 +8783,7 @@ async function syncToCloud(){
   } catch(e){
     console.warn('Sync error:', e);
     saveLocal();
-    setSaveIndicator('⚠ Cloud sync failed');
+    setSaveIndicator('⚠ Cloud sync failed — saved locally');
   }
   _isSyncing = false;
 }
@@ -8855,7 +8885,31 @@ document.addEventListener('change', ()=>scheduleSave(), {passive:true});
       const { data, error } = await _sb.from('sync_data')
         .select('data').eq('sync_id', _syncID).single();
       if(!error && data){
-        restoreAllData(typeof data.data === 'string' ? JSON.parse(data.data) : data.data);
+        // Merge cloud data with local — preserve local images (vision boards, trip photos)
+        const cloudData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+        const localRaw = localStorage.getItem(SAVE_KEY);
+        if(localRaw){
+          try {
+            const localData = JSON.parse(localRaw);
+            // Keep local vision boards if cloud has empty images
+            if(cloudData.visionBoards && localData.visionBoards){
+              Object.keys(cloudData.visionBoards).forEach(k=>{
+                if(localData.visionBoards[k]){
+                  cloudData.visionBoards[k] = localData.visionBoards[k];
+                }
+              });
+            }
+            // Keep local trip photos/covers
+            if(cloudData.trips && localData.trips){
+              cloudData.trips = cloudData.trips.map(ct=>{
+                const lt = localData.trips.find(t=>t.createdAt===ct.createdAt);
+                if(lt){ ct.cover = lt.cover||ct.cover; ct.photos = lt.photos||ct.photos; }
+                return ct;
+              });
+            }
+          } catch(e2){}
+        }
+        restoreAllData(cloudData);
         saveLocal();
         refreshAllRenderers();
         setSaveIndicator('✓ Synced');
