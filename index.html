@@ -3388,8 +3388,9 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   <div class="cal-header">
     <div class="cal-title" id="calTitle">March 2026</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
-      <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+      <button class="cal-nav-btn" onclick="calNav(-1)" title="Previous">‹</button>
+      <button class="cal-nav-btn" id="calTodayBtn" onclick="calNavToday()" style="font-size:11px;font-weight:700">Today</button>
+      <button class="cal-nav-btn" onclick="calNav(1)" title="Next">›</button>
     </div>
   </div>
   <div class="cal-view-tabs">
@@ -7055,7 +7056,7 @@ function renderTimeline(){
 }
 function previewMilestoneImage(e){
   const file=e.target.files[0]; if(!file) return;
-  _compressImage(file, 900, 0.78, dataUrl=>{
+  _compressImage(file, 600, 0.75, dataUrl=>{
     document.getElementById('milestoneImagePreview').src=dataUrl;
     document.getElementById('milestoneImagePreview').style.display='block';
     document.getElementById('milestoneImageData').value=dataUrl;
@@ -7063,7 +7064,7 @@ function previewMilestoneImage(e){
 }
 function previewTlImage(e){
   const file=e.target.files[0]; if(!file) return;
-  _compressImage(file, 900, 0.78, dataUrl=>{
+  _compressImage(file, 600, 0.75, dataUrl=>{
     document.getElementById('tlImagePreview').src=dataUrl;
     document.getElementById('tlImagePreview').style.display='block';
     document.getElementById('tlImageData').value=dataUrl;
@@ -7119,22 +7120,49 @@ function deleteTimeline(){
 }
 
 // ═══════════════════ CALENDAR ═══════════════════
-let calYear=now.getFullYear(), calMonth=now.getMonth(), currentCalView='agenda', evEditIdx=-1;
+let calYear=now.getFullYear(), calMonth=now.getMonth(), currentCalView='agenda', evEditIdx=-1, calWeekOffset=0, calAgendaOffset=0;
 let calEvents=[
   {title:'UCP — Oral Pathology',time:'09:00',cat:'Study',date:isoDate(now),color:'var(--pink)',done:false},
   {title:'Gym session 💪',time:'14:00',cat:'Gym',date:isoDate(now),color:'#a0c8a0',done:false},
 ];
 
 function changeMonth(d){ calMonth+=d; if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;} buildCalendar(); }
+
+// Context-aware nav: ‹ › does the right thing for each view
+function calNav(dir){
+  if(currentCalView==='week'){
+    calWeekOffset += dir;
+    buildCalendar();
+  } else if(currentCalView==='agenda'){
+    calAgendaOffset += dir;
+    buildCalendar();
+  } else {
+    changeMonth(dir);
+  }
+}
+
+function calNavToday(){
+  calWeekOffset   = 0;
+  calAgendaOffset = 0;
+  calMonth = now.getMonth();
+  calYear  = now.getFullYear();
+  buildCalendar();
+}
 function switchCalView(btn,view){
   document.querySelectorAll('#page-calendar .ritual-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.cal-view-panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active'); currentCalView=view;
   document.getElementById('cal-'+view).classList.add('active');
+  // Reset week offset when switching views so you always land on current period
+  if(view==='week') calWeekOffset=0;
+  if(view==='agenda') calAgendaOffset=0;
   buildCalendar();
 }
 function buildCalendar(){
-  document.getElementById('calTitle').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  // Week view title is set inside buildWeekCards — only set month title here for other views
+  if(currentCalView !== 'week' && currentCalView !== 'agenda'){
+    document.getElementById('calTitle').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  }
   if(currentCalView==='month') buildMonthGrid();
   if(currentCalView==='week') buildWeekCards();
   if(currentCalView==='agenda') renderAgenda();
@@ -7149,9 +7177,21 @@ function buildCalendar(){
 let _agendaDragSrcRi = null;
 
 function renderAgenda(){
-  document.getElementById('agendaTitle').textContent=
-    `Today — ${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
-  const todayStr = isoDate(now);
+  // Apply offset so arrows move one day at a time
+  const agendaDate = new Date(now);
+  agendaDate.setDate(now.getDate() + calAgendaOffset);
+  const isToday = calAgendaOffset === 0;
+  const dayLabel = isToday ? 'Today' : calAgendaOffset === 1 ? 'Tomorrow' : calAgendaOffset === -1 ? 'Yesterday'
+    : agendaDate.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+  document.getElementById('agendaTitle').textContent =
+    `${dayLabel} — ${DAYS[agendaDate.getDay()]}, ${agendaDate.getDate()} ${MONTHS[agendaDate.getMonth()]}`;
+  // Update header title too
+  if(currentCalView==='agenda'){
+    document.getElementById('calTitle').textContent =
+      isToday ? 'Today' : agendaDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  }
+  const todayStr = isoDate(agendaDate);
 
   // Build display list: real calendar events for today sorted by time, then gym entries
   const todayPairs = calEvents
@@ -7160,7 +7200,7 @@ function renderAgenda(){
     .sort((a,b)=>(a.e.timeFrom||a.e.time||'').localeCompare(b.e.timeFrom||b.e.time||''));
 
   const gymPairs = Object.entries(gymSchedule)
-    .filter(([day,w])=>w&&w!=='Rest'&&DAYS[now.getDay()]===day)
+    .filter(([day,w])=>w&&w!=='Rest'&&DAYS[agendaDate.getDay()]===day)
     .map(([,w])=>({e:{title:'🏋️ '+w,time:'',cat:'Gym',color:'#a0c8a0',done:false,_gym:true},ri:-1}));
 
   const allPairs = [...todayPairs, ...gymPairs];
@@ -7342,9 +7382,14 @@ const _catClass = {Study:'cat-study',Fitness:'cat-gym',Gym:'cat-gym',Self:'cat-s
 function buildWeekCards(){
   const grid = document.getElementById('weekGrid');
   const mon  = new Date(now);
-  mon.setDate(now.getDate() - (now.getDay()===0 ? 6 : now.getDay()-1));
+  // Apply week offset (calWeekOffset=0 is current week, +1 is next week, etc.)
+  mon.setDate(now.getDate() - (now.getDay()===0 ? 6 : now.getDay()-1) + (calWeekOffset * 7));
   const weekDays = Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
   const dnames   = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  // Update title to show the week range
+  const weekEnd = new Date(mon); weekEnd.setDate(mon.getDate()+6);
+  const fmt = d => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  document.getElementById('calTitle').textContent = fmt(mon) + ' – ' + fmt(weekEnd) + (calWeekOffset===0?' (This Week)':calWeekOffset===1?' (Next Week)':calWeekOffset===-1?' (Last Week)':'');
 
   const timeStr = ev => ev.timeFrom&&ev.timeTo
     ? `${ev.timeFrom}–${ev.timeTo}` : ev.timeFrom ? ev.timeFrom : ev.time||'';
@@ -9462,10 +9507,10 @@ function renderVisionBoardTabs(){
   container.appendChild(addBtn);
 }
 
-// ── Vision board image compression ──────────────────────────────────────
-// Resizes to max 900px on longest side and compresses to JPEG at 78% quality.
-// Reduces a typical iPhone photo from ~3MB → ~60-100KB (30-50× smaller),
-// allowing 50+ images before localStorage fills up instead of just 1-3.
+// ── Image compression ────────────────────────────────────────────────────
+// Uses WebP where supported (iPad Safari 14+, Samsung Chrome) — ~30% smaller than JPEG.
+// Falls back to JPEG for older browsers.
+// maxPx: longest side in pixels. quality: 0-1.
 function _compressImage(file, maxPx, quality, callback){
   const reader = new FileReader();
   reader.onload = ev => {
@@ -9473,18 +9518,22 @@ function _compressImage(file, maxPx, quality, callback){
     img.onload = () => {
       const canvas = document.createElement('canvas');
       let w = img.naturalWidth, h = img.naturalHeight;
-      // Scale down to maxPx on longest side
       if(w > maxPx || h > maxPx){
         if(w >= h){ h = Math.round(h * maxPx / w); w = maxPx; }
         else       { w = Math.round(w * maxPx / h); h = maxPx; }
       }
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
-      // White background (for transparent PNGs)
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL('image/jpeg', quality));
+      // Try WebP first (30% smaller) — fall back to JPEG
+      const webp = canvas.toDataURL('image/webp', quality);
+      if(webp.startsWith('data:image/webp')){
+        callback(webp);
+      } else {
+        callback(canvas.toDataURL('image/jpeg', quality));
+      }
     };
     img.src = ev.target.result;
   };
@@ -9536,7 +9585,7 @@ function _updateVBStorageBar(){
 // Runs silently on first load. Images added before compression was introduced
 // are stored as full-size base64 (1-3MB each). This brings them down to ~60-100KB.
 // A flag in localStorage prevents it running more than once.
-const _COMPRESS_MIGRATED_KEY = 'thatgirlhq_compress_migrated_v2'; // v2 adds milestone image compression
+const _COMPRESS_MIGRATED_KEY = 'thatgirlhq_compress_migrated_v3'; // v3: WebP + tiered sizes
 
 function _migrateAndCompressExistingImages(){
   // Only run once ever
@@ -9567,7 +9616,7 @@ function _migrateAndCompressExistingImages(){
     fetch(m.image)
       .then(r => r.blob())
       .then(blob => {
-        _compressImage(blob, 900, 0.78, compressedDataUrl => {
+        _compressImage(blob, 600, 0.75, compressedDataUrl => {
           milestones[i].image = compressedDataUrl;
           pending--;
           if(pending === 0){ localStorage.setItem(_COMPRESS_MIGRATED_KEY, '1'); saveLocal(); try{renderTimeline();}catch(e){} }
@@ -9618,7 +9667,7 @@ function addVisionImage(e){
   let processed = 0;
 
   files.forEach(file => {
-    _compressImage(file, 900, 0.78, dataUrl => {
+    _compressImage(file, 800, 0.80, dataUrl => {
       imgs.unshift({ src: dataUrl, caption: '' });
       processed++;
       renderVisionBoard();
@@ -9663,7 +9712,7 @@ function _handleVBPaste(e){
   imageItems.forEach(item => {
     const blob = item.getAsFile();
     if(!blob) return;
-    _compressImage(blob, 900, 0.78, dataUrl => {
+    _compressImage(blob, 800, 0.80, dataUrl => {
       imgs.unshift({ src: dataUrl, caption: '' });
       added++;
       renderVisionBoard();
@@ -11430,14 +11479,12 @@ function saveTripField(field, value){
 // ── COVER PHOTO ─────────────────────────────────────────
 function setTripCover(e){
   if(!e.target.files[0]||currentTripIdx<0) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    trips[currentTripIdx].cover=ev.target.result;
+  _compressImage(e.target.files[0], 800, 0.80, dataUrl=>{
+    trips[currentTripIdx].cover = dataUrl;
     const img=document.getElementById('tripCoverImg'), ph=document.getElementById('tripCoverPlaceholder');
-    img.src=ev.target.result; img.style.display='block'; ph.style.display='none';
+    img.src=dataUrl; img.style.display='block'; ph.style.display='none';
     scheduleSave();
-  };
-  r.readAsDataURL(e.target.files[0]);
+  });
 }
 
 // ── TAB SWITCHING ────────────────────────────────────────
@@ -11777,13 +11824,11 @@ function addTripPhotos(e){
   const files=Array.from(e.target.files);
   let loaded=0;
   files.forEach(file=>{
-    const r=new FileReader();
-    r.onload=ev=>{
-      trips[currentTripIdx].photos.push({src:ev.target.result,caption:''});
+    _compressImage(file, 600, 0.75, dataUrl=>{
+      trips[currentTripIdx].photos.push({src:dataUrl, caption:''});
       loaded++;
-      if(loaded===files.length) renderTripPhotos();
-    };
-    r.readAsDataURL(file);
+      if(loaded===files.length){ renderTripPhotos(); scheduleSave(); }
+    });
   });
 }
 function renderTripPhotos(){
@@ -15845,21 +15890,30 @@ function loadLocal(){
 // ── Strip base64 images for cloud (kept local only) ─
 function collectCloudData(){
   const d = collectAllData();
-  // Strip vision board images (base64 is too large for cloud rows)
-  if(d.visionBoards){
-    const stripped = {};
-    Object.entries(d.visionBoards).forEach(([k,imgs])=>{
-      stripped[k] = imgs.map(img=>({...img, src:''}));
-    });
-    d.visionBoards = stripped;
-  }
-  // Strip trip photos and cover images
-  if(d.trips){
-    d.trips = d.trips.map(t=>({
-      ...t,
-      cover: '',
-      photos: (t.photos||[]).map(p=>({...p, src:''}))
-    }));
+  // Images are now compressed (50-100KB each via WebP/JPEG) so we CAN include
+  // them in cloud sync — core data is ~300KB, leaving ~3.7MB for images.
+  // We enforce a total payload cap of 3.8MB below — if exceeded we strip images
+  // gracefully so core data always syncs even if someone has lots of images.
+  const full = JSON.stringify(d);
+  if(full.length * 2 > 3.8 * 1024 * 1024){
+    // Too large — strip images to protect core sync
+    if(d.visionBoards){
+      const stripped = {};
+      Object.entries(d.visionBoards).forEach(([k,imgs])=>{
+        stripped[k] = imgs.map(img=>({...img, src:''}));
+      });
+      d.visionBoards = stripped;
+    }
+    if(d.trips){
+      d.trips = d.trips.map(t=>({
+        ...t, cover:'',
+        photos:(t.photos||[]).map(p=>({...p,src:''}))
+      }));
+    }
+    if(d.milestones){
+      d.milestones = d.milestones.map(m=>({...m, image:''}));
+    }
+    console.warn('ThatGirlHQ: payload large, images stripped for cloud sync');
   }
   return d;
 }
