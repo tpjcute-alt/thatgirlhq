@@ -807,6 +807,13 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   .tabnav { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .tabnav-tab { flex-shrink: 0; font-size: 11px; padding: 6px 12px; }
 
+  /* Topbar — hide less important items on small screens to make room for dark mode */
+  .topbar-day { display: none; }
+  #authUserEmail { display: none !important; }
+  button[onclick="exportData()"],
+  label[title="Import backup"] { display: none !important; }
+  #darkModeBtn { display: flex !important; }
+
   /* Vision board */
   #visionBoard { grid-template-columns: repeat(2, 1fr) !important; }
 
@@ -10487,12 +10494,13 @@ function addMasterTodo(){
   const val=document.getElementById('masterTodoInput').value.trim(); if(!val) return;
   masterTodos.push({text:val,done:false}); document.getElementById('masterTodoInput').value='';
   renderTodos('master'); checkAchievement('acad_first_todo'); checkAchievement('prod_first_todo');
+  scheduleSave();
 }
 function addQuickTodo(){
   const val=document.getElementById('quickTodoInput').value.trim(); if(!val) return;
-  if(quickTodos.filter(t=>!t.done).length>=5){ alert('Max 5 quick todos! Clear some first.'); return; }
+  if(quickTodos.filter(t=>!t.done).length>=5){ showToast('Max 5 quick todos! Tick some off first ✦'); return; }
   quickTodos.push({text:val,done:false}); document.getElementById('quickTodoInput').value='';
-  renderTodos('quick'); renderHomeQuickTodos();
+  renderTodos('quick'); renderHomeQuickTodos(); scheduleSave();
 }
 function toggleTodo(list,i){
   if(list==='master'){
@@ -16222,30 +16230,49 @@ function _shuffle(arr){
       const { data, error } = await _sb.from('sync_data')
         .select('data').eq('sync_id', _syncID).single();
       if(!error && data){
-        // Merge cloud data with local — preserve local images (vision boards, trip photos)
+        // Merge cloud data with local media (vision boards, trip photos, milestones)
+        // IMPORTANT: read from MEDIA_KEY not SAVE_KEY — SAVE_KEY has __media__ placeholders
         const cloudData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-        const localRaw = localStorage.getItem(SAVE_KEY);
-        if(localRaw){
-          try {
-            const localData = JSON.parse(localRaw);
-            // Keep local vision boards if cloud has empty images
-            if(cloudData.visionBoards && localData.visionBoards){
+        try {
+          const mediaRaw = localStorage.getItem(MEDIA_KEY);
+          if(mediaRaw){
+            const localMedia = JSON.parse(mediaRaw);
+            // If cloud has empty/missing images, fill from local media key
+            if(cloudData.visionBoards && localMedia.visionBoards){
               Object.keys(cloudData.visionBoards).forEach(k=>{
-                if(localData.visionBoards[k]){
-                  cloudData.visionBoards[k] = localData.visionBoards[k];
-                }
+                const cloudImgs = cloudData.visionBoards[k] || [];
+                const localImgs = localMedia.visionBoards[k] || [];
+                cloudData.visionBoards[k] = cloudImgs.map((img,i)=>({
+                  ...img,
+                  src: (img.src && img.src !== '' && img.src !== '__media__')
+                    ? img.src  // cloud has real image — use it (synced from another device)
+                    : (localImgs[i]?.src || '')  // else use local
+                }));
               });
             }
-            // Keep local trip photos/covers
-            if(cloudData.trips && localData.trips){
-              cloudData.trips = cloudData.trips.map(ct=>{
-                const lt = localData.trips.find(t=>t.createdAt===ct.createdAt);
-                if(lt){ ct.cover = lt.cover||ct.cover; ct.photos = lt.photos||ct.photos; }
-                return ct;
-              });
+            // Trip covers and photos
+            if(cloudData.trips && localMedia.tripCovers){
+              cloudData.trips = cloudData.trips.map((ct,i)=>({
+                ...ct,
+                cover: (ct.cover && ct.cover !== '' && ct.cover !== '__media__')
+                  ? ct.cover : (localMedia.tripCovers[i] || ''),
+                photos: (ct.photos||[]).map((p,j)=>({
+                  ...p,
+                  src: (p.src && p.src !== '' && p.src !== '__media__')
+                    ? p.src : (localMedia.tripPhotos?.[i]?.[j] || '')
+                }))
+              }));
             }
-          } catch(e2){}
-        }
+            // Milestone images
+            if(cloudData.milestones && localMedia.milestoneImages){
+              cloudData.milestones = cloudData.milestones.map((m,i)=>({
+                ...m,
+                image: (m.image && m.image !== '' && m.image !== '__media__')
+                  ? m.image : (localMedia.milestoneImages[i] || '')
+              }));
+            }
+          }
+        } catch(e2){ console.warn('Media merge error:', e2); }
         restoreAllData(cloudData);
         saveLocal();
         refreshAllRenderers();
