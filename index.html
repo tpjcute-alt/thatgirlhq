@@ -3611,6 +3611,8 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
         <div id="statsDataSizeFill" style="height:100%;border-radius:5px;transition:width 0.5s,background 0.4s"></div>
       </div>
       <div id="statsDataSizeNote" style="font-size:12px;color:var(--text-mid);line-height:1.6"></div>
+      <div id="statsDataBreakdown" style="margin-top:10px"></div>
+      <button onclick="_showDataBreakdown()" style="margin-top:10px;background:none;border:1.5px solid var(--border);border-radius:10px;padding:6px 14px;font-size:11px;font-weight:600;color:var(--text-mid);cursor:pointer;font-family:Outfit,sans-serif">🔍 Show field breakdown</button>
     </div>
 
     <!-- Cloud sync status -->
@@ -12748,6 +12750,7 @@ function renderStatsDataPanel(){
 
 // ── Boot-time alert if data is getting dangerously large ──
 function _checkDataSizeOnBoot(){
+  if(window._bootWarnShown) return; // only show once per session
   try {
     // Measure the CLOUD payload (images stripped) — this is what actually hits the 4MB cap.
     // The local localStorage save can be larger because it keeps images locally,
@@ -12776,6 +12779,7 @@ function _checkDataSizeOnBoot(){
 }
 
 function _showDataBoot(type, mb){
+  window._bootWarnShown = true;
   const existing = document.getElementById('_dataSizeBoot');
   if(existing) existing.remove();
 
@@ -12802,6 +12806,41 @@ function _showDataBoot(type, mb){
   t.appendChild(close);
   document.body.appendChild(t);
   setTimeout(()=>{ if(t.parentNode) t.remove(); }, 10000);
+}
+
+// ── Per-field data size breakdown ────────────────────────────────────────
+function _showDataBreakdown(){
+  const el = document.getElementById('statsDataBreakdown');
+  if(!el) return;
+
+  // Use the stripped core data so we see what's actually large WITHOUT images
+  const core = _collectCoreData();
+  const fields = [];
+  for(const [k, v] of Object.entries(core)){
+    const bytes = new TextEncoder().encode(JSON.stringify(v)).length;
+    fields.push({ k, bytes });
+  }
+  fields.sort((a,b) => b.bytes - a.bytes);
+
+  const totalBytes = fields.reduce((s,f) => s+f.bytes, 0);
+  const fmt = b => b > 1048576 ? (b/1048576).toFixed(2)+' MB'
+                 : b > 1024    ? Math.round(b/1024)+' KB'
+                 :               b+' B';
+
+  el.innerHTML = `
+    <div style="background:var(--pink-glow);border-radius:14px;padding:14px 16px;margin-top:4px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">
+        Field Breakdown — Core Data (${fmt(totalBytes)} total)
+      </div>
+      ${fields.map(f => {
+        const pct = Math.round(f.bytes/totalBytes*100);
+        const bar = pct > 0 ? `<div style="height:4px;background:${pct>20?'#e07898':'var(--pink-mid)'};border-radius:2px;width:${Math.min(pct*3,100)}%;margin-top:3px"></div>` : '';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--text);font-weight:${pct>5?'700':'400'}">${f.k}</span>
+          <span style="color:${pct>20?'#c04040':pct>5?'#c07820':'var(--text-soft)'};font-weight:600">${fmt(f.bytes)} (${pct}%)</span>
+        </div>${bar}`;
+      }).join('')}
+    </div>`;
 }
 
 // ── Export as styled HTML report ──
