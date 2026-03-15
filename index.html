@@ -7055,23 +7055,19 @@ function renderTimeline(){
 }
 function previewMilestoneImage(e){
   const file=e.target.files[0]; if(!file) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    document.getElementById('milestoneImagePreview').src=ev.target.result;
+  _compressImage(file, 900, 0.78, dataUrl=>{
+    document.getElementById('milestoneImagePreview').src=dataUrl;
     document.getElementById('milestoneImagePreview').style.display='block';
-    document.getElementById('milestoneImageData').value=ev.target.result;
-  };
-  r.readAsDataURL(file);
+    document.getElementById('milestoneImageData').value=dataUrl;
+  });
 }
 function previewTlImage(e){
   const file=e.target.files[0]; if(!file) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    document.getElementById('tlImagePreview').src=ev.target.result;
+  _compressImage(file, 900, 0.78, dataUrl=>{
+    document.getElementById('tlImagePreview').src=dataUrl;
     document.getElementById('tlImagePreview').style.display='block';
-    document.getElementById('tlImageData').value=ev.target.result;
-  };
-  r.readAsDataURL(file);
+    document.getElementById('tlImageData').value=dataUrl;
+  });
 }
 function addMilestone(){
   const dateVal=document.getElementById('milestoneDate').value.trim();
@@ -9540,7 +9536,7 @@ function _updateVBStorageBar(){
 // Runs silently on first load. Images added before compression was introduced
 // are stored as full-size base64 (1-3MB each). This brings them down to ~60-100KB.
 // A flag in localStorage prevents it running more than once.
-const _COMPRESS_MIGRATED_KEY = 'thatgirlhq_compress_migrated_v1';
+const _COMPRESS_MIGRATED_KEY = 'thatgirlhq_compress_migrated_v2'; // v2 adds milestone image compression
 
 function _migrateAndCompressExistingImages(){
   // Only run once ever
@@ -9562,6 +9558,23 @@ function _migrateAndCompressExistingImages(){
   console.log('ThatGirlHQ: compressing existing vision board images...');
   let pending = 0;
   let total   = 0;
+
+  // Also migrate milestone images
+  milestones.forEach((m, i) => {
+    if(!m.image || !m.image.startsWith('data:') || m.image.length <= 200000) return;
+    total++;
+    pending++;
+    fetch(m.image)
+      .then(r => r.blob())
+      .then(blob => {
+        _compressImage(blob, 900, 0.78, compressedDataUrl => {
+          milestones[i].image = compressedDataUrl;
+          pending--;
+          if(pending === 0){ localStorage.setItem(_COMPRESS_MIGRATED_KEY, '1'); saveLocal(); try{renderTimeline();}catch(e){} }
+        });
+      })
+      .catch(() => { pending--; if(pending===0){localStorage.setItem(_COMPRESS_MIGRATED_KEY,'1');saveLocal();} });
+  });
 
   Object.entries(visionBoards).forEach(([boardKey, imgs]) => {
     imgs.forEach((img, i) => {
@@ -15713,6 +15726,10 @@ function _collectCoreData(){
   if(d.notes){
     d.notes = d.notes.map(n=>({...n, pdfDataUrl: n.pdfDataUrl?'__media__':''}));
   }
+  // Milestone images
+  if(d.milestones){
+    d.milestones = d.milestones.map(m=>({...m, image: m.image?'__media__':''}));
+  }
   return d;
 }
 
@@ -15720,11 +15737,12 @@ function _collectMediaData(){
   // Only the binary blobs — referenced by index so they can be merged back
   const all = collectAllData();
   return {
-    visionBoards: all.visionBoards || {},
-    tripCovers:   (all.trips||[]).map(t=>t.cover||''),
-    tripPhotos:   (all.trips||[]).map(t=>(t.photos||[]).map(p=>p.src||'')),
-    lecturePDFs:  (all.lectures||[]).map(l=>l.pdfDataUrl||''),
-    notePDFs:     (all.notes||[]).map(n=>n.pdfDataUrl||''),
+    visionBoards:    all.visionBoards || {},
+    tripCovers:      (all.trips||[]).map(t=>t.cover||''),
+    tripPhotos:      (all.trips||[]).map(t=>(t.photos||[]).map(p=>p.src||'')),
+    lecturePDFs:     (all.lectures||[]).map(l=>l.pdfDataUrl||''),
+    notePDFs:        (all.notes||[]).map(n=>n.pdfDataUrl||''),
+    milestoneImages: (all.milestones||[]).map(m=>m.image||''),
   };
 }
 
@@ -15753,6 +15771,10 @@ function _mergeCoreAndMedia(core, media){
   // Re-attach note PDFs
   if(core.notes && media.notePDFs){
     core.notes = core.notes.map((n,i)=>({...n, pdfDataUrl: media.notePDFs[i]||''}));
+  }
+  // Re-attach milestone images
+  if(core.milestones && media.milestoneImages){
+    core.milestones = core.milestones.map((m,i)=>({...m, image: media.milestoneImages[i]||''}));
   }
   return core;
 }
