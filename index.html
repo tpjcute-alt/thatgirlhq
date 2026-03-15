@@ -53,6 +53,86 @@
   --red-light: #fee8e8;
   --red: #d08080;
 }
+
+/* ── DARK MODE ── */
+body.dark-mode {
+  --pink: #d4789e;
+  --pink-mid: #3a1f2e;
+  --pink-light: #2a1520;
+  --pink-glow: #1e1018;
+  --pink-deep: #e07898;
+  --cream: #0f080c;
+  --text: #f0d8e8;
+  --text-mid: #c890a8;
+  --text-soft: #7a5868;
+  --border: #2e1a24;
+  --white: #1c0e18;
+  --green: #2a4a2a;
+  --green-light: #1a2e1a;
+  --red-light: #2e1a1a;
+  --red: #c07070;
+}
+body.dark-mode .topbar,
+body.dark-mode .sidebar { background:#140b10 !important; border-color:var(--border) !important; }
+body.dark-mode .home-hero { background:linear-gradient(135deg,#2a1020,#1e0e18) !important; }
+body.dark-mode .card-pink { background:linear-gradient(135deg,#1e0e18,#2a1520) !important; }
+body.dark-mode .card { background:var(--white) !important; }
+body.dark-mode .modal-box { background:var(--white) !important; }
+body.dark-mode .ritual-item { background:var(--pink-glow) !important; }
+body.dark-mode .agenda-item,
+body.dark-mode .note-card,
+body.dark-mode .savings-card,
+body.dark-mode .project-card,
+body.dark-mode .gym-session-card,
+body.dark-mode .hobby-entry,
+body.dark-mode .todo-item,
+body.dark-mode .week-day-card,
+body.dark-mode .month-cell,
+body.dark-mode .meal-slot,
+body.dark-mode .challenge-card,
+body.dark-mode .urge-log-entry { background:var(--white) !important; }
+body.dark-mode .week-day-card:hover,
+body.dark-mode .month-cell:hover { background:#221018 !important; }
+body.dark-mode .tabnav { background:#140b10 !important; border-color:var(--border) !important; }
+body.dark-mode .text-input,
+body.dark-mode .form-select { background:var(--pink-glow) !important; color:var(--text) !important; }
+body.dark-mode input:not([type=file]):not([type=range]):not([type=checkbox]),
+body.dark-mode textarea,
+body.dark-mode select { background:var(--pink-glow) !important; color:var(--text) !important; border-color:var(--border) !important; }
+body.dark-mode .sidebar-item:hover,
+body.dark-mode .sidebar-item.active { background:var(--pink-light) !important; }
+body.dark-mode .hero-pill { background:rgba(30,16,24,0.85) !important; border-color:var(--border) !important; }
+body.dark-mode .hero-day-card { background:rgba(28,14,24,0.95) !important; }
+body.dark-mode .pink-btn { box-shadow:0 4px 16px rgba(224,120,152,0.25) !important; }
+
+/* Hero card dark mode fixes */
+body.dark-mode .hero-greeting { color:#f0d8e8 !important; }
+body.dark-mode .hero-day-card-num { color:#f0d8e8 !important; }
+body.dark-mode .hero-day-card-lbl { color:#e07898 !important; }
+body.dark-mode .hero-day-label { color:#c890a8 !important; }
+body.dark-mode .hero-pill-val { color:#e07898 !important; }
+body.dark-mode .hero-pill-lbl { color:#c890a8 !important; }
+body.dark-mode .hero-pill-sub { color:#a87888 !important; }
+body.dark-mode .hero-pill-sub.hp-up { color:#6ab88a !important; }
+body.dark-mode .hero-pill-sub.hp-down { color:#e07070 !important; }
+body.dark-mode #heroNarrative { color:#c890a8 !important; }
+body.dark-mode .hero-dots-btn { color:#7a5868 !important; }
+/* General text fixes */
+body.dark-mode .page-title { color:var(--text) !important; }
+body.dark-mode .section-label { color:var(--text-soft) !important; }
+body.dark-mode .page-sub { color:var(--text-mid) !important; }
+body.dark-mode .timeline-title { color:var(--text) !important; }
+body.dark-mode .narrative-text { color:var(--text) !important; }
+body.dark-mode .ritual-text { color:var(--text) !important; }
+body.dark-mode .agenda-label { color:var(--text) !important; }
+body.dark-mode .todo-text { color:var(--text) !important; }
+body.dark-mode .slow-col-head { color:var(--text-soft) !important; }
+body.dark-mode .cal-title { color:var(--text) !important; }
+body.dark-mode .week-col-datenum { color:var(--text) !important; }
+body.dark-mode .month-cell .cell-num { color:var(--text-mid) !important; }
+body.dark-mode .note-card-title { color:var(--text) !important; }
+body.dark-mode .sidebar-item { color:var(--text) !important; }
+body.dark-mode .form-label { color:var(--text-soft) !important; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
 
@@ -796,6 +876,10 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   <div class="topbar-logo">thatgirlhq ✦</div>
   <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
     <span id="saveIndicator" style="font-size:11px;color:var(--pink-deep);font-weight:600;opacity:0;transition:opacity 0.5s;white-space:nowrap"></span>
+    <div id="topbarStorageAlert" style="display:none;align-items:center;gap:6px;background:#fff0f0;border:1.5px solid #d04040;border-radius:10px;padding:4px 10px;font-size:11px;font-weight:700;color:#a02020;white-space:nowrap;cursor:pointer" onclick="navTo('stats');setTimeout(()=>switchStatsTab(document.querySelector('#statsTabBar .ritual-tab:last-child'),'data'),300)">
+      ⚠️ <span id="topbarStorageAlertText">Data near limit</span>
+      <button onclick="event.stopPropagation();document.getElementById('topbarStorageAlert').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:12px;color:#a02020;padding:0;margin-left:2px;font-weight:700">✕</button>
+    </div>
     <div id="authUserChip" style="display:none;align-items:center;gap:6px">
       <span id="authUserEmail" style="font-size:11px;color:var(--text-mid);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
       <button onclick="showSyncIDPanel()" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:4px 9px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-mid);font-family:Outfit,sans-serif" title="View your Sync ID">🔑</button>
@@ -804,6 +888,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <div id="authSignInChip" style="display:none">
       <button onclick="showAuthOverlay()" style="background:none;border:1.5px solid var(--pink-mid);border-radius:10px;padding:4px 9px;cursor:pointer;font-size:11px;font-weight:700;color:var(--pink-deep);font-family:Outfit,sans-serif">Sign in to sync ✦</button>
     </div>
+    <button onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:Outfit,sans-serif;transition:all 0.2s">🌙</button>
     <button onclick="manuallySave()" id="manualSaveBtn" title="Save now" style="background:var(--pink-deep);border:none;border-radius:10px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:700;color:white;font-family:Outfit,sans-serif;transition:all 0.2s">Save ✦</button>
     <button onclick="exportData()" title="Download backup" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-mid);font-family:Outfit,sans-serif">⬇</button>
     <label title="Import backup" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-mid);font-family:Outfit,sans-serif">⬆<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -12807,6 +12892,31 @@ function renderStatsDataPanel(){
 }
 
 // ── Boot-time alert if data is getting dangerously large ──
+// ── Dark mode ─────────────────────────────────────────────────────────────
+function toggleDarkMode(){
+  const isDark = document.body.classList.toggle('dark-mode');
+  const btn = document.getElementById('darkModeBtn');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+  try { localStorage.setItem('thatgirlhq_darkmode', isDark ? '1' : '0'); } catch(e){}
+}
+
+// Apply saved dark mode preference on load
+(function(){
+  try {
+    if(localStorage.getItem('thatgirlhq_darkmode') === '1'){
+      document.body.classList.add('dark-mode');
+      // Button will be updated once DOM is ready
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const btn = document.getElementById('darkModeBtn');
+        if(btn) btn.textContent = '☀️';
+      });
+      // Also try immediately in case DOMContentLoaded already fired
+      const btn = document.getElementById('darkModeBtn');
+      if(btn) btn.textContent = '☀️';
+    }
+  } catch(e){}
+})();
+
 function _checkDataSizeOnBoot(){
   if(window._bootWarnShown) return; // only show once per session
   try {
@@ -12826,44 +12936,23 @@ function _checkDataSizeOnBoot(){
       }
     } catch(e){}
 
-    if(coreMB > 3.5){
-      // Core data genuinely near limit
-      setTimeout(()=>{ _showDataBoot('cloud', coreMB); }, 3000);
-    } else if(mediaMB > 4){
-      // Images taking a lot of space — inform but don't alarm
-      setTimeout(()=>{ _showDataBoot('images', mediaMB); }, 3000);
+    if(coreMB > 3.6){
+      // Only warn when genuinely critical (>90% of 4MB cap)
+      setTimeout(()=>{ _showDataBoot('cloud', coreMB); }, 2000);
     }
+    // Image size no longer shown as a boot warning — just in Stats > Data & Backup
   } catch(e){}
 }
 
 function _showDataBoot(type, mb){
   window._bootWarnShown = true;
-  const existing = document.getElementById('_dataSizeBoot');
-  if(existing) existing.remove();
-
-  const t = document.createElement('div');
-  t.id = '_dataSizeBoot';
-  t.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);border-radius:18px;font-size:13px;font-family:Outfit,sans-serif;z-index:99999;box-shadow:0 4px 24px rgba(0,0,0,0.12);max-width:92vw;min-width:260px;text-align:center;font-weight:600;padding:14px 20px';
-
-  if(type === 'cloud'){
-    t.style.cssText += ';background:#fff0f0;border:2px solid #d04040;color:#a02020';
-    t.innerHTML = '⚠️ Cloud sync data is ' + mb.toFixed(1) + ' MB — near the 4 MB limit.'
-      + '<br><span style="font-weight:400;font-size:12px">Go to Stats → Data & Backup → export a JSON backup.</span>';
-  } else {
-    // Images in vision board — local only, cloud is fine
-    t.style.cssText += ';background:#fff8f0;border:2px solid #e0a040;color:#8a5010';
-    t.innerHTML = '📸 Vision board images are using ' + mb.toFixed(1) + ' MB locally.'
-      + '<br><span style="font-weight:400;font-size:12px">Cloud sync is unaffected — images stay on this device only. ✓</span>';
+  // Show inline in topbar — same row as thatgirlhq logo
+  const alert = document.getElementById('topbarStorageAlert');
+  const alertText = document.getElementById('topbarStorageAlertText');
+  if(alert && alertText){
+    alertText.textContent = 'Data ' + mb.toFixed(1) + 'MB — near 4MB limit';
+    alert.style.display = 'inline-flex';
   }
-
-  const close = document.createElement('button');
-  close.textContent = '✕';
-  close.style.cssText = 'margin-left:10px;background:none;border:none;cursor:pointer;font-size:14px;font-weight:700;vertical-align:middle';
-  close.style.color = type === 'cloud' ? '#a02020' : '#8a5010';
-  close.onclick = ()=>t.remove();
-  t.appendChild(close);
-  document.body.appendChild(t);
-  setTimeout(()=>{ if(t.parentNode) t.remove(); }, 10000);
 }
 
 // ── Per-field data size breakdown ────────────────────────────────────────
