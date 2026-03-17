@@ -157,6 +157,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   padding:0 24px; height:56px; gap:16px;
 }
 .topbar-logo { font-family:'Playfair Display',serif; font-style:italic; font-weight:700; font-size:20px; color:var(--pink-deep); flex:1; letter-spacing:-0.5px; }
+.topbar-actions { display:flex; align-items:center; gap:8px; margin-left:auto; }
 .topbar-day { font-size:11px; color:var(--text-soft); padding:5px 14px; background:var(--pink-glow); border-radius:20px; font-weight:500; white-space:nowrap; }
 .hamburger { background:none; border:none; cursor:pointer; display:flex; flex-direction:column; gap:5px; padding:6px; border-radius:8px; transition:background 0.2s; }
 .hamburger:hover { background:var(--pink-glow); }
@@ -186,7 +187,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 .sidebar-day { padding:14px 16px; margin:8px 12px 0; background:var(--pink-glow); border-radius:12px; font-size:11px; color:var(--text-mid); font-weight:500; flex-shrink:0; }
 
 /* ── PAGES (offset for fixed topbar + tabnav) ── */
-.page { display:none; padding:128px 40px 80px; animation:fadeIn 0.3s ease; }
+.page { display:none; padding:128px 40px 80px; animation:fadeIn 0.3s ease; isolation:isolate; }
 .page.active { display:block; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(16px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
@@ -594,6 +595,8 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 
 /* ── FIN / WELL / MOTIV PANELS ── */
 .fin-panel,.well-panel,.motiv-panel,.stats-panel { animation:fadeIn 0.25s ease; }
+/* Prevent hidden panels from ever painting above sibling content */
+.well-panel[style*="display:none"],.well-panel[style*="display: none"] { visibility:hidden; pointer-events:none; position:static !important; z-index:-1 !important; }
 
 /* ── COUNTDOWN CARDS ── */
 .countdown-card { border-radius:18px; padding:22px 24px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; border:1.5px solid transparent; }
@@ -663,6 +666,11 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 .ritual-sw-over { color:#c04080; }
 .ritual-split { font-size:10px; background:#e8f5e9; color:#2e7d32; padding:2px 7px; border-radius:8px; font-weight:700; margin-left:6px; }
 .ritual-split.slow { background:#fff3e0; color:#e65100; }
+.step-target-badge { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:700; color:var(--text-soft); background:var(--pink-glow); border:1.5px solid var(--border); border-radius:8px; padding:1px 7px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.step-target-badge:hover { border-color:var(--pink-mid); color:var(--pink-deep); background:var(--pink-light); }
+.step-target-badge.active { background:#e8f8e8; border-color:#7cb87c; color:#2e7d32; }
+.step-target-badge.over  { background:#fff3e0; border-color:#e65100; color:#e65100; }
+.step-target-badge.warning { background:#fff8e0; border-color:#c8a020; color:#a07010; }
 .ritual-analysis { background:var(--pink-glow); border-radius:16px; padding:16px 18px; margin-top:20px; }
 
 .challenge-card { background:white; border:1.5px solid var(--border); border-radius:20px; padding:20px 22px; margin-bottom:12px; transition:border-color 0.2s, box-shadow 0.2s; position:relative; overflow:hidden; }
@@ -820,11 +828,30 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   .tabnav { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .tabnav-tab { flex-shrink: 0; font-size: 11px; padding: 6px 12px; }
 
-  /* Topbar — hide less important items on small screens to make room for dark mode */
+  /* Topbar — mobile: logo + swipeable actions row */
+  .topbar { padding: 0 10px; gap: 6px; height: 52px; }
+  .topbar-logo { font-size: 15px; flex-shrink: 0; }
   .topbar-day { display: none; }
   #authUserEmail { display: none !important; }
-  button[onclick="exportData()"],
-  label[title="Import backup"] { display: none !important; }
+  /* Make the right-side actions row horizontally scrollable (swipeable) */
+  .topbar-actions {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+    gap: 5px !important;
+    padding: 0 2px !important;
+  }
+  .topbar-actions::-webkit-scrollbar { display: none !important; }
+  /* Keep all buttons visible but compact */
+  .topbar-actions > button,
+  .topbar-actions > label {
+    flex-shrink: 0 !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+  }
   #darkModeBtn { display: flex !important; }
 
   /* Vision board */
@@ -895,7 +922,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <span></span><span></span><span></span>
   </button>
   <div class="topbar-logo">thatgirlhq ✦</div>
-  <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+  <div class="topbar-actions" style="display:flex;align-items:center;gap:8px;margin-left:auto">
     <span id="saveIndicator" style="font-size:11px;color:var(--pink-deep);font-weight:600;opacity:0;transition:opacity 0.5s;white-space:nowrap"></span>
     <div id="topbarStorageAlert" style="display:none;align-items:center;gap:6px;background:#fff0f0;border:1.5px solid #d04040;border-radius:10px;padding:4px 10px;font-size:11px;font-weight:700;color:#a02020;white-space:nowrap;cursor:pointer" onclick="navTo('stats');setTimeout(()=>switchStatsTab(document.querySelector('#statsTabBar .ritual-tab:last-child'),'data'),300)">
       ⚠️ <span id="topbarStorageAlertText">Data near limit</span>
@@ -909,6 +936,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <div id="authSignInChip" style="display:none">
       <button onclick="showAuthOverlay()" style="background:none;border:1.5px solid var(--pink-mid);border-radius:10px;padding:4px 9px;cursor:pointer;font-size:11px;font-weight:700;color:var(--pink-deep);font-family:Outfit,sans-serif">Sign in to sync ✦</button>
     </div>
+    <button onclick="location.reload()" title="Refresh page" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:Outfit,sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--pink-glow)'" onmouseout="this.style.background='none'">🔄</button>
     <button onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:Outfit,sans-serif;transition:all 0.2s">🌙</button>
     <button onclick="manuallySave()" id="manualSaveBtn" title="Save now" style="background:var(--pink-deep);border:none;border-radius:10px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:700;color:white;font-family:Outfit,sans-serif;transition:all 0.2s">Save ✦</button>
     <button onclick="exportData()" title="Download backup" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-mid);font-family:Outfit,sans-serif">⬇</button>
@@ -4040,7 +4068,14 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   <div class="modal-box"><button class="modal-close" onclick="closeModal('editItemModal')">×</button>
     <div class="modal-title">Edit Ritual.</div>
     <div class="form-row"><label class="form-label">Step</label><input class="text-input" id="editItemText"></div>
-    <div class="form-row"><label class="form-label">Time (optional)</label><input class="text-input" id="editItemTime" placeholder="7:30am"></div>
+    <div class="form-row"><label class="form-label">Scheduled time (optional)</label><input class="text-input" id="editItemTime" placeholder="7:30am"></div>
+    <div class="form-row">
+      <label class="form-label">⏱ Step duration target <span style="font-weight:400;color:var(--text-soft)">(saved permanently)</span></label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input class="text-input" type="number" id="editItemStepMins" min="0" max="180" placeholder="mins" style="width:90px">
+        <span style="font-size:12px;color:var(--text-soft)">minutes &nbsp;(0 = no target)</span>
+      </div>
+    </div>
     <div style="display:flex;gap:10px"><button class="pink-btn" style="flex:1" onclick="saveEditItem()">Save ✦</button><button class="pink-pill" onclick="deleteEditItem()" style="color:#c04040">🗑 Delete</button></div>
   </div>
 </div>
@@ -4886,7 +4921,8 @@ let _sw = {
   key: null,
   version: null,
   startTime: null,       // Date when stopwatch started
-  stepStart: null,       // Date when current step started
+  stepStart: null,       // Wall-clock ms when current step started (active only)
+  stepAtPause: 0,        // Accumulated secs for current step at time of pause
   splits: [],            // [{text, secs}] per completed step
   targetSecs: 0,         // 0 = no target
   chimed: false,         // has over-target chime fired?
@@ -4904,19 +4940,44 @@ function _swElapsed(){
   return _sw.totalAtPause + Math.floor((Date.now() - _sw.startTime) / 1000);
 }
 
+// Step elapsed = time since last split start + any time accumulated before pauses
+function _swStepElapsed(){
+  const sinceStepStart = _sw.stepStart ? Math.floor((Date.now() - _sw.stepStart)/1000) : 0;
+  return (_sw.stepAtPause||0) + sinceStepStart;
+}
+
 function startStopwatch(key, av){
   if(_sw.active && _sw.key===key && _sw.version===av){
-    // Pause
+    // ── PAUSE ──
     _sw.totalAtPause = _swElapsed();
+    // Save how many secs we're into the current step so resume can restore it
+    _sw.stepAtPause = _sw.stepStart ? ((_sw.stepAtPause||0) + Math.floor((Date.now() - _sw.stepStart)/1000)) : (_sw.stepAtPause||0);
     _sw.startTime = null;
+    _sw.stepStart = null;
     _sw.active = false;
     clearInterval(_sw.ticker);
+    _sw.ticker = null;
     renderRituals();
     return;
   }
-  if(_sw.active) stopStopwatch(false); // stop previous
+
+  // ── RESUME (same key, was paused) ──
+  if(!_sw.active && _sw.key===key && _sw.version===av && _sw.totalAtPause > 0){
+    _sw.active    = true;
+    _sw.startTime = Date.now();
+    // stepStart is set to NOW; _swStepElapsed() will add stepAtPause offset on top
+    _sw.stepStart = Date.now();
+    clearInterval(_sw.ticker);
+    _sw.ticker = setInterval(()=>{ _swTick(key, av); }, 1000);
+    renderRituals();
+    showToast('Stopwatch resumed ✦');
+    return;
+  }
+
+  // ── START FRESH (different key, or no prior state) ──
+  if(_sw.active) stopStopwatch(false); // stop any other running timer
   _sw = { active:true, key, version:av, startTime:Date.now(), stepStart:Date.now(),
-          splits:[], targetSecs:_sw.targetSecs||0, chimed:false, totalAtPause:0, ticker:null };
+          splits:[], targetSecs:_sw.targetSecs||0, chimed:false, totalAtPause:0, stepAtPause:0, ticker:null };
   _sw.ticker = setInterval(()=>{ _swTick(key, av); }, 1000);
   renderRituals();
   showToast('Stopwatch started ✦');
@@ -4940,7 +5001,7 @@ function stopStopwatch(log=true){
     showToast('Session logged — ' + _swFmt(total) + ' total ✦');
   }
   _sw = { active:false, key:null, version:null, startTime:null, stepStart:null,
-          splits:[], targetSecs:_sw.targetSecs, chimed:false, totalAtPause:0, ticker:null };
+          splits:[], targetSecs:_sw.targetSecs, chimed:false, totalAtPause:0, stepAtPause:0, ticker:null };
   renderRituals();
 }
 
@@ -4952,24 +5013,54 @@ function _swTick(key, av){
     _playChime();
     showToast('⏰ Target time reached! ' + _swFmt(_sw.targetSecs));
   }
-  // Update display without full re-render
+  // Update total timer display without full re-render
   const el = document.getElementById('sw-total-'+key);
   if(el){
     el.textContent = _swFmt(elapsed);
     el.className = 'ritual-sw-timer' + (_sw.targetSecs > 0 && elapsed > _sw.targetSecs ? ' ritual-sw-over' : '');
   }
+  const stepElapsedSecs = _swStepElapsed();
   const stepEl = document.getElementById('sw-step-'+key);
   if(stepEl){
-    const stepSecs = _sw.stepStart ? Math.floor((Date.now() - _sw.stepStart)/1000) : 0;
-    stepEl.textContent = 'this step: ' + _swFmt(stepSecs);
+    stepEl.textContent = 'this step: ' + _swFmt(stepElapsedSecs);
+  }
+  // Update the ACTIVE step's target badge in-place
+  const activeStepIdx = _sw.splits.length; // current step index
+  const items = ritualData[key]?.versions?.[av];
+  if(items){
+    const activeItem = items[activeStepIdx];
+    if(activeItem && activeItem.stepMins > 0){
+      const stepTargetSecs = activeItem.stepMins * 60;
+      const remaining = stepTargetSecs - stepElapsedSecs;
+      const badgeEl = document.querySelector(`#ritem-${key}-${activeStepIdx} .step-target-badge`);
+      if(badgeEl){
+        if(remaining <= 0){
+          badgeEl.className = 'step-target-badge over';
+          badgeEl.textContent = '⏱ +' + _swFmt(Math.abs(remaining)) + ' over';
+          // Chime once when step goes over
+          if(!activeItem._stepChimed){ activeItem._stepChimed = true; _playChime(); showToast(`⏰ "${activeItem.text}" target reached!`); }
+        } else if(remaining <= 30){
+          badgeEl.className = 'step-target-badge warning';
+          badgeEl.textContent = '⏱ ' + _swFmt(remaining) + ' left';
+        } else {
+          badgeEl.className = 'step-target-badge active';
+          badgeEl.textContent = '⏱ ' + _swFmt(remaining) + ' left';
+        }
+      }
+    }
   }
 }
 
 function _swRecordSplit(itemText){
   if(!_sw.active) return;
-  const stepSecs = _sw.stepStart ? Math.floor((Date.now() - _sw.stepStart)/1000) : 0;
-  _sw.splits.push({ text: itemText, secs: stepSecs });
-  _sw.stepStart = Date.now();
+  _sw.splits.push({ text: itemText, secs: _swStepElapsed() });
+  _sw.stepStart   = Date.now();
+  _sw.stepAtPause = 0; // reset accumulated step time for new step
+  // Clear per-step chime flag on the NEW active step so it can chime fresh
+  const key = _sw.key, av = _sw.version;
+  const nextIdx = _sw.splits.length;
+  const nextItem = ritualData[key]?.versions?.[av]?.[nextIdx];
+  if(nextItem) nextItem._stepChimed = false;
 }
 
 function _playChime(){
@@ -5171,46 +5262,51 @@ function renderRitualAnalysisFor(key){
   const el = document.getElementById('ritual-analysis-content-'+key); if(!el) return;
   const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
   const cutoff = sevenDaysAgo.toISOString().split('T')[0];
-  const logs = ritualTimeLogs.filter(l => l.key===key && l.date >= cutoff);
+  const allLogs = ritualTimeLogs.filter(l => l.key===key && l.date >= cutoff);
 
-  if(!logs.length){ el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No logged sessions this week yet — start the stopwatch to begin tracking ✦</div>'; return; }
+  if(!allLogs.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No logged sessions this week yet — start the stopwatch to begin tracking ✦</div>';
+    return;
+  }
 
   const label = ritualData[key]?.label || key;
-  const avgTotal = Math.round(logs.reduce((a,l)=>a+l.totalSecs,0)/logs.length);
-  const overCount = logs.filter(l=>l.overTarget).length;
-  const targetSecs = logs.find(l=>l.targetSecs>0)?.targetSecs || 0;
-
-  // Average seconds per step
-  const stepTotals = {}, stepCounts = {};
-  logs.forEach(l => l.steps.forEach(s => {
-    stepTotals[s.text] = (stepTotals[s.text]||0) + s.secs;
-    stepCounts[s.text] = (stepCounts[s.text]||0) + 1;
-  }));
-  const stepAvgs = Object.entries(stepTotals)
-    .map(([text, total]) => ({ text, avg: Math.round(total/stepCounts[text]) }))
-    .sort((a,b) => b.avg - a.avg);
-
-  if(!stepAvgs.length){ el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">Not enough step data yet ✦</div>'; return; }
-
-  const slowest = stepAvgs[0];
-  const fastest = stepAvgs[stepAvgs.length-1];
 
   // ── Ritual-specific context ────────────────────────────────
   const ritualContext = {
     morning: { name:'morning ritual', pace:'You want this to flow — slow spots here eat into the rest of your day.', targetNote:'A morning ritual over 45 mins can make you feel rushed. Under 30 mins is the sweet spot.' },
     evening: { name:'evening wind-down', pace:'This should feel slow and intentional — but not so slow it delays sleep.', targetNote:'If this is taking over 45 mins regularly, you might be putting too much into wind-down.' },
-    study:   { name:'study session', pace:'Study rituals should front-load setup so you get into flow fast.', targetNote:'The longer your setup takes, the less time for actual work. Aim for under 15 mins total.' },
+    study:   { name:'study session', pace:'Look for where momentum slows and where you fly through it — both tell you something.', targetNote:'If one step is consistently eating into the others, it might need its own time target or a smaller breakdown.' },
     skincare:{ name:'skincare routine', pace:'Each step has a job — but you shouldn\'t need more than 30 seconds per product.', targetNote:'If skincare is taking over 20 mins, something is slowing you down — likely application, not the products.' },
     haircare:{ name:'haircare ritual', pace:'Haircare is naturally variable — wash days take longer, maintenance shouldn\'t.', targetNote:'If maintenance sessions are taking as long as wash days, check if you\'re over-complicating it.' },
   };
   const ctx = ritualContext[key] || { name:'ritual', pace:'Look for the step that consistently slows the flow.', targetNote:'' };
 
-  // ── Step-specific suggestions ──────────────────────────────
+  // ── Group logs by version ──────────────────────────────────
+  // Each log entry has a .version field. We build a section per version.
+  const byVersion = {};
+  allLogs.forEach(l => {
+    const v = l.version || 'Default';
+    if(!byVersion[v]) byVersion[v] = [];
+    byVersion[v].push(l);
+  });
+
+  // Determine canonical version order from ritualData (so they appear in the right order)
+  const versionOrder = Object.keys(ritualData[key]?.versions || {});
+  const sortedVersions = Object.keys(byVersion).sort((a, b) => {
+    const ai = versionOrder.indexOf(a), bi = versionOrder.indexOf(b);
+    if(ai === -1 && bi === -1) return a.localeCompare(b);
+    if(ai === -1) return 1;
+    if(bi === -1) return -1;
+    return ai - bi;
+  });
+
+  const hasMultipleVersions = sortedVersions.length > 1;
+
+  // ── Step-specific suggestions (same logic as before) ────────
   function getStepSuggestion(stepText, avgSecs){
     const t = stepText.toLowerCase();
     const mins = Math.round(avgSecs/60);
 
-    // Morning ritual steps
     if(t.includes('anki') || t.includes('flashcard')){
       if(avgSecs > 600) return `${mins} mins on Anki is eating into your morning. Cap it at 10 mins max — you can do longer sessions later in the day.`;
       return `${mins} mins for Anki is reasonable. If it ever feels like a drag, set a strict 5-min timer and stop mid-deck — incomplete is fine.`;
@@ -5254,8 +5350,6 @@ function renderRitualAnalysisFor(key){
       if(avgSecs > 480) return `${mins} mins on haircare within your morning ritual is high. Consider moving the full haircare to its own ritual slot and keeping just 'edges/quick style' in the morning.`;
       return `Quick hair maintenance in the morning works well. ✦`;
     }
-
-    // Evening ritual steps
     if(t.includes('night wear') || t.includes('pyjama') || t.includes('change to')){
       if(avgSecs > 180) return `${mins} mins to change is longer than expected — this step should be automatic. Make sure PJs are accessible.`;
       return `Quick transition step. ✦`;
@@ -5306,27 +5400,23 @@ function renderRitualAnalysisFor(key){
       if(avgSecs > 1800) return `${mins} mins of scroll time — having a defined limit in the ritual is smart. If it's regularly going over 20 mins, try switching to a timer rather than relying on willpower.`;
       return `Intentional scroll time with a boundary is much better than open-ended scrolling. ✦`;
     }
-
-    // Study ritual steps
     if(t.includes('old anki') || t.includes('anki') || t.includes('passtest')){
       if(avgSecs > 1800) return `${mins} mins for ${stepText} — that's a solid block. If it ever feels like too much, try the Pomodoro split: 25 min on, 5 min off.`;
       if(avgSecs > 600) return `${mins} mins is good for this study task. Keep it consistent rather than cramming.`;
-      return `Quick study step — good for warm-up or maintenance. ✦`;
+      return `Quick, consistent Anki session — this is active recall doing its job. ✦`;
     }
     if(t.includes('break')){
       if(avgSecs > 900) return `${mins} mins for a break is quite long. Try capping it at 10 mins with a timer — longer breaks make it harder to get back in.`;
       return `Good break length. Under 10 mins keeps momentum. ✦`;
     }
     if(t.includes('notebooklm') || t.includes('studyglow') || t.includes('research') || t.includes('notes')){
-      if(avgSecs > 2400) return `${mins} mins on ${stepText} is substantial. Make sure this is active processing, not passive reading — if you're highlighting without thinking, set a 20-min limit.`;
+      if(avgSecs > 2400) return `${mins} mins on ${stepText} is a solid deep work block. Make sure you're processing actively — summarise in your own words, don't just read.`;
       return `Good pace for a focused study block. ✦`;
     }
     if(t.includes('slow start') || t.includes('notes review') || t.includes('tea & notes')){
-      if(avgSecs > 900) return `${mins} mins for your slow start is getting long. This is supposed to ease you in — keep it to 5-10 mins max before you get into actual work.`;
-      return `Good warm-up length. ✦`;
+      if(avgSecs > 900) return `${mins} mins for your slow start is getting long. This is supposed to ease you in — keep it to 5-10 mins max so it doesn't eat into your main study blocks.`;
+      return `Good warm-up length — easing in without losing momentum. ✦`;
     }
-
-    // Skincare ritual steps
     if(t.includes('gentle cleanser') || t.includes('oil cleanser') || t.includes('foaming cleanser') || (t.includes('cleanser') && key==='skincare')){
       if(avgSecs > 120) return `${mins} mins on cleansing is longer than it needs to be. Double cleanse (oil + foam) should take about 90 seconds total — massage is good but you don't need to overdo it.`;
       return `Good cleansing pace. Under 2 mins is exactly right. ✦`;
@@ -5359,8 +5449,6 @@ function renderRitualAnalysisFor(key){
       if(avgSecs > 300) return `${mins} mins of facial massage is on the longer side. 2-3 mins with gua sha or fingers is plenty — longer sessions are fine occasionally but not needed daily.`;
       return `Good facial massage length. ✦`;
     }
-
-    // Haircare ritual steps
     if(t.includes('pre-shampoo') || t.includes('oil treatment')){
       if(avgSecs > 600) return `${mins} mins applying pre-shampoo oil is a long time for application alone. Apply in sections, cover with a cap, then leave it — the actual application should take 3-4 mins max.`;
       return `Good prep step. The longer you leave it (ideally 20-30+ mins) the better, but application time looks right. ✦`;
@@ -5395,33 +5483,104 @@ function renderRitualAnalysisFor(key){
     return `${mins} mins is a reasonable pace for this step. ✦`;
   }
 
-  el.innerHTML = `
-    <div style="font-size:12px;color:var(--text-mid);margin-bottom:8px;line-height:1.5">
-      ${ctx.pace}
-      ${targetSecs > 0 ? `<div style="margin-top:4px;font-size:11px;color:var(--text-soft)">${ctx.targetNote}</div>` : ''}
-    </div>
-    <div style="font-size:12px;margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap">
-      <span><strong>${logs.length}</strong> session${logs.length>1?'s':''} this week</span>
-      <span>Avg: <strong>${_swFmt(avgTotal)}</strong></span>
-      ${overCount>0 ? `<span style="color:#c04080"><strong>${overCount}×</strong> over target</span>` : targetSecs>0 ? '<span style="color:#2e7d32">Always within target ✦</span>' : ''}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${stepAvgs.map((s, i) => {
-        const isMax = i===0, isMin = i===stepAvgs.length-1 && stepAvgs.length>1;
-        const suggestion = getStepSuggestion(s.text, s.avg);
-        return `<div style="background:${isMax?'#fff3e0':isMin?'#e8f5e9':'white'};border-radius:12px;padding:10px 14px;border:1px solid ${isMax?'#ffcc80':isMin?'#a5d6a7':'var(--border)'}">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-            <span style="font-size:12px;font-weight:700;color:var(--text);flex:1;margin-right:10px">${s.text}</span>
-            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-              <span style="font-size:12px;font-weight:700;color:var(--text)">${_swFmt(s.avg)}</span>
-              ${isMax?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:6px;font-weight:700">🐢</span>':''}
-              ${isMin?'<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;font-weight:700">⚡</span>':''}
+  // ── Helper: render one version's analysis block ────────────
+  function renderVersionBlock(version, logs){
+    const avgTotal = Math.round(logs.reduce((a,l)=>a+l.totalSecs,0)/logs.length);
+    const overCount = logs.filter(l=>l.overTarget).length;
+    const targetSecs = logs.find(l=>l.targetSecs>0)?.targetSecs || 0;
+
+    const stepTotals = {}, stepCounts = {};
+    logs.forEach(l => (l.steps||[]).forEach(s => {
+      if(!s.text) return;
+      stepTotals[s.text] = (stepTotals[s.text]||0) + s.secs;
+      stepCounts[s.text] = (stepCounts[s.text]||0) + 1;
+    }));
+    const stepAvgs = Object.entries(stepTotals)
+      .map(([text, total]) => ({ text, avg: Math.round(total / stepCounts[text]) }))
+      .sort((a,b) => b.avg - a.avg);
+
+    if(!stepAvgs.length){
+      return `<div style="font-size:12px;color:var(--text-soft);font-style:italic;padding:8px 0">No step data for this version yet ✦</div>`;
+    }
+
+    const slowest = stepAvgs[0];
+    const fastest = stepAvgs[stepAvgs.length-1];
+
+    // Per-step target info from ritualData (for this version)
+    const versionItems = ritualData[key]?.versions?.[version] || [];
+    const targetByStep = {};
+    versionItems.forEach(item => { if(item.stepMins > 0) targetByStep[item.text] = item.stepMins * 60; });
+
+    return `
+      <div style="font-size:12px;margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap;color:var(--text-mid)">
+        <span><strong>${logs.length}</strong> session${logs.length>1?'s':''}</span>
+        <span>Avg total: <strong>${_swFmt(avgTotal)}</strong></span>
+        ${overCount>0 ? `<span style="color:#c04080"><strong>${overCount}×</strong> over target</span>` : targetSecs>0 ? '<span style="color:#2e7d32">Always within target ✦</span>' : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">
+        ${stepAvgs.map((s, i) => {
+          const isMax = i===0, isMin = i===stepAvgs.length-1 && stepAvgs.length>1;
+          const suggestion = getStepSuggestion(s.text, s.avg);
+          const stepTarget = targetByStep[s.text];
+          const overStepTarget = stepTarget && s.avg > stepTarget;
+          const bg = isMax ? '#fff3e0' : isMin ? '#e8f5e9' : 'white';
+          const borderCol = isMax ? '#ffcc80' : isMin ? '#a5d6a7' : 'var(--border)';
+          return `<div style="background:${bg};border-radius:12px;padding:10px 14px;border:1px solid ${borderCol}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:4px">
+              <span style="font-size:12px;font-weight:700;color:var(--text);flex:1;margin-right:8px">${s.text}</span>
+              <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+                <span style="font-size:12px;font-weight:700;color:var(--text)">${_swFmt(s.avg)}</span>
+                ${stepTarget ? `<span style="font-size:10px;background:${overStepTarget?'#fff3e0':'#e8f5e9'};color:${overStepTarget?'#e65100':'#2e7d32'};padding:1px 6px;border-radius:6px;font-weight:700">${overStepTarget?'over':'≤'} ${Math.floor(stepTarget/60)}m target</span>` : ''}
+                ${isMax?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:6px;font-weight:700">🐢</span>':''}
+                ${isMin?'<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;font-weight:700">⚡</span>':''}
+              </div>
             </div>
-          </div>
-          <div style="font-size:11px;color:var(--text-soft);line-height:1.5">${suggestion}</div>
-        </div>`;
-      }).join('')}
+            <div style="font-size:11px;color:var(--text-soft);line-height:1.5">${suggestion}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // ── Build full output ──────────────────────────────────────
+  let html = `
+    <div style="font-size:12px;color:var(--text-mid);margin-bottom:12px;line-height:1.5">
+      ${ctx.pace}
+      ${ctx.targetNote ? `<div style="margin-top:4px;font-size:11px;color:var(--text-soft)">${ctx.targetNote}</div>` : ''}
     </div>`;
+
+  if(hasMultipleVersions){
+    // Render a collapsible section per version
+    sortedVersions.forEach((version, vi) => {
+      const logs = byVersion[version];
+      const avgTotal = Math.round(logs.reduce((a,l)=>a+l.totalSecs,0)/logs.length);
+      const vId = 'rva-' + key.replace(/[^a-z0-9]/gi,'') + '-' + vi;
+      html += `
+        <div style="border:1.5px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden">
+          <button onclick="
+            const body=document.getElementById('${vId}');
+            const arr=document.getElementById('${vId}-arr');
+            const open=body.style.display!=='none';
+            body.style.display=open?'none':'block';
+            arr.textContent=open?'▸':'▾';
+          " style="width:100%;background:var(--pink-glow);border:none;padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:Outfit,sans-serif">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:12px;font-weight:700;color:var(--text)">${version}</span>
+              <span style="font-size:11px;color:var(--text-soft)">${logs.length} session${logs.length>1?'s':''} · avg ${_swFmt(avgTotal)}</span>
+            </div>
+            <span id="${vId}-arr" style="font-size:11px;color:var(--pink-deep);font-weight:700">▸</span>
+          </button>
+          <div id="${vId}" style="display:none;padding:14px">
+            ${renderVersionBlock(version, logs)}
+          </div>
+        </div>`;
+    });
+  } else {
+    // Single version — render inline (no nesting needed)
+    const version = sortedVersions[0];
+    html += renderVersionBlock(version, byVersion[version]);
+  }
+
+  el.innerHTML = html;
 }
 
 function renderRituals(){
@@ -5483,7 +5642,41 @@ function renderRituals(){
 
     h+=`<div id="rlist-${key}">`;
     items.forEach((item,i)=>{
-      h+=`<div class="ritual-item${item.checked?' checked':''}" draggable="true"
+      // Per-step target badge logic
+      const stepTargetSecs = (item.stepMins && item.stepMins > 0) ? item.stepMins * 60 : 0;
+      // Determine if this is the ACTIVE step (= the step right after the last split)
+      const isCurrentStep = (swActive || swPaused) && i === _sw.splits.length;
+      const stepElapsed   = isCurrentStep ? _swStepElapsed() : 0;
+      let stepBadgeClass  = 'step-target-badge';
+      let stepBadgeText   = '';
+      if(stepTargetSecs > 0){
+        if(isCurrentStep && swActive){
+          const remaining = stepTargetSecs - stepElapsed;
+          if(remaining <= 0){
+            stepBadgeClass += ' over';
+            stepBadgeText = `⏱ +${_swFmt(Math.abs(remaining))} over`;
+          } else if(remaining <= 30){
+            stepBadgeClass += ' warning';
+            stepBadgeText = `⏱ ${_swFmt(remaining)} left`;
+          } else {
+            stepBadgeClass += ' active';
+            stepBadgeText = `⏱ ${_swFmt(remaining)} left`;
+          }
+        } else if(isCurrentStep && swPaused){
+          const remaining = stepTargetSecs - stepElapsed;
+          stepBadgeClass += (remaining <= 0 ? ' over' : '');
+          stepBadgeText = `⏱ ${item.stepMins}m target`;
+        } else {
+          stepBadgeText = `⏱ ${item.stepMins}m`;
+        }
+      }
+      const splitTag = (swActive||swPaused) && _sw.splits[i]
+        ? (() => {
+            const splitOver = stepTargetSecs > 0 && _sw.splits[i].secs > stepTargetSecs;
+            return `<span class="ritual-split${splitOver?' slow':(_sw.splits[i].secs>120?' slow':'')}">${_swFmt(_sw.splits[i].secs)}</span>`;
+          })()
+        : '';
+      h+=`<div class="ritual-item${item.checked?' checked':''}" id="ritem-${key}-${i}" draggable="true"
         ondragstart="ritualStepDragStart(event,'${key}','${av}',${i})"
         ondragover="ritualStepDragOver(event)"
         ondrop="ritualStepDrop(event,'${key}','${av}',${i})"
@@ -5493,7 +5686,8 @@ function renderRituals(){
         <div class="ritual-check">${item.checked?'✓':''}</div>
         <div class="ritual-text">${item.text}</div>
         ${item.time?`<div class="ritual-time">${item.time}</div>`:''}
-        ${(swActive||swPaused) && _sw.splits[i] ? `<span class="ritual-split${_sw.splits[i].secs>120?' slow':''}">${_swFmt(_sw.splits[i].secs)}</span>` : ''}
+        ${stepTargetSecs > 0 ? `<button class="${stepBadgeClass}" onclick="event.stopPropagation();openRitualEdit('${key}','${av}',${i})" title="Click to change step duration">${stepBadgeText}</button>` : ''}
+        ${splitTag}
         <button onclick="event.stopPropagation();openRitualEdit('${key}','${av}',${i})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px;margin-left:auto">✎</button>
         <button onclick="event.stopPropagation();ritualData['${key}'].versions['${av}'].splice(${i},1);renderRituals();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>
       </div>`;
@@ -5725,13 +5919,17 @@ function openRitualEdit(key,version,idx){
   const item=ritualData[key].versions[version][idx];
   document.getElementById('editItemText').value=item.text;
   document.getElementById('editItemTime').value=item.time||'';
+  document.getElementById('editItemStepMins').value=item.stepMins||'';
   openModal('editItemModal');
 }
 function saveEditItem(){
   if(!editCtx)return;
-  ritualData[editCtx.key].versions[editCtx.version][editCtx.idx].text=document.getElementById('editItemText').value.trim();
-  ritualData[editCtx.key].versions[editCtx.version][editCtx.idx].time=document.getElementById('editItemTime').value.trim();
-  closeModal('editItemModal'); renderRituals();
+  const item = ritualData[editCtx.key].versions[editCtx.version][editCtx.idx];
+  item.text = document.getElementById('editItemText').value.trim();
+  item.time = document.getElementById('editItemTime').value.trim();
+  const rawMins = parseInt(document.getElementById('editItemStepMins').value);
+  item.stepMins = (!isNaN(rawMins) && rawMins > 0) ? rawMins : 0;
+  closeModal('editItemModal'); renderRituals(); scheduleSave();
 }
 function deleteEditItem(){
   if(!editCtx)return;
@@ -11370,7 +11568,19 @@ function showPage(id){
   if(id==='content'){ renderContentOverview(); renderAllPosts(); setTimeout(drawContentCharts,50); }
   if(id==='achievements'){ renderAchievementsTab(); renderAvatarPicker(); }
   if(id==='stats') renderStats();
-  if(id==='wellness'){ renderShowerTracker(); renderSleepTracker(); renderMoodTracker(); renderPeriodTracker(); renderTherapyList(); renderWaterTracker(); renderIELog(); renderIllnessList(); }
+  if(id==='wellness'){
+    // ── Always reset the wellness sub-tab back to Therapy (the default) ──
+    // This prevents the Cycle panel (or any other panel) from bleeding
+    // into other sections after being visited.
+    document.querySelectorAll('.well-panel').forEach(p => p.style.display = 'none');
+    const defaultPanel = document.getElementById('well-therapy');
+    if(defaultPanel) defaultPanel.style.display = 'block';
+    document.querySelectorAll('#wellTabBar .ritual-tab').forEach(t => t.classList.remove('active'));
+    const defaultTab = document.querySelector('#wellTabBar .ritual-tab[onclick*="therapy"]');
+    if(defaultTab) defaultTab.classList.add('active');
+    // Now render all trackers
+    renderShowerTracker(); renderSleepTracker(); renderMoodTracker(); renderPeriodTracker(); renderTherapyList(); renderWaterTracker(); renderIELog(); renderIllnessList();
+  }
   if(id==='motivation'){ initAffirmations(); renderIdentityList(); renderAntiGoals(); renderQuotes(); }
   if(id==='productivity'){
     renderTodos('both'); renderGradeList(); renderGradeAvgs(); populateSpendCatSelect(); renderWakeUpSection(); try{renderGymAnalysis();}catch(e){}
@@ -13286,15 +13496,22 @@ function switchFinTab(btn, panel){
 // UPDATED switchWellTab (with new panels)
 // ══════════════════════════════════════════════
 function switchWellTab(btn, panel){
+  // Force ALL panels off first — belt-and-suspenders to prevent any residual display:block
+  document.querySelectorAll('.well-panel').forEach(p=>{ p.style.display='none'; });
   document.querySelectorAll('#wellTabBar .ritual-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelectorAll('.well-panel').forEach(p=>p.style.display='none');
-  document.getElementById('well-'+panel).style.display='block';
+  const targetPanel = document.getElementById('well-'+panel);
+  if(targetPanel) targetPanel.style.display='block';
   if(panel==='therapy'){ if(!therapyLocked) renderTherapyList(); else showTherapyLocked(); }
   if(panel==='eating'){ renderIELog(); buildIEScales(); }
   if(panel==='water') renderWaterTracker();
   if(panel==='patterns') renderIllnessList();
   if(panel==='selfcare') renderDeadTimeList();
+  // Explicitly re-render on tab switch so content is always fresh
+  if(panel==='period') renderPeriodTracker();
+  if(panel==='shower') renderShowerTracker();
+  if(panel==='sleep') renderSleepTracker();
+  if(panel==='mood') renderMoodTracker();
 }
 
 // ══════════════════════════════════════════════
@@ -16657,19 +16874,19 @@ function renderWeeklyAnalysis(){
         }
       }
     } else {
-      lines.push(`No study sessions logged this week yet.`);
+      lines.push(`No study ritual sessions logged this week yet.`);
       if(Object.keys(studyCompletionLog).length > 0)
-        lines.push(`You have previous study days in your log — the habit exists. Tick off even one study ritual version today to keep it going.`);
+        lines.push(`You have previous study sessions in your log — the habit is there. Even completing the Low Energy version today keeps the streak alive.`);
     }
 
     // ── Stopwatch time analysis (only if timed data exists) ──
     if(studyLogsWeek.length > 0){
       const avgStudyTime = Math.round(studyLogsWeek.reduce((a,l)=>a+(l.totalSecs||0),0)/studyLogsWeek.length);
       const totalStudyTime = studyLogsWeek.reduce((a,l)=>a+(l.totalSecs||0),0);
-      lines.push(`Timed sessions: <strong>${studyLogsWeek.length}</strong> · Total: <strong>${_swFmt(totalStudyTime)}</strong> · Avg: <strong>${_swFmt(avgStudyTime)}</strong> per session.`);
+      lines.push(`Timed study ritual sessions: <strong>${studyLogsWeek.length}</strong> · Total time: <strong>${_swFmt(totalStudyTime)}</strong> · Avg per session: <strong>${_swFmt(avgStudyTime)}</strong>.`);
       const overTarget = studyLogsWeek.filter(l=>l.overTarget).length;
-      if(overTarget > 0) lines.push(`${overTarget} session${overTarget>1?'s':''} went over your target time — either the target's too tight or those days had more friction.`);
-      if(bestStudyDay) lines.push(`Your longest session was on <strong>${SHORT[bestStudyDay.dow]}</strong> (${_swFmt(bestStudyDay.studyTimeSecs)}). That's your peak focus day this week.`);
+      if(overTarget > 0) lines.push(`${overTarget} session${overTarget>1?'s':''} ran over your target time — worth checking whether the target is set right or if those sessions had genuine extra depth.`);
+      if(bestStudyDay) lines.push(`Your longest study session was on <strong>${SHORT[bestStudyDay.dow]}</strong> (${_swFmt(bestStudyDay.studyTimeSecs)}) — your highest-output day this week.`);
 
       // Step-level slowness from stopwatch splits
       const stepTotals = {}, stepCounts = {};
@@ -16679,7 +16896,7 @@ function renderWeeklyAnalysis(){
       }));
       const stepAvgs = Object.entries(stepTotals).map(([t,tot])=>({text:t,avg:Math.round(tot/stepCounts[t])})).sort((a,b)=>b.avg-a.avg);
       if(stepAvgs.length > 0 && stepAvgs[0].avg > 60)
-        lines.push(`The step taking you longest on average is <strong>${stepAvgs[0].text}</strong> (avg ${_swFmt(stepAvgs[0].avg)}). Consider whether this step needs to be broken down or if there's friction around it.`);
+        lines.push(`Your longest step on average is <strong>${stepAvgs[0].text}</strong> (avg ${_swFmt(stepAvgs[0].avg)}). Check whether this step needs a tighter time target, or if something keeps pulling you off-task here.`);
     }
 
     // ── Wake → Study cross-reference ──
