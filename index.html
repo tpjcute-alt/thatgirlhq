@@ -1046,6 +1046,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   <div id="homeAgendaPreview" style="margin-bottom:24px"></div>
 
   <!-- Cycle Phase Banner (shows when period data exists) -->
+  <div id="reEngagementBanner" style="margin-bottom:16px"></div>
   <div id="homeCycleBanner" style="margin-bottom:8px"></div>
 
   <!-- Wake Up Log -->
@@ -2015,14 +2016,38 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <div class="form-row"><label class="form-label">Title / description</label><input class="text-input" id="postTitle" placeholder="e.g. Day in my life as a dental student"></div>
     <div class="form-row"><label class="form-label">Date posted</label><input class="text-input" type="date" id="postDate"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" class="form-row">
-      <div><label class="form-label">Views</label><input class="text-input" type="number" id="postViews" placeholder="0"></div>
+      <div><label class="form-label">Views / Plays</label><input class="text-input" type="number" id="postViews" placeholder="0"></div>
       <div><label class="form-label">Likes</label><input class="text-input" type="number" id="postLikes" placeholder="0"></div>
       <div><label class="form-label">Comments</label><input class="text-input" type="number" id="postComments" placeholder="0"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" class="form-row">
+      <div><label class="form-label">Saves / Bookmarks</label><input class="text-input" type="number" id="postSaves" placeholder="0"></div>
+      <div><label class="form-label">Shares</label><input class="text-input" type="number" id="postShares" placeholder="0"></div>
+      <div><label class="form-label">Reach</label><input class="text-input" type="number" id="postReach" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Follower change from this post <span style="font-weight:400;color:var(--text-soft)">(optional, e.g. +12 or -3)</span></label>
+      <input class="text-input" type="number" id="postFollowerChange" placeholder="e.g. +12">
+    </div>
+    <div class="form-row"><label class="form-label">Content type</label>
+      <select class="form-select" id="postContentType">
+        <option value="">— select type —</option>
+        <option value="vlog">📹 Vlog / Day in my life</option>
+        <option value="tutorial">🎓 Tutorial / How-to</option>
+        <option value="study">📚 Study with me</option>
+        <option value="grwm">💄 GRWM / Get ready</option>
+        <option value="haul">🛍 Haul / Review</option>
+        <option value="routine">☀️ Routine</option>
+        <option value="motivation">🔥 Motivation / Mindset</option>
+        <option value="storytime">💬 Storytime</option>
+        <option value="collab">🤝 Collab</option>
+        <option value="other">✦ Other</option>
+      </select>
     </div>
     <div class="form-row"><label class="form-label">How did it perform?</label>
       <div class="star-rating" id="postStars" onclick="ratePost(event)"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div>
     </div>
-    <div class="form-row"><label class="form-label">Notes / what worked</label><textarea class="text-input" rows="2" id="postNotes" placeholder="Thumbnail did well, audio was off…"></textarea></div>
+    <div class="form-row"><label class="form-label">What worked / what to improve</label><textarea class="text-input" rows="2" id="postNotes" placeholder="Thumbnail did well, hook was strong, audio was off…"></textarea></div>
     <div style="display:flex;gap:10px"><button class="pink-btn" style="flex:1" onclick="savePost()">Save ✦</button><button class="pink-pill" id="postDeleteBtn" style="display:none;color:#c04040" onclick="deletePost()">🗑 Delete</button></div>
   </div>
 </div>
@@ -2575,6 +2600,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <button class="ritual-tab" onclick="switchWellTab(this,'sleep')">😴 Sleep</button>
     <button class="ritual-tab" onclick="switchWellTab(this,'mood')">🌈 Mood</button>
     <button class="ritual-tab" onclick="switchWellTab(this,'period')">🌸 Cycle</button>
+    <button class="ritual-tab" onclick="switchWellTab(this,'phone')">📱 Phone Time</button>
   </div>
 
   <!-- THERAPY -->
@@ -2879,8 +2905,15 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
       <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Cycle Tracker 🌸</div>
       <div style="font-size:13px;color:var(--text-mid);margin-bottom:18px">Track your period to predict future cycles and get personalised daily tips.</div>
       <div class="grid2" style="margin-bottom:14px">
-        <div><label class="form-label">Period start date</label><input type="date" class="text-input" id="periodStartDate"></div>
-        <div><label class="form-label">Period end date</label><input type="date" class="text-input" id="periodEndDate"></div>
+        <div>
+          <label class="form-label">Period start date</label>
+          <input type="date" class="text-input" id="periodStartDate">
+        </div>
+        <div>
+          <label class="form-label">Period end date <span style="font-weight:400;color:var(--text-soft)">(optional)</span></label>
+          <input type="date" class="text-input" id="periodEndDate" placeholder="Leave blank — assumed 5 days">
+          <div style="font-size:11px;color:var(--text-soft);margin-top:4px;font-style:italic">Leave blank — we'll assume 5 days. Come back to edit if it's different.</div>
+        </div>
       </div>
       <div style="margin-bottom:14px">
         <label class="form-label">Flow</label>
@@ -2912,6 +2945,56 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <div id="periodCycleCard" style="margin-bottom:20px"></div>
     <div class="section-label">Cycle History</div>
     <div id="periodLogList"></div>
+  </div>
+
+  <!-- PHONE TIME TRACKER -->
+  <div id="well-phone" class="well-panel" style="display:none">
+    <div class="card" style="margin-bottom:20px">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Phone Time 📱</div>
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:18px">Log how much time you spend on your phone — and where it goes. No judgement, just awareness.</div>
+      <div class="grid2" style="margin-bottom:14px">
+        <div><label class="form-label">Date</label><input type="date" class="text-input" id="phoneDate"></div>
+        <div><label class="form-label">Total hours on phone</label><input type="number" class="text-input" id="phoneHours" placeholder="e.g. 4.5" step="0.5" min="0" max="24"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Where did the time go? <span style="font-weight:400;color:var(--text-soft)">(hours — leave blank if unsure)</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <div><label style="font-size:11px;color:var(--text-soft);display:block;margin-bottom:4px">📲 Social media</label><input type="number" class="text-input" id="phoneSocial" placeholder="0" step="0.5" min="0"></div>
+          <div><label style="font-size:11px;color:var(--text-soft);display:block;margin-bottom:4px">📚 Study / productive</label><input type="number" class="text-input" id="phoneStudy" placeholder="0" step="0.5" min="0"></div>
+          <div><label style="font-size:11px;color:var(--text-soft);display:block;margin-bottom:4px">🎬 Content creation</label><input type="number" class="text-input" id="phoneContent" placeholder="0" step="0.5" min="0"></div>
+          <div><label style="font-size:11px;color:var(--text-soft);display:block;margin-bottom:4px">📺 Entertainment / other</label><input type="number" class="text-input" id="phoneOther" placeholder="0" step="0.5" min="0"></div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px"><label class="form-label">Note</label>
+        <input class="text-input" id="phoneNote" placeholder="e.g. Doom-scrolled before bed, used it for Anki…">
+      </div>
+      <button class="pink-btn" onclick="logPhone()">Log Phone Time ✦</button>
+    </div>
+
+    <!-- Stats strip -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="card" style="flex:1;min-width:100px;text-align:center">
+        <div style="font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="phoneAvgHrs">—</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Daily Avg</div>
+        <div style="font-size:10px;color:var(--text-soft)">last 7 days</div>
+      </div>
+      <div class="card" style="flex:1;min-width:100px;text-align:center">
+        <div style="font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="phoneSocialPct">—</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Social %</div>
+        <div style="font-size:10px;color:var(--text-soft)">of screen time</div>
+      </div>
+      <div class="card" style="flex:1;min-width:100px;text-align:center">
+        <div style="font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:#4a9a6a" id="phoneProductivePct">—</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Productive %</div>
+        <div style="font-size:10px;color:var(--text-soft)">study + content</div>
+      </div>
+    </div>
+
+    <!-- 7-day bar chart -->
+    <div id="phoneWeekChart" style="margin-bottom:20px"></div>
+
+    <div class="section-label">Phone Log</div>
+    <div id="phoneLogList"></div>
   </div>
 
 <!-- Water Goal Modal -->
@@ -8560,14 +8643,15 @@ const PLATFORM_META = {
 
 let contentIdeas = [];
 let contentPosts = [];
+let phoneLog = [];   // [{date, hours, apps:{social,study,content,other}, note}]
 let postRating = 0;
 let postEditIdx = -1;
 
 let platformPages = {
-  youtube:   {name:'',about:'',followers:0,schedule:''},
-  shorts:    {name:'',about:'',followers:0,schedule:''},
-  tiktok:    {name:'',about:'',followers:0,schedule:''},
-  instagram: {name:'',about:'',followers:0,schedule:''},
+  youtube:   {name:'',about:'',followers:0,schedule:'',followerHistory:[]},
+  shorts:    {name:'',about:'',followers:0,schedule:'',followerHistory:[]},
+  tiktok:    {name:'',about:'',followers:0,schedule:'',followerHistory:[]},
+  instagram: {name:'',about:'',followers:0,schedule:'',followerHistory:[]},
 };
 
 function switchContentPlatform(btn, key){
@@ -8649,46 +8733,175 @@ function renderPlatformPanel(key){
   const panel=document.getElementById('cpanel-'+key); if(!panel)return;
   const pm=PLATFORM_META[key];
   const page=platformPages[key];
-  const posts=contentPosts.filter(p=>p.platform===key);
+  const posts=contentPosts.filter(p=>p.platform===key).sort((a,b)=>b.date.localeCompare(a.date));
+
+  // ── Aggregate stats ──
+  const totalViews    = posts.reduce((a,p)=>a+(p.views||0),0);
+  const totalLikes    = posts.reduce((a,p)=>a+(p.likes||0),0);
+  const totalComments = posts.reduce((a,p)=>a+(p.comments||0),0);
+  const totalSaves    = posts.reduce((a,p)=>a+(p.saves||0),0);
+  const totalShares   = posts.reduce((a,p)=>a+(p.shares||0),0);
+  const totalReach    = posts.reduce((a,p)=>a+(p.reach||0),0);
+  const avgViews      = posts.length ? Math.round(totalViews/posts.length) : 0;
+  const avgLikes      = posts.length ? Math.round(totalLikes/posts.length) : 0;
+  const avgEngRate    = posts.filter(p=>p.views).length
+    ? (posts.filter(p=>p.views).reduce((a,p)=>a+((p.likes||0)+(p.comments||0)+(p.saves||0))/(p.views||1)*100,0)/posts.filter(p=>p.views).length).toFixed(1)
+    : null;
+
+  // Follower history
+  const fHistory = (page.followerHistory||[]).sort((a,b)=>a.date.localeCompare(b.date));
+  const totalFollowerGain = fHistory.reduce((a,h)=>a+(h.change||0),0);
+  const last30Days = new Date(); last30Days.setDate(last30Days.getDate()-30);
+  const recentGain = fHistory.filter(h=>new Date(h.date)>=last30Days).reduce((a,h)=>a+(h.change||0),0);
+
+  // Best performing post
+  const bestPost = posts.length ? posts.reduce((best,p)=>(p.views||0)>(best.views||0)?p:best, posts[0]) : null;
+  const bestEngPost = posts.filter(p=>p.views).length
+    ? posts.filter(p=>p.views).reduce((best,p)=>{
+        const er=(p.likes||0)+(p.comments||0)+(p.saves||0);
+        const berBest=(best.likes||0)+(best.comments||0)+(best.saves||0);
+        return er>berBest?p:best;
+      }, posts.filter(p=>p.views)[0])
+    : null;
+
+  // Content type breakdown
+  const typeCount={};
+  posts.forEach(p=>{if(p.contentType)typeCount[p.contentType]=(typeCount[p.contentType]||0)+1;});
+  const topType = Object.entries(typeCount).sort((a,b)=>b[1]-a[1])[0];
+
+  // Posting frequency — posts per week over last 8 weeks
+  const weekCounts=[];
+  for(let w=7;w>=0;w--){
+    const ws=new Date(); ws.setDate(ws.getDate()-ws.getDay()-w*7+1);
+    const we=new Date(ws); we.setDate(ws.getDate()+6);
+    const cnt=posts.filter(p=>{const d=new Date(p.date);return d>=ws&&d<=we;}).length;
+    weekCounts.push(cnt);
+  }
+  const avgPostsPerWeek=(weekCounts.reduce((a,b)=>a+b,0)/8).toFixed(1);
+
+  // Follower trend mini chart
+  const followerChartHTML = fHistory.length >= 2 ? (()=>{
+    let running = (page.followers||0) - totalFollowerGain;
+    const points = fHistory.map(h=>{ running+=h.change; return running; });
+    const min=Math.min(...points), max=Math.max(...points);
+    const range=max-min||1;
+    const w=200,h=50;
+    const pts=points.map((v,i)=>`${Math.round(i/(points.length-1)*w)},${Math.round((1-(v-min)/range)*h)}`).join(' ');
+    const trend = points[points.length-1] > points[0];
+    return `<polyline points="${pts}" fill="none" stroke="${trend?'#4a9a6a':'#c04040'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  })() : '';
+
+  const contentTypeLabels={vlog:'📹 Vlog',tutorial:'🎓 Tutorial',study:'📚 Study',grwm:'💄 GRWM',haul:'🛍 Haul',routine:'☀️ Routine',motivation:'🔥 Motivation',storytime:'💬 Storytime',collab:'🤝 Collab',other:'✦ Other'};
 
   panel.innerHTML=`
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:20px">
-      <div class="card" style="flex:1">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-          <div style="font-size:32px">${pm.emoji}</div>
-          <div>
-            <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">${page.name||pm.label}</div>
-            ${page.about?`<div style="font-size:13px;color:var(--text-mid);font-style:italic">${page.about}</div>`:'<div style="font-size:13px;color:var(--text-soft);font-style:italic">No description yet</div>'}
-          </div>
+    <!-- Page header card -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="font-size:36px">${pm.emoji}</div>
+        <div style="flex:1">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">${page.name||pm.label}</div>
+          ${page.about?`<div style="font-size:12px;color:var(--text-mid);font-style:italic">${page.about}</div>`:''}
         </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap">
-          <div style="background:var(--pink-glow);border-radius:12px;padding:10px 16px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--text)">${(page.followers||0).toLocaleString()}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;letter-spacing:1px;text-transform:uppercase">followers</div></div>
-          <div style="background:var(--pink-glow);border-radius:12px;padding:10px 16px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--text)">${posts.length}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;letter-spacing:1px;text-transform:uppercase">posts logged</div></div>
-          ${page.schedule?`<div style="background:var(--pink-glow);border-radius:12px;padding:10px 16px"><div style="font-size:12px;font-weight:600;color:var(--text)">${page.schedule}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;letter-spacing:1px;text-transform:uppercase">posting schedule</div></div>`:''}
-        </div>
-        <button class="pink-pill" style="margin-top:14px;font-size:11px" onclick="openPlatformPageModal('${key}')">✎ Edit Page Info</button>
+        <button class="pink-pill" style="font-size:11px;flex-shrink:0" onclick="openPlatformPageModal('${key}')">✎ Edit</button>
       </div>
+
+      <!-- Stat pills row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:12px">
+        <div style="background:var(--pink-glow);border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:900;font-family:'Playfair Display',serif;color:var(--text)">${(page.followers||0).toLocaleString()}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Followers</div>
+          ${recentGain!==0?`<div style="font-size:10px;font-weight:700;color:${recentGain>0?'#4a9a6a':'#c04040'}">${recentGain>0?'+':''}${recentGain} (30d)</div>`:''}
+        </div>
+        <div style="background:var(--pink-glow);border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:900;font-family:'Playfair Display',serif;color:var(--text)">${posts.length}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Posts</div>
+          <div style="font-size:10px;color:var(--text-soft)">${avgPostsPerWeek}/week avg</div>
+        </div>
+        <div style="background:var(--pink-glow);border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:900;font-family:'Playfair Display',serif;color:var(--text)">${avgViews.toLocaleString()}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Avg Views</div>
+        </div>
+        ${avgEngRate?`<div style="background:var(--pink-glow);border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:900;font-family:'Playfair Display',serif;color:${parseFloat(avgEngRate)>=3?'#4a9a6a':parseFloat(avgEngRate)>=1?'var(--text)':'#c04040'}">${avgEngRate}%</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Eng. Rate</div>
+        </div>`:''}
+        ${totalSaves?`<div style="background:var(--pink-glow);border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:900;font-family:'Playfair Display',serif;color:var(--text)">${totalSaves.toLocaleString()}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Total Saves</div>
+        </div>`:''}
+        ${totalShares?`<div style="background:var(--pink-glow);border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:900;font-family:'Playfair Display',serif;color:var(--text)">${totalShares.toLocaleString()}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Total Shares</div>
+        </div>`:''}
+      </div>
+
+      <!-- Follower trend chart -->
+      ${followerChartHTML?`
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft);margin-bottom:6px">Follower Growth</div>
+          <svg viewBox="0 0 200 50" style="width:100%;height:50px;border-radius:8px;background:var(--pink-glow)">${followerChartHTML}</svg>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-soft);margin-top:3px">
+            <span>${fHistory[0]?.date||''}</span>
+            <span style="font-weight:700;color:${totalFollowerGain>=0?'#4a9a6a':'#c04040'}">${totalFollowerGain>=0?'+':''}${totalFollowerGain} total</span>
+          </div>
+        </div>`:''}
+
+      <!-- Insights row -->
+      ${posts.length>=3?`
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${bestPost?`<div style="background:linear-gradient(135deg,#fff8e0,#fef0c0);border-radius:10px;padding:8px 12px;font-size:11px;flex:1;min-width:140px">
+            <div style="font-weight:700;color:#806820">🏆 Most viewed</div>
+            <div style="color:#806820;margin-top:2px">${bestPost.title.slice(0,40)}${bestPost.title.length>40?'…':''}</div>
+            <div style="font-weight:700;color:#806820">👁 ${(bestPost.views||0).toLocaleString()}</div>
+          </div>`:''}
+          ${bestEngPost&&bestEngPost!==bestPost?`<div style="background:linear-gradient(135deg,#e8f8e8,#d4f4d4);border-radius:10px;padding:8px 12px;font-size:11px;flex:1;min-width:140px">
+            <div style="font-weight:700;color:#2a6a2a">💚 Most engaged</div>
+            <div style="color:#2a6a2a;margin-top:2px">${bestEngPost.title.slice(0,40)}${bestEngPost.title.length>40?'…':''}</div>
+          </div>`:''}
+          ${topType?`<div style="background:var(--pink-glow);border-radius:10px;padding:8px 12px;font-size:11px;flex:1;min-width:120px">
+            <div style="font-weight:700;color:var(--pink-deep)">✦ Your top format</div>
+            <div style="color:var(--pink-deep);margin-top:2px">${contentTypeLabels[topType[0]]||topType[0]} (${topType[1]})</div>
+          </div>`:''}
+          ${page.schedule?`<div style="background:var(--pink-glow);border-radius:10px;padding:8px 12px;font-size:11px;flex:1;min-width:120px">
+            <div style="font-weight:700;color:var(--text-soft)">📅 Schedule</div>
+            <div style="color:var(--text-mid);margin-top:2px">${page.schedule}</div>
+          </div>`:''}
+        </div>`:''}
     </div>
 
+    <!-- Post log -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div class="section-label" style="margin-bottom:0">Posts on ${pm.label}</div>
       <button class="pink-btn" onclick="openPostModal('${key}')">＋ Log Post</button>
     </div>
-    ${posts.length?posts.map((p,gi)=>{
+    ${posts.length?posts.map((p)=>{
       const realIdx=contentPosts.indexOf(p);
+      const engRate=p.views?((((p.likes||0)+(p.comments||0)+(p.saves||0))/p.views)*100).toFixed(1):null;
+      const fcol=p.followerChange>0?'#4a9a6a':p.followerChange<0?'#c04040':'var(--text-soft)';
       return `<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div style="font-size:14px;font-weight:700;color:var(--text)">${p.title}</div>
-          <div style="display:flex;gap:6px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${p.title}</div>
+            <div style="font-size:11px;color:var(--text-soft)">${p.date}${p.contentType?' · '+( contentTypeLabels[p.contentType]||p.contentType):''}${p.rating?' · '+'★'.repeat(p.rating):''}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
             <button onclick="openEditPost(${realIdx})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">✎</button>
-            <button onclick="contentPosts.splice(${realIdx},1);renderPlatformPanel('${key}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+            <button onclick="contentPosts.splice(${realIdx},1);renderPlatformPanel('${key}');renderContentStats();" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
           </div>
         </div>
-        <div style="font-size:12px;color:var(--text-soft);margin-bottom:4px">${p.date} · ${'★'.repeat(p.rating||0)}</div>
-        <div style="display:flex;gap:16px;font-size:13px;color:var(--text-mid)"><span>👁 ${(p.views||0).toLocaleString()}</span><span>❤️ ${(p.likes||0).toLocaleString()}</span><span>💬 ${(p.comments||0).toLocaleString()}</span></div>
-        ${p.notes?`<div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-top:6px">${p.notes}</div>`:''}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--text-mid);margin-bottom:${p.notes?'6px':'0'}">
+          ${p.views?`<span>👁 ${p.views.toLocaleString()}</span>`:''}
+          ${p.likes?`<span>❤️ ${p.likes.toLocaleString()}</span>`:''}
+          ${p.comments?`<span>💬 ${p.comments.toLocaleString()}</span>`:''}
+          ${p.saves?`<span>🔖 ${p.saves.toLocaleString()}</span>`:''}
+          ${p.shares?`<span>🔗 ${p.shares.toLocaleString()}</span>`:''}
+          ${p.reach?`<span>📡 ${p.reach.toLocaleString()} reach</span>`:''}
+          ${engRate?`<span style="font-weight:700;color:${parseFloat(engRate)>=3?'#4a9a6a':'var(--text-soft)'}">⚡ ${engRate}% eng</span>`:''}
+          ${p.followerChange?`<span style="font-weight:700;color:${fcol}">${p.followerChange>0?'+':''}${p.followerChange} followers</span>`:''}
+        </div>
+        ${p.notes?`<div style="font-size:12px;color:var(--text-mid);font-style:italic">${p.notes}</div>`:''}
       </div>`;
-    }).join(''):'<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">No posts logged yet for '+pm.label+' ✦</div>'}
+    }).join(''):`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">No posts logged yet for ${pm.label} ✦</div>`}
   `;
 }
 
@@ -8707,7 +8920,7 @@ function openPostModal(platform){
   postEditIdx=-1; postRating=0; updateStars('postStars',0);
   document.getElementById('postModalTitle').textContent='Log Post.';
   document.getElementById('postDeleteBtn').style.display='none';
-  document.getElementById('postTitle').value=''; document.getElementById('postViews').value=''; document.getElementById('postLikes').value=''; document.getElementById('postComments').value=''; document.getElementById('postNotes').value='';
+  document.getElementById('postTitle').value=''; document.getElementById('postViews').value=''; document.getElementById('postLikes').value=''; document.getElementById('postComments').value=''; document.getElementById('postSaves').value=''; document.getElementById('postShares').value=''; document.getElementById('postReach').value=''; document.getElementById('postFollowerChange').value=''; document.getElementById('postContentType').value=''; document.getElementById('postNotes').value='';
   document.getElementById('postDate').value=isoDate(now);
   if(platform) document.getElementById('postPlatform').value=platform;
   openModal('postModal');
@@ -8723,12 +8936,42 @@ function openEditPost(i){
   document.getElementById('postViews').value=p.views||'';
   document.getElementById('postLikes').value=p.likes||'';
   document.getElementById('postComments').value=p.comments||'';
+  document.getElementById('postSaves').value=p.saves||'';
+  document.getElementById('postShares').value=p.shares||'';
+  document.getElementById('postReach').value=p.reach||'';
+  document.getElementById('postFollowerChange').value=p.followerChange||'';
+  document.getElementById('postContentType').value=p.contentType||'';
   document.getElementById('postNotes').value=p.notes||'';
   openModal('postModal');
 }
 function savePost(){
   const title=document.getElementById('postTitle').value.trim(); if(!title)return;
-  const post={platform:document.getElementById('postPlatform').value,title,date:document.getElementById('postDate').value,views:parseInt(document.getElementById('postViews').value)||0,likes:parseInt(document.getElementById('postLikes').value)||0,comments:parseInt(document.getElementById('postComments').value)||0,notes:document.getElementById('postNotes').value.trim(),rating:postRating};
+  const followerChange = parseInt(document.getElementById('postFollowerChange').value) || 0;
+  const platform = document.getElementById('postPlatform').value;
+  // Track follower change in platform history
+  if(followerChange !== 0 && postEditIdx < 0){
+    if(!platformPages[platform].followerHistory) platformPages[platform].followerHistory = [];
+    platformPages[platform].followerHistory.push({
+      date: document.getElementById('postDate').value || isoDate(now),
+      change: followerChange,
+      postTitle: title
+    });
+    platformPages[platform].followers = (platformPages[platform].followers || 0) + followerChange;
+  }
+  const post={
+    platform,title,
+    date:document.getElementById('postDate').value,
+    views:parseInt(document.getElementById('postViews').value)||0,
+    likes:parseInt(document.getElementById('postLikes').value)||0,
+    comments:parseInt(document.getElementById('postComments').value)||0,
+    saves:parseInt(document.getElementById('postSaves').value)||0,
+    shares:parseInt(document.getElementById('postShares').value)||0,
+    reach:parseInt(document.getElementById('postReach').value)||0,
+    followerChange,
+    contentType:document.getElementById('postContentType').value||'',
+    notes:document.getElementById('postNotes').value.trim(),
+    rating:postRating
+  };
   if(postEditIdx>=0)contentPosts[postEditIdx]=post; else { contentPosts.unshift(post); awardXP(6,'Post logged 📱'); checkAchievement('content_first_post'); if(contentPosts.length>=10)checkAchievement('content_10posts'); if(contentPosts.length>=25)checkAchievement('content_25posts'); if(contentPosts.length>=50)checkAchievement('content_50posts'); if(post.views>=1000)checkAchievement('content_1k_views'); if(post.views>=10000)checkAchievement('content_10k_views'); if(post.rating===5)checkAchievement('content_5star_post'); }
   closeModal('postModal');
   renderContentOverview(); scheduleSave();
@@ -8753,8 +8996,23 @@ function openPlatformPageModal(key){
 }
 function savePlatformPage(){
   const key=document.getElementById('platModalKey').value;
-  platformPages[key]={name:document.getElementById('platName').value.trim(),about:document.getElementById('platAbout').value.trim(),followers:parseInt(document.getElementById('platFollowers').value)||0,schedule:document.getElementById('platSchedule').value.trim()};
-  closeModal('platformPageModal'); renderPlatformPanel(key);
+  const newFollowers = parseInt(document.getElementById('platFollowers').value)||0;
+  const oldFollowers = platformPages[key].followers||0;
+  const diff = newFollowers - oldFollowers;
+  if(!platformPages[key].followerHistory) platformPages[key].followerHistory=[];
+  if(diff !== 0 && oldFollowers > 0){
+    platformPages[key].followerHistory.push({
+      date: isoDate(now), change: diff, postTitle: 'Manual update'
+    });
+  }
+  platformPages[key]={
+    ...platformPages[key],
+    name:document.getElementById('platName').value.trim(),
+    about:document.getElementById('platAbout').value.trim(),
+    followers:newFollowers,
+    schedule:document.getElementById('platSchedule').value.trim()
+  };
+  closeModal('platformPageModal'); renderPlatformPanel(key); scheduleSave();
 }
 
 // ═══════════════════ PRODUCTIVITY ═══════════════════
@@ -11564,7 +11822,7 @@ function showPage(id){
   if(id==='rituals'){ renderRituals(); renderRitualAnalysis(); }
   if(id==='calendar') buildCalendar();
   if(id==='travel'){ _resetTravelViews(); }
-  if(id==='home'){ renderWakeUpSection(); renderHomeAgenda(); renderSlowPlan(); renderHeroCountdown(); renderHeroStatsStrip(); updateHomeGreeting(); renderHomeQuickTodos(); try{renderCyclePhaseBanner('homeCycleBanner');}catch(e){} }
+  if(id==='home'){ _recordActivity(); renderWakeUpSection(); renderHomeAgenda(); renderSlowPlan(); renderHeroCountdown(); renderHeroStatsStrip(); updateHomeGreeting(); renderHomeQuickTodos(); try{renderCyclePhaseBanner('homeCycleBanner');}catch(e){} }
   if(id==='gym'){ renderGymLog(); renderGymFreqChart(); renderGymAnalysis(); renderGymSchedulePreview(); renderWeightChart(); }
   if(id==='diet'){ renderDietImpulses(); renderWeekMealGrid(); renderWeekCalGrid(); }
   if(id==='meditate'){ renderMedLog(); renderMedStreak(); }
@@ -12359,11 +12617,27 @@ function _avgCycleLength(){
 }
 
 function _avgPeriodLength(){
-  const lengths = periodLog.filter(p=>p.startDate&&p.endDate).map(p=>{
-    return Math.round((new Date(p.endDate)-new Date(p.startDate))/86400000)+1;
+  // Use confirmed end dates where available; assume 5 days for entries without one
+  const lengths = periodLog.filter(p=>p.startDate).map(p=>{
+    if(p.endDate){
+      const l = Math.round((new Date(p.endDate)-new Date(p.startDate))/86400000)+1;
+      return (l >= 1 && l <= 14) ? l : 5; // sanity check
+    }
+    return 5; // assumed default
   });
   if(!lengths.length) return 5;
   return Math.round(lengths.reduce((a,b)=>a+b,0)/lengths.length);
+}
+
+// Get the effective end date of the most recent period (confirmed or assumed)
+function _currentPeriodEndDate(){
+  if(!periodLog.length) return null;
+  const last = periodLog[0];
+  if(last.endDate) return last.endDate;
+  // Assume 5 days from start (or avg if available)
+  const assumed = new Date(last.startDate);
+  assumed.setDate(assumed.getDate() + _avgPeriodLength() - 1);
+  return isoDate(assumed);
 }
 
 function _getPeriodPrediction(){
@@ -12382,8 +12656,11 @@ function _getPeriodPrediction(){
   else if(dayInCycle <= 13)               phase = 'follicular';
   else if(dayInCycle <= 16)               phase = 'ovulation';
   else                                     phase = 'luteal';
-  const onPeriod = dayInCycle >= 1 && dayInCycle <= periodLen && isoDate(today) >= periodLog[0].startDate;
-  return { nextStart:isoDate(nextStart), nextEnd:isoDate(nextEnd), daysUntil, dayInCycle, phase, cycleLen, periodLen, onPeriod };
+  // onPeriod: today is between start and effective end (confirmed or assumed)
+  const effectiveEnd = _currentPeriodEndDate();
+  const todayStr = isoDate(today);
+  const onPeriod = !!effectiveEnd && todayStr >= periodLog[0].startDate && todayStr <= effectiveEnd;
+  return { nextStart:isoDate(nextStart), nextEnd:isoDate(nextEnd), daysUntil, dayInCycle, phase, cycleLen, periodLen, onPeriod, effectiveEnd };
 }
 
 const _phaseInfo = {
@@ -12512,23 +12789,175 @@ function renderPeriodTracker(){
     logEl.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:12px 0">Log your first period to start tracking your cycle ✦</div>';
     return;
   }
-  logEl.innerHTML = periodLog.map((p,i)=>`
-    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="width:36px;height:36px;border-radius:50%;background:#fee0e0;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🩸</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">
-          ${new Date(p.startDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}
-          ${p.endDate?` → ${new Date(p.endDate).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`:''}
-          ${p.cycleLength?`<span style="font-size:11px;color:var(--text-soft);margin-left:6px">(${p.cycleLength}d cycle)</span>`:''}
+  logEl.innerHTML = periodLog.map((p,i)=>{
+    const startFmt = new Date(p.startDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const endFmt   = p.endDate
+      ? ` → ${new Date(p.endDate).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`
+      : `<span style="color:var(--text-soft);font-style:italic"> → assumed ${_avgPeriodLength()} days</span>`;
+    return `
+    <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fee0e0;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🩸</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">
+            ${startFmt}${endFmt}
+            ${p.cycleLength?`<span style="font-size:11px;color:var(--text-soft);margin-left:6px">(${p.cycleLength}d cycle)</span>`:''}
+          </div>
+          ${p.flow?`<div style="font-size:11px;color:var(--text-soft)">Flow: ${p.flow}</div>`:''}
+          ${p.symptoms?.length?`<div style="font-size:11px;color:var(--text-mid)">${p.symptoms.join(' · ')}</div>`:''}
+          ${p.note?`<div style="font-size:11px;color:var(--text-mid);font-style:italic">${p.note}</div>`:''}
+          ${!p.endDate ? `
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+              <label style="font-size:11px;color:var(--text-soft)">Set end date:</label>
+              <input type="date" style="border:1.5px solid var(--border);border-radius:8px;padding:4px 8px;font-size:11px;font-family:'Outfit',sans-serif;background:var(--pink-glow);color:var(--text)"
+                onchange="periodLog[${i}].endDate=this.value;renderPeriodTracker();scheduleSave();showToast('End date saved ✦')">
+            </div>` : `
+            <button onclick="periodLog[${i}].endDate=null;renderPeriodTracker();scheduleSave()"
+              style="margin-top:6px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft);padding:0;font-family:'Outfit',sans-serif">
+              ✎ Clear end date (reset to assumed)
+            </button>`}
         </div>
-        ${p.flow?`<div style="font-size:11px;color:var(--text-soft)">Flow: ${p.flow}</div>`:''}
-        ${p.symptoms?.length?`<div style="font-size:11px;color:var(--text-mid)">${p.symptoms.join(' · ')}</div>`:''}
-        ${p.note?`<div style="font-size:11px;color:var(--text-mid);font-style:italic">${p.note}</div>`:''}
+        <button onclick="periodLog.splice(${i},1);renderPeriodTracker();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);flex-shrink:0">🗑</button>
       </div>
-      <button onclick="periodLog.splice(${i},1);renderPeriodTracker();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
+
+// ════════════════════════════════════════════════
+// ══  PHONE TIME TRACKER  ════════════════════════
+// ════════════════════════════════════════════════
+
+function logPhone(){
+  const date  = document.getElementById('phoneDate').value || isoDate(now);
+  const hours = parseFloat(document.getElementById('phoneHours').value) || 0;
+  if(!hours){ showToast('Enter total hours on phone ✦'); return; }
+
+  const entry = {
+    date, hours,
+    apps:{
+      social:  parseFloat(document.getElementById('phoneSocial').value)  || 0,
+      study:   parseFloat(document.getElementById('phoneStudy').value)   || 0,
+      content: parseFloat(document.getElementById('phoneContent').value) || 0,
+      other:   parseFloat(document.getElementById('phoneOther').value)   || 0,
+    },
+    note: document.getElementById('phoneNote').value.trim()
+  };
+
+  // Replace existing entry for same date
+  const existing = phoneLog.findIndex(p=>p.date===date);
+  if(existing>=0) phoneLog[existing]=entry;
+  else phoneLog.unshift(entry);
+
+  // XP — reward awareness and improvement
+  awardXP(2, 'Phone time logged 📱');
+  const recentAvg = phoneLog.slice(1,8).reduce((a,p)=>a+p.hours,0)/(phoneLog.slice(1,8).length||1);
+  if(hours < recentAvg - 0.5) awardXP(3, 'Less screen time than usual 📵');
+
+  // Reset form
+  ['phoneHours','phoneSocial','phoneStudy','phoneContent','phoneOther','phoneNote'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('phoneDate').value = isoDate(now);
+
+  renderPhoneTracker(); scheduleSave();
+  const msg = hours <= 2 ? 'Under 2h — that\'s excellent ✦'
+    : hours <= 4 ? 'Logged ✦ — awareness is the first step'
+    : hours <= 6 ? 'Logged. Over 4h — what pulled you in?'
+    : 'Logged. That\'s a lot of screen time. No judgement, just notice ✦';
+  showToast(msg);
+}
+
+function renderPhoneTracker(){
+  const today = isoDate(now);
+  document.getElementById('phoneDate').value = today;
+
+  const last7 = Array.from({length:7},(_,i)=>{ const d=new Date(now); d.setDate(now.getDate()-6+i); return isoDate(d); });
+  const last7Entries = last7.map(d=>phoneLog.find(p=>p.date===d)||null);
+
+  // Stats
+  const logged = last7Entries.filter(Boolean);
+  const avgHrs = logged.length ? (logged.reduce((a,p)=>a+p.hours,0)/logged.length).toFixed(1) : null;
+
+  const totalSocial    = logged.reduce((a,p)=>a+(p.apps?.social||0),0);
+  const totalProductive= logged.reduce((a,p)=>a+(p.apps?.study||0)+(p.apps?.content||0),0);
+  const totalAll       = logged.reduce((a,p)=>a+(p.apps?.social||0)+(p.apps?.study||0)+(p.apps?.content||0)+(p.apps?.other||0),0);
+  const socialPct      = totalAll ? Math.round(totalSocial/totalAll*100) : null;
+  const prodPct        = totalAll ? Math.round(totalProductive/totalAll*100) : null;
+
+  const setEl = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  setEl('phoneAvgHrs',     avgHrs ? avgHrs+'h' : '—');
+  setEl('phoneSocialPct',  socialPct!==null ? socialPct+'%' : '—');
+  setEl('phoneProductivePct', prodPct!==null ? prodPct+'%' : '—');
+
+  // Colour avgHrs
+  const avgEl = document.getElementById('phoneAvgHrs');
+  if(avgEl && avgHrs) avgEl.style.color = parseFloat(avgHrs)<=3?'#4a9a6a':parseFloat(avgHrs)<=5?'var(--pink-deep)':'#c04040';
+
+  // 7-day bar chart
+  const chartEl = document.getElementById('phoneWeekChart');
+  if(chartEl){
+    const maxH = Math.max(...last7Entries.map(p=>p?.hours||0), 8);
+    const dnames = ['M','T','W','T','F','S','S'];
+    chartEl.innerHTML = `
+      <div style="background:var(--pink-glow);border-radius:14px;padding:14px 16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft);margin-bottom:10px">Last 7 Days</div>
+        <div style="display:flex;gap:6px;align-items:flex-end;height:70px">
+          ${last7.map((d,i)=>{
+            const e=last7Entries[i];
+            const h=e?.hours||0;
+            const barH=Math.round((h/maxH)*62)+2;
+            const col=h<=3?'#4a9a6a':h<=5?'var(--pink-deep)':'#c04040';
+            const isT=d===today;
+            const social=e?.apps?.social||0;
+            const prod=(e?.apps?.study||0)+(e?.apps?.content||0);
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px" title="${d}: ${h?h+'h':'not logged'}">
+              <div style="font-size:9px;font-weight:700;color:${col}">${h?h+'h':''}</div>
+              <div style="width:100%;height:${barH}px;background:${h?col:'var(--border)'};border-radius:4px 4px 0 0;position:relative;${isT?'outline:2px solid var(--pink-deep);outline-offset:1px':''}">
+                ${h&&social?`<div style="position:absolute;bottom:0;left:0;right:0;height:${Math.round(social/h*barH)}px;background:rgba(255,255,255,0.35);border-radius:4px 4px 0 0" title="Social: ${social}h"></div>`:''}
+              </div>
+              <div style="font-size:9px;color:var(--text-soft)">${dnames[(new Date(d).getDay()+6)%7]}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--text-soft)">
+          <span><span style="display:inline-block;width:8px;height:8px;background:#4a9a6a;border-radius:2px;margin-right:3px"></span>≤3h</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:var(--pink-deep);border-radius:2px;margin-right:3px"></span>3–5h</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#c04040;border-radius:2px;margin-right:3px"></span>>5h</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:rgba(100,100,100,0.3);border-radius:2px;margin-right:3px"></span>social (lighter)</span>
+        </div>
+      </div>`;
+  }
+
+  // Log list
+  const logEl = document.getElementById('phoneLogList');
+  if(!logEl) return;
+  if(!phoneLog.length){
+    logEl.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:12px 0">No phone time logged yet ✦</div>';
+    return;
+  }
+  logEl.innerHTML = phoneLog.slice(0,14).map((p,i)=>{
+    const breakdown = [
+      p.apps?.social  ? `📲 ${p.apps.social}h social`   : '',
+      p.apps?.study   ? `📚 ${p.apps.study}h study`     : '',
+      p.apps?.content ? `🎬 ${p.apps.content}h content` : '',
+      p.apps?.other   ? `📺 ${p.apps.other}h other`     : '',
+    ].filter(Boolean).join(' · ');
+    const col = p.hours<=3?'#4a9a6a':p.hours<=5?'var(--pink-deep)':'#c04040';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:46px;height:46px;border-radius:12px;background:var(--pink-glow);display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0">
+        <div style="font-size:16px;font-weight:900;color:${col}">${p.hours}</div>
+        <div style="font-size:8px;color:var(--text-soft);font-weight:700">HRS</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${new Date(p.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div>
+        ${breakdown?`<div style="font-size:11px;color:var(--text-soft)">${breakdown}</div>`:''}
+        ${p.note?`<div style="font-size:11px;color:var(--text-mid);font-style:italic">${p.note}</div>`:''}
+      </div>
+      <button onclick="phoneLog.splice(${i},1);renderPhoneTracker();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+    </div>`;
+  }).join('');
+}
 let waterCount=0, waterGoal=8, waterHistory=[]; let _lastWaterXPDate='';
 function renderWaterTracker(){
   const goal=waterGoal, count=waterCount;
@@ -15900,8 +16329,42 @@ function renderStatsPanel(panel){
 // ── Cycle phase banner for home/stats (shows when period data exists) ──────
 function renderCyclePhaseBanner(containerId){
   const el = document.getElementById(containerId); if(!el) return;
+
+  // Home page: ONLY show when actively on period
+  // Other containers (stats etc): always show full phase banner
+  const isHome = containerId === 'homeCycleBanner';
+
   if(!periodLog.length){ el.innerHTML=''; return; }
   const pred = _getPeriodPrediction(); if(!pred) return;
+
+  if(isHome){
+    // Only show on home if currently on period
+    if(!pred.onPeriod){ el.innerHTML=''; return; }
+
+    // On period — show a supportive, gentle banner
+    const today = isoDate(new Date());
+    const dayNum = Math.round((new Date(today) - new Date(periodLog[0].startDate)) / 86400000) + 1;
+    const effectiveEnd = pred.effectiveEnd;
+    const daysLeft = effectiveEnd
+      ? Math.max(0, Math.round((new Date(effectiveEnd) - new Date(today)) / 86400000))
+      : null;
+
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,#fee0e0,#fce8f0);border:1.5px solid #f0b0c0;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <span style="font-size:24px;flex-shrink:0">🩸</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:#a02020">Period · Day ${dayNum}${daysLeft!==null ? ` · ~${daysLeft} day${daysLeft!==1?'s':''} left` : ''}</div>
+          <div style="font-size:12px;color:#b04050;margin-top:2px;line-height:1.5">Your body is working hard. Rest is productive today ✦</div>
+        </div>
+        <button onclick="navTo('wellness');setTimeout(()=>{const b=document.querySelector('#wellTabBar .ritual-tab[onclick*=period]');if(b)switchWellTab(b,'period');},300)"
+          style="background:#fee0e0;border:1.5px solid #f0b0c0;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;color:#a02020;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;flex-shrink:0">
+          View Cycle →
+        </button>
+      </div>`;
+    return;
+  }
+
+  // Non-home: show full phase banner (stats, etc.)
   const phase = _phaseInfo[pred.phase];
   const col  = {menstrual:'#fee0e0',follicular:'#e8f8e8',ovulation:'#fff8e0',luteal:'#f0e8f8'}[pred.phase];
   const tcol = {menstrual:'#a02020',follicular:'#2a6a2a',ovulation:'#806820',luteal:'#502080'}[pred.phase];
@@ -16482,6 +16945,7 @@ function renderWeeklyAnalysis(){
       return 'luteal';
     })();
     const showerEntry = showerLog.find(s=>s.date===ds);
+    const phoneEntry  = phoneLog.find(p=>p.date===ds);
     const morningRitual = (() => {
       const morningKey = Object.keys(ritualData).find(k=>k.toLowerCase().includes('morning'));
       if(!morningKey) return false;
@@ -16526,6 +16990,8 @@ function renderWeeklyAnalysis(){
       moodEnergy:   moodEntry?.energy || null,
       periodPhase,
       showered:     !!showerEntry,
+      phoneHours:   phoneEntry?.hours || null,
+      phoneSocial:  phoneEntry?.apps?.social || null,
       morningRitual,
     });
   }
@@ -17385,6 +17851,92 @@ function renderWeeklyAnalysis(){
     if(lines.length) sections.push({ id:'selfcare', emoji:'🚿', title:'Self-Care & Rituals', lines });
   }
 
+  // ── PHONE TIME ──────────────────────────────────────────────
+  {
+    const phoneWeek = phoneLog.filter(p=>inLast7(p.date));
+    if(phoneWeek.length >= 2){
+      let lines = [];
+      const avgPhone = phoneWeek.reduce((a,p)=>a+p.hours,0)/phoneWeek.length;
+      const col = avgPhone<=3?'#4a9a6a':avgPhone<=5?'var(--pink-deep)':'#c04040';
+      lines.push(`📱 Average screen time: <strong style="color:${col}">${avgPhone.toFixed(1)}h/day</strong> this week. ${avgPhone<=2?'Excellent — really low screen time. Your focus will reflect it.':avgPhone<=4?'Moderate. Worth checking what the bulk is — social or study?':'That\'s high. Even reducing by 1h/day would free up 7h a week.'}`);
+
+      const socialTotal   = phoneWeek.reduce((a,p)=>a+(p.apps?.social||0),0);
+      const studyTotal    = phoneWeek.reduce((a,p)=>a+(p.apps?.study||0),0);
+      const contentTotal  = phoneWeek.reduce((a,p)=>a+(p.apps?.content||0),0);
+      const totalBreakdown= socialTotal+studyTotal+contentTotal+phoneWeek.reduce((a,p)=>a+(p.apps?.other||0),0);
+
+      if(totalBreakdown > 0){
+        const socialPct = Math.round(socialTotal/totalBreakdown*100);
+        const prodPct   = Math.round((studyTotal+contentTotal)/totalBreakdown*100);
+        if(socialPct >= 60) lines.push(`📲 <strong>${socialPct}%</strong> of your screen time went to social media — ${socialTotal.toFixed(1)}h total. That\'s the main opportunity.`);
+        if(prodPct >= 30)   lines.push(`✨ <strong>${prodPct}%</strong> of screen time was productive (study + content creation). That\'s a strong ratio.`);
+      }
+
+      // Phone vs sleep correlation
+      const highPhoneDays = phoneWeek.filter(p=>p.hours>=5);
+      const lowPhoneDays  = phoneWeek.filter(p=>p.hours<=3);
+      const highPhoneSleep = highPhoneDays.map(p=>dayPicture.find(d=>d.date===p.date)?.sleepHours).filter(Boolean);
+      const lowPhoneSleep  = lowPhoneDays.map(p=>dayPicture.find(d=>d.date===p.date)?.sleepHours).filter(Boolean);
+      if(highPhoneSleep.length>=1&&lowPhoneSleep.length>=1){
+        const avgHS=highPhoneSleep.reduce((a,b)=>a+b,0)/highPhoneSleep.length;
+        const avgLS=lowPhoneSleep.reduce((a,b)=>a+b,0)/lowPhoneSleep.length;
+        if(avgLS>avgHS+0.5) lines.push(`📊 You slept <strong>${(avgLS-avgHS).toFixed(1)}h more</strong> on low-phone days. Screen time before bed isn\'t just a vibe — it delays melatonin by up to 90 minutes.`);
+      }
+
+      // Phone vs mood
+      const highPhoneMood = highPhoneDays.map(p=>dayPicture.find(d=>d.date===p.date)?.moodScore).filter(Boolean);
+      const lowPhoneMood  = lowPhoneDays.map(p=>dayPicture.find(d=>d.date===p.date)?.moodScore).filter(Boolean);
+      if(highPhoneMood.length>=1&&lowPhoneMood.length>=1){
+        const avgHM=highPhoneMood.reduce((a,b)=>a+b,0)/highPhoneMood.length;
+        const avgLM=lowPhoneMood.reduce((a,b)=>a+b,0)/lowPhoneMood.length;
+        if(avgLM>avgHM+0.5) lines.push(`📊 Mood on low-phone days: <strong>${avgLM.toFixed(1)}/7</strong> vs <strong>${avgHM.toFixed(1)}/7</strong> on high-phone days. Less social media = less comparison, less distraction, better baseline.`);
+      }
+
+      if(lines.length) sections.push({ id:'phone', emoji:'📱', title:'Phone & Screen Time', lines });
+    }
+  }
+
+  // ── CONTENT CREATION ────────────────────────────────────────
+  {
+    const contentWeek = contentPosts.filter(p=>inLast7(p.date));
+    if(contentWeek.length > 0 || contentIdeas.length > 0){
+      let lines = [];
+
+      if(contentWeek.length > 0){
+        const totalViews    = contentWeek.reduce((a,p)=>a+(p.views||0),0);
+        const totalLikes    = contentWeek.reduce((a,p)=>a+(p.likes||0),0);
+        const totalSaves    = contentWeek.reduce((a,p)=>a+(p.saves||0),0);
+        const totalFollGain = contentWeek.reduce((a,p)=>a+(p.followerChange||0),0);
+        const avgEngRate    = contentWeek.filter(p=>p.views).length
+          ? (contentWeek.filter(p=>p.views).reduce((a,p)=>a+((p.likes||0)+(p.comments||0)+(p.saves||0))/(p.views||1)*100,0)/contentWeek.filter(p=>p.views).length).toFixed(1)
+          : null;
+
+        lines.push(`You posted <strong>${contentWeek.length} time${contentWeek.length!==1?'s':''}</strong> this week — across ${[...new Set(contentWeek.map(p=>p.platform))].join(', ')}.`);
+        if(totalViews) lines.push(`Total reach this week: <strong>${totalViews.toLocaleString()} views</strong>${totalLikes?`, ${totalLikes.toLocaleString()} likes`:''}${totalSaves?`, ${totalSaves.toLocaleString()} saves`:''}. ${totalViews>=10000?'10k+ is meaningful.':totalViews>=1000?'Good spread for the week.':''}`);
+        if(avgEngRate) lines.push(`Average engagement rate: <strong>${avgEngRate}%</strong>. ${parseFloat(avgEngRate)>=5?'5%+ is excellent — your audience is actively engaging.':parseFloat(avgEngRate)>=2?'2–5% is solid for most platforms.':'Under 2% — consider if the hook, thumbnail or title needs work.'}`);
+        if(totalFollGain!==0) lines.push(`Follower change from posts this week: <strong style="color:${totalFollGain>0?'#4a9a6a':'#c04040'}">${totalFollGain>0?'+':''}${totalFollGain}</strong>. ${totalFollGain>10?'Real growth — something resonated.':totalFollGain>0?'Steady growth. Compound over time.':'Follower dip this week. Look at which post underperformed and why.'}`);
+
+        // Best post
+        const bestPost = contentWeek.reduce((b,p)=>(p.views||0)>(b.views||0)?p:b, contentWeek[0]);
+        if(bestPost.views) lines.push(`Best performing post: <strong>"${bestPost.title}"</strong> (${(bestPost.views||0).toLocaleString()} views${bestPost.rating?', '+'★'.repeat(bestPost.rating):''}). What made this one land?`);
+
+        // Top content type
+        const typeCounts={};
+        contentWeek.forEach(p=>{if(p.contentType)typeCounts[p.contentType]=(typeCounts[p.contentType]||0)+1;});
+        const topType=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
+        if(topType) lines.push(`Most posted format this week: <strong>${topType[0]}</strong> (${topType[1]}x). Doubling down on your best format is a strategy.`);
+
+        // Content vs study same day
+        const contentStudyDays = contentWeek.filter(p=>dayPicture.find(d=>d.date===p.date)?.studyDone).length;
+        if(contentStudyDays >= 2) lines.push(`You created content <em>and</em> studied on the same day <strong>${contentStudyDays} times</strong> this week. Balance in both is the goal — you\'re doing it.`);
+      } else if(contentIdeas.filter(i=>!i.done).length >= 3){
+        lines.push(`No posts this week yet, but you have <strong>${contentIdeas.filter(i=>!i.done).length} ideas</strong> waiting. The gap between idea and execution is where most creators stay stuck. Pick one and ship it — imperfect.`);
+      }
+
+      if(lines.length) sections.push({ id:'content', emoji:'🎬', title:'Content Creation', lines });
+    }
+  }
+
     sections.push({ id:'patterns', emoji:'🔗', title:'Patterns & Connections',
       content: `<div style="font-size:12px;color:var(--text-soft);margin-bottom:14px;font-style:italic">${insights.filter(i=>i.strength==='strong').length} chain${insights.filter(i=>i.strength==='strong').length!==1?'s':''}, ${insights.filter(i=>i.strength==='medium').length} pattern${insights.filter(i=>i.strength==='medium').length!==1?'s':''}, ${insights.filter(i=>i.strength==='note').length} note${insights.filter(i=>i.strength==='note').length!==1?'s':''} ✦</div>${insightHTML}`
     });
@@ -17580,7 +18132,7 @@ function collectAllData(){
     bucketList,
     dietSettings,
     screenshotNotes,
-    showerLog, sleepLog, moodLog, periodLog,
+    showerLog, sleepLog, moodLog, periodLog, phoneLog,
     lastSpendRedeemDate,
     badges,
     studyCompletionLog,
@@ -17685,6 +18237,7 @@ function restoreAllData(d){
     if(d.lastSpendRedeemDate !== undefined) lastSpendRedeemDate = d.lastSpendRedeemDate;
     if(d.screenshotNotes) screenshotNotes.splice(0,screenshotNotes.length,...d.screenshotNotes);
     if(d.showerLog)  showerLog.splice(0,showerLog.length,...d.showerLog);
+    if(d.phoneLog)   phoneLog.splice(0,phoneLog.length,...d.phoneLog);
     if(d.sleepLog)   sleepLog.splice(0,sleepLog.length,...d.sleepLog);
     if(d.moodLog)    moodLog.splice(0,moodLog.length,...d.moodLog);
     if(d.periodLog)  periodLog.splice(0,periodLog.length,...d.periodLog);
@@ -17914,6 +18467,7 @@ async function syncToCloud(){
 
 // ── Debounced save (local + cloud) ─────────────
 function scheduleSave(){
+  _recordActivity();
   const ok = saveLocal();
   if(ok) setSaveIndicator('✓ Saved locally');
   clearTimeout(_syncTimer);
@@ -18075,6 +18629,528 @@ function _shuffle(arr){
 }
 
 // ── Boot ───────────────────────────────────────
+
+// ════════════════════════════════════════════════════════════════
+// ══  RE-ENGAGEMENT SYSTEM  ══════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// Tracks last active date. After 1 day away: warm nudge.
+// After 2+ days: full depth check-in — question-and-answer style
+// self-reflection to understand what happened and rebuild momentum.
+
+const _LAST_ACTIVE_KEY = 'thatgirlhq_last_active';
+let _reEngagementAnswers = {}; // temp store for Q&A session
+
+function _recordActivity(){
+  try { localStorage.setItem(_LAST_ACTIVE_KEY, isoDate(new Date())); } catch(e){}
+}
+
+function _daysSinceActive(){
+  try {
+    const last = localStorage.getItem(_LAST_ACTIVE_KEY);
+    if(!last) return 0; // first ever visit
+    const today = new Date(); today.setHours(0,0,0,0);
+    const lastDate = new Date(last); lastDate.setHours(0,0,0,0);
+    return Math.round((today - lastDate) / 86400000);
+  } catch(e){ return 0; }
+}
+
+function _checkReEngagement(){
+  const days = _daysSinceActive();
+  if(days <= 0) return; // active today or first visit
+
+  const el = document.getElementById('reEngagementBanner');
+  if(!el) return;
+
+  if(days === 1){
+    _showReEngagementNudge(el, days);
+  } else if(days >= 2){
+    _showReEngagementDeep(el, days);
+  }
+}
+
+// ── 1-day nudge — warm, low-pressure ─────────────────────────────
+function _showReEngagementNudge(el, days){
+  // One day away — more than a nudge, less than the full deep dive.
+  // Asks two real questions: why you were away and what you need today.
+  // Then gives a short personalised response + one action to take.
+  _reEngagementAnswers = {};
+
+  el.innerHTML = `
+    <div id="reEngNudge" style="background:white;border:1.5px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 4px 24px rgba(224,120,152,0.10)">
+
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#fce0ee,#f0a8c8);padding:20px 22px 16px;position:relative">
+        <button onclick="document.getElementById('reEngagementBanner').innerHTML='';_recordActivity()"
+          style="position:absolute;top:10px;right:12px;background:rgba(255,255,255,0.35);border:none;cursor:pointer;font-size:12px;color:white;padding:3px 8px;border-radius:8px;font-weight:700">Skip</button>
+        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:900;font-style:italic;color:white;margin-bottom:3px">Hey — you were away yesterday.</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.9)">Two quick questions. No judgement, just checking in.</div>
+      </div>
+
+      <!-- Questions -->
+      <div style="padding:20px 22px">
+
+        <!-- Q1: why -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">What kept you away yesterday?</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap" id="nudgeWhyChips">
+            ${[
+              {e:'🌊',l:'Overwhelmed'},
+              {e:'😴',l:'Too tired'},
+              {e:'📅',l:'Just busy'},
+              {e:'🙈',l:'Avoiding something'},
+              {e:'🌤',l:'Life was fine, just forgot'},
+              {e:'💙',l:'Feeling low'},
+            ].map(o=>`
+              <button onclick="
+                document.querySelectorAll('#nudgeWhyChips button').forEach(b=>{b.style.background='var(--pink-glow)';b.style.borderColor='var(--border)';b.style.color='var(--text-mid)';b.style.fontWeight='400'});
+                this.style.background='var(--pink-deep)';this.style.borderColor='var(--pink-deep)';this.style.color='white';this.style.fontWeight='700';
+                _reEngagementAnswers.why=this.dataset.val;
+                _nudgeUpdateResponse()"
+                data-val="${o.l.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')}"
+                style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--pink-glow);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-mid);transition:all 0.15s;display:flex;align-items:center;gap:5px">
+                <span>${o.e}</span><span>${o.l}</span>
+              </button>`).join('')}
+          </div>
+        </div>
+
+        <!-- Q2: what do you need today -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">What do you need most today?</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap" id="nudgeNeedChips">
+            ${[
+              {e:'🌱',l:'A gentle start'},
+              {e:'🔥',l:'To get moving'},
+              {e:'😌',l:'Rest & ease'},
+              {e:'🎯',l:'Clear focus'},
+              {e:'💬',l:'To process feelings'},
+              {e:'✦', l:'Just to show up'},
+            ].map(o=>`
+              <button onclick="
+                document.querySelectorAll('#nudgeNeedChips button').forEach(b=>{b.style.background='var(--pink-glow)';b.style.borderColor='var(--border)';b.style.color='var(--text-mid)';b.style.fontWeight='400'});
+                this.style.background='var(--pink-deep)';this.style.borderColor='var(--pink-deep)';this.style.color='white';this.style.fontWeight='700';
+                _reEngagementAnswers.need=this.dataset.val;
+                _nudgeUpdateResponse()"
+                data-val="${o.l.toLowerCase().replace(/ /g,'_')}"
+                style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--pink-glow);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-mid);transition:all 0.15s;display:flex;align-items:center;gap:5px">
+                <span>${o.e}</span><span>${o.l}</span>
+              </button>`).join('')}
+          </div>
+        </div>
+
+        <!-- Dynamic response card -->
+        <div id="nudgeResponse" style="display:none;margin-bottom:18px;padding:14px 16px;background:var(--pink-glow);border-radius:14px;border-left:3px solid var(--pink-deep)">
+          <div style="font-size:13px;color:var(--text);line-height:1.65" id="nudgeResponseText"></div>
+          <div style="font-size:12px;color:var(--pink-deep);font-weight:700;margin-top:8px" id="nudgeResponseAction"></div>
+        </div>
+
+        <!-- Done button -->
+        <button id="nudgeDoneBtn"
+          onclick="
+            const ans = _reEngagementAnswers;
+            if(Object.keys(ans).length > 0) awardXP(3,'Checked in ✦');
+            document.getElementById('reEngagementBanner').innerHTML='';
+            _recordActivity();"
+          style="width:100%;background:linear-gradient(135deg,var(--pink-mid),var(--pink-deep));color:white;border:none;border-radius:14px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;opacity:0.45;transition:opacity 0.2s">
+          I'm back ✦
+        </button>
+
+      </div>
+    </div>`;
+}
+
+// Updates the response card as the user answers
+function _nudgeUpdateResponse(){
+  const a   = _reEngagementAnswers;
+  const why  = a.why  || '';
+  const need = a.need || '';
+
+  const whyText = {
+    overwhelmed:   'One day of overwhelm doesn\'t erase everything. Today doesn\'t need to be a full comeback — it just needs to be one thing.',
+    too_tired:     'Tiredness is your body talking. You don\'t need energy to start — you need permission to start small. One tiny action counts.',
+    just_busy:     'Busy is real. But your routines exist to support you through busy, not disappear during it. Even 5 minutes reconnects you.',
+    avoiding_something: 'Avoidance usually points at one specific thing. You don\'t have to face it today — but opening the app is already a step.',
+    life_was_fine__just_forgot: 'Drifting when things are fine is totally normal. The habit just lost its anchor. Pick one thing to attach it to today.',
+    feeling_low:   'On low days, the bar is on the floor for a reason. Log your mood. Drink water. That\'s a full win.',
+  };
+
+  const needText = {
+    a_gentle_start: { text: 'Gentle start it is. No pressure to do everything — just open one section and tick one thing.', action: 'Try: log your mood in Wellness → Mood ✦' },
+    to_get_moving:  { text: 'That energy is real — use it before it fades. Pick the first thing and go.', action: 'Try: open Gym or your Morning Ritual and start there ✦' },
+    'rest_ease':    { text: 'Rest is productive. If you need ease, give it to yourself. Even just logging how you feel counts as showing up.', action: 'Try: log your mood or a shower in Wellness ✦' },
+    clear_focus:    { text: 'Focus comes from reducing choices. Pick one thing, close everything else, do that.', action: 'Try: open your study ritual or brain dump ✦' },
+    to_process_feelings: { text: 'Processing is valid work. Writing 3 sentences about what\'s going on will help more than you think.', action: 'Try: Notes or journal in Productivity ✦' },
+    just_to_show_up:{ text: 'Showing up is the whole thing. You already did it by opening this. Now do one more tiny thing.', action: 'Try: log anything — even water or a mood ✦' },
+  };
+
+  const resp   = document.getElementById('nudgeResponse');
+  const rText  = document.getElementById('nudgeResponseText');
+  const rAct   = document.getElementById('nudgeResponseAction');
+  const doneBtn= document.getElementById('nudgeDoneBtn');
+
+  if(!resp || !rText || !rAct || !doneBtn) return;
+
+  let text = '', action = '';
+
+  if(why && need){
+    const w = whyText[why] || '';
+    const n = needText[need] || {};
+    text   = [w, n.text].filter(Boolean).join(' ');
+    action = n.action || '';
+    resp.style.display = 'block';
+    rText.textContent  = text;
+    rAct.textContent   = action;
+    doneBtn.style.opacity = '1';
+  } else if(why || need){
+    const w = whyText[why] || '';
+    const n = needText[need] || {};
+    text = w || n.text || '';
+    action = n.action || '';
+    if(text){ resp.style.display='block'; rText.textContent=text; rAct.textContent=action; }
+    doneBtn.style.opacity = '0.7';
+  }
+}
+
+
+// ── 2+ day deep check-in ──────────────────────────────────────────
+function _showReEngagementDeep(el, days){
+  const dayWord = days === 2 ? 'two days' : days <= 6 ? `${days} days` : days <= 13 ? 'a week' : days <= 29 ? `${Math.round(days/7)} weeks` : `${Math.round(days/30)} month${Math.round(days/30)>1?'s':''}`;
+  _reEngagementAnswers = {};
+
+  el.innerHTML = `
+    <div id="reEngDeep" style="background:white;border:1.5px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 4px 32px rgba(224,120,152,0.12)">
+
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#f9c0d8,#e07898);padding:24px 24px 20px;position:relative">
+        <button onclick="document.getElementById('reEngagementBanner').innerHTML='';_recordActivity()"
+          style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,0.3);border:none;cursor:pointer;font-size:13px;color:white;padding:4px 8px;border-radius:8px;font-weight:700">Skip ✕</button>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;font-style:italic;color:white;margin-bottom:4px">
+          Hey Temi. You've been away for ${dayWord}.
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.9);line-height:1.5">
+          No guilt — just curiosity. Let's figure out what happened and what today looks like.
+          <br>This takes 2 minutes. Answer honestly, skip anything you want.
+        </div>
+      </div>
+
+      <!-- Q&A body -->
+      <div style="padding:24px" id="reEngQABody">
+        ${_buildReEngQuestions(days)}
+      </div>
+
+      <!-- Submit -->
+      <div style="padding:0 24px 24px">
+        <button onclick="_submitReEngagement(${days})"
+          style="width:100%;background:linear-gradient(135deg,var(--pink-mid),var(--pink-deep));color:white;border:none;border-radius:16px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:opacity 0.2s"
+          onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          Show me my plan to get back ✦
+        </button>
+      </div>
+    </div>`;
+}
+
+function _buildReEngQuestions(days){
+  const qs = [
+    {
+      id: 'q_why',
+      label: 'What actually kept you away?',
+      sub: 'No wrong answers — this is just data.',
+      type: 'chips',
+      options: [
+        {val:'overwhelmed', emoji:'🌊', label:'Felt overwhelmed'},
+        {val:'tired',       emoji:'😴', label:'Too tired / low energy'},
+        {val:'busy',        emoji:'📅', label:'Genuinely busy'},
+        {val:'avoidance',   emoji:'🙈', label:'Avoiding something'},
+        {val:'fine',        emoji:'🌤', label:'Life was fine, just forgot'},
+        {val:'low',         emoji:'💙', label:'Mentally low'},
+        {val:'chaos',       emoji:'🌀', label:'Everything felt chaotic'},
+      ],
+      multi: true,
+    },
+    {
+      id: 'q_feel',
+      label: 'How are you feeling right now, coming back?',
+      sub: '',
+      type: 'chips',
+      options: [
+        {val:'ready',     emoji:'🔥', label:'Ready to go'},
+        {val:'nervous',   emoji:'😬', label:'A bit nervous'},
+        {val:'meh',       emoji:'😐', label:'Neutral / meh'},
+        {val:'relieved',  emoji:'😮‍💨', label:'Relieved to be back'},
+        {val:'guilty',    emoji:'😔', label:'Guilty (we\'ll fix that)'},
+        {val:'curious',   emoji:'🤔', label:'Curious'},
+      ],
+      multi: false,
+    },
+    {
+      id: 'q_streak',
+      label: days >= 7 ? 'What\'s one thing that slipped the most?' : 'What\'s the first thing you want to pick back up?',
+      sub: '',
+      type: 'chips',
+      options: [
+        {val:'morning',  emoji:'☀️', label:'Morning ritual'},
+        {val:'gym',      emoji:'🏋️', label:'Gym'},
+        {val:'study',    emoji:'📚', label:'Study'},
+        {val:'sleep',    emoji:'😴', label:'Sleep routine'},
+        {val:'shower',   emoji:'🚿', label:'Self-care / shower'},
+        {val:'water',    emoji:'💧', label:'Water & nutrition'},
+        {val:'journaling',emoji:'📓',label:'Journalling / reflection'},
+        {val:'finances', emoji:'💰', label:'Budget tracking'},
+      ],
+      multi: true,
+    },
+    {
+      id: 'q_barrier',
+      label: 'What would make it hardest to stay consistent today?',
+      sub: 'Be honest — this helps us build your micro-plan.',
+      type: 'chips',
+      options: [
+        {val:'time',       emoji:'⏰', label:'Not enough time'},
+        {val:'energy',     emoji:'🪫', label:'Low energy'},
+        {val:'motivation', emoji:'💭', label:'Can\'t find motivation'},
+        {val:'overwhelm',  emoji:'🌊', label:'Too much to catch up'},
+        {val:'perfectionism', emoji:'✨', label:'Want to do it perfectly or not at all'},
+        {val:'nothing',    emoji:'🌱', label:'Nothing — I\'m ready'},
+      ],
+      multi: false,
+    },
+    {
+      id: 'q_commit',
+      label: 'What\'s one thing — just one — you\'ll do in the next hour?',
+      sub: 'Tiny counts. The goal is momentum, not perfection.',
+      type: 'text',
+      placeholder: 'e.g. Log my wake time, drink a glass of water, tick off my morning ritual…',
+    },
+  ];
+
+  return qs.map(q => `
+    <div style="margin-bottom:24px" id="reeng_${q.id}">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:${q.sub?'3px':'10px'}">${q.label}</div>
+      ${q.sub ? `<div style="font-size:12px;color:var(--text-soft);margin-bottom:10px;font-style:italic">${q.sub}</div>` : ''}
+      ${q.type === 'chips' ? `
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          ${q.options.map(o => `
+            <button onclick="_reEngToggle(this,'${q.id}','${o.val}',${q.multi})"
+              data-val="${o.val}"
+              style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--pink-glow);
+                     font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-mid);
+                     transition:all 0.15s;display:flex;align-items:center;gap:5px">
+              <span>${o.emoji}</span><span>${o.label}</span>
+            </button>`).join('')}
+        </div>` : `
+        <textarea id="reeng_${q.id}_txt" placeholder="${q.placeholder}"
+          style="width:100%;border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;
+                 font-family:'Outfit',sans-serif;font-size:13px;resize:vertical;min-height:72px;
+                 background:var(--pink-glow);color:var(--text);outline:none;line-height:1.6"
+          oninput="_reEngAnswers['${q.id}']=this.value"></textarea>`}
+    </div>`).join('');
+}
+
+// Toggle chip selection
+function _reEngToggle(btn, qId, val, multi){
+  if(!multi){
+    // Single select — deselect others in this group
+    const container = document.getElementById('reeng_' + qId);
+    container.querySelectorAll('button[data-val]').forEach(b => {
+      b.style.background = 'var(--pink-glow)';
+      b.style.borderColor = 'var(--border)';
+      b.style.color = 'var(--text-mid)';
+      b.style.fontWeight = '400';
+    });
+    _reEngagementAnswers[qId] = val;
+  } else {
+    // Multi select
+    if(!Array.isArray(_reEngagementAnswers[qId])) _reEngagementAnswers[qId] = [];
+    const idx = _reEngagementAnswers[qId].indexOf(val);
+    if(idx >= 0){
+      _reEngagementAnswers[qId].splice(idx, 1);
+      btn.style.background = 'var(--pink-glow)';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--text-mid)';
+      btn.style.fontWeight = '400';
+      return;
+    } else {
+      _reEngagementAnswers[qId].push(val);
+    }
+  }
+  btn.style.background = 'var(--pink-deep)';
+  btn.style.borderColor = 'var(--pink-deep)';
+  btn.style.color = 'white';
+  btn.style.fontWeight = '700';
+}
+
+// ── Submit and show personalised analysis ────────────────────────
+function _submitReEngagement(days){
+  const a = _reEngagementAnswers;
+  const commit = document.getElementById('reeng_q_commit_txt')?.value?.trim() || '';
+  if(commit) a.q_commit = commit;
+
+  const el = document.getElementById('reEngDeep');
+  if(!el) return;
+
+  // Build personalised analysis
+  const analysis = _buildReEngAnalysis(a, days);
+
+  el.innerHTML = `
+    <div style="background:linear-gradient(135deg,#f9c0d8,#e07898);padding:22px 24px 18px">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;font-style:italic;color:white;margin-bottom:3px">
+        Here's what I see, Temi.
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.85)">Based on what you just told me — honest and specific.</div>
+    </div>
+    <div style="padding:24px">
+      ${analysis}
+      <button onclick="document.getElementById('reEngagementBanner').innerHTML='';_recordActivity();awardXP(10,'Came back stronger 🌸')"
+        style="width:100%;background:linear-gradient(135deg,var(--pink-mid),var(--pink-deep));color:white;border:none;
+               border-radius:16px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;
+               font-family:'Outfit',sans-serif;margin-top:20px">
+        Let's go. +10 XP for showing up ✦
+      </button>
+    </div>`;
+}
+
+function _buildReEngAnalysis(a, days){
+  const why     = Array.isArray(a.q_why)     ? a.q_why     : (a.q_why     ? [a.q_why]     : []);
+  const feel    = a.q_feel || '';
+  const slipped = Array.isArray(a.q_streak)  ? a.q_streak  : (a.q_streak  ? [a.q_streak]  : []);
+  const barrier = a.q_barrier || '';
+  const commit  = a.q_commit || '';
+  const dayWord = days === 1 ? 'a day' : days <= 6 ? `${days} days` : days <= 13 ? 'a week' : days <= 29 ? `${Math.round(days/7)} weeks` : `${Math.round(days/30)} month${Math.round(days/30)>1?'s':''}`;
+
+  let sections = [];
+
+  // ── What happened ──────────────────────────────────────────────
+  const whyInsights = {
+    overwhelmed: { read: 'You were overwhelmed.', depth: 'Overwhelm almost never means you have too much to do — it usually means the gap between where you are and where you want to be felt too wide. The app can feel like pressure when it\'s supposed to feel like support.', fix: 'The fix is always the same: do one thing. Not a comeback. Just one thing. The structure rebuilds itself around momentum, not the other way around.' },
+    tired: { read: 'Your energy was genuinely depleted.', depth: 'Low energy is your nervous system asking for something. Not telling you to stop permanently — asking for a reset. The app stops feeling useful when you\'re running on empty, and that\'s actually fine.', fix: 'Before we talk habits: how\'s your sleep been? Energy is downstream of rest. If sleep is off, everything else is harder than it needs to be.' },
+    busy: { read: 'Life got full.', depth: 'Being busy is real. But often when we say we\'re too busy for our own routines, we mean we reprioritised other people\'s urgency over our own foundation. That\'s a habit worth noticing.', fix: 'The question isn\'t "when do I have time." It\'s "what\'s the smallest version of my routine I can do in 10 minutes." Logging takes 30 seconds. That counts.' },
+    avoidance: { read: 'Something felt uncomfortable to face.', depth: 'Avoidance is almost always about one specific thing — not everything. Usually there\'s one tab, one log, one number you\'ve been sidestepping. The app became a reminder of something you didn\'t want to look at.', fix: 'You don\'t have to look at that thing today. But noticing what you\'ve been avoiding is already 80% of the work. What\'s the thing?' },
+    fine: { read: 'Life was actually going fine — you just drifted.', depth: 'This is the most common kind of slip. Nothing went wrong. You just broke the environmental trigger (opening the app daily) and the habit quietly disappeared. That\'s not failure — it\'s just how habits work without anchors.', fix: 'The fix: re-anchor. Pick one thing you already do every day and attach the app to it. Before coffee, after brushing teeth, at lunch. One link is enough to restart the chain.' },
+    low: { read: 'You were mentally low.', depth: 'When mood drops, the first things to go are usually the maintenance habits — the ones that feel optional. The app felt like effort. That\'s a very human response, not a character flaw.', fix: 'On low days, the only rule is to do something tiny. Not your full routine. Log your mood. Drink a glass of water. Tap the shower button. The bar is on the floor for a reason.' },
+    chaos: { read: 'Things felt chaotic or unpredictable.', depth: 'Chaos disrupts the routines that feel automatic. When the environment shifts, habits need conscious effort — and we often don\'t have that bandwidth. So they fall.', fix: 'Chaos-proof habits are tiny and location-independent. Logging a mood takes 10 seconds anywhere. Even during chaos, some version of showing up is possible.' },
+  };
+
+  if(why.length > 0){
+    const primary = whyInsights[why[0]];
+    const secondary = why[1] ? whyInsights[why[1]] : null;
+    if(primary){
+      sections.push(`
+        <div style="margin-bottom:20px;padding:16px 18px;background:var(--pink-glow);border-radius:16px;border-left:3px solid var(--pink-deep)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft);margin-bottom:8px">What happened</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${primary.read}</div>
+          <div style="font-size:13px;color:var(--text-mid);line-height:1.7;margin-bottom:10px">${primary.depth}</div>
+          <div style="font-size:13px;color:var(--pink-deep);font-weight:600;line-height:1.6">→ ${primary.fix}</div>
+          ${secondary ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--text-mid);line-height:1.6;font-style:italic">Also: ${secondary.depth}</div>` : ''}
+        </div>`);
+    }
+  }
+
+  // ── How they're feeling ────────────────────────────────────────
+  const feelInsights = {
+    ready: 'You\'re ready. That energy is real — don\'t overthink it. Use it.',
+    nervous: 'Nervous is actually perfect. It means you care. Use that feeling — it\'s the same energy as excitement, just pointed inward.',
+    meh: 'Neutral is underrated. You don\'t need motivation to start — you need motion. Motivation follows action, not the other way around.',
+    relieved: 'Relief is your body telling you it missed this. That\'s a really good sign.',
+    guilty: 'Guilt is not useful here. You didn\'t fail — you paused. The difference matters. Guilt keeps you stuck. Self-compassion gets you moving. You\'re back. That\'s what counts.',
+    curious: 'Curiosity is the best mindset for this. Come in without expectation. Just see what happens today.',
+  };
+  if(feel && feelInsights[feel]){
+    sections.push(`
+      <div style="margin-bottom:20px;padding:14px 16px;background:linear-gradient(135deg,#f0f8ff,#e8f4ff);border-radius:14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6080a0;margin-bottom:6px">How you're feeling</div>
+        <div style="font-size:13px;color:#3050a0;line-height:1.65">${feelInsights[feel]}</div>
+      </div>`);
+  }
+
+  // ── What slipped + micro plan ──────────────────────────────────
+  const habitPlan = {
+    morning: { nav: 'rituals',      action: 'Open your morning ritual and tick off even one item.', why: 'Morning ritual sets the tone for everything else — it\'s the keystone.' },
+    gym:     { nav: 'gym',          action: 'Log a session — even a 20 min walk counts.', why: 'Movement resets the nervous system faster than anything else.' },
+    study:   { nav: 'productivity', action: 'Open the study ritual and tick one version.', why: 'Even 15 minutes of focused work rebuilds the studying identity.' },
+    sleep:   { nav: 'wellness',     action: 'Log last night\'s sleep in Wellness → Sleep.', why: 'You can\'t fix what you\'re not tracking. Start with one night.' },
+    shower:  { nav: 'wellness',     action: 'Log a shower in Wellness → Shower. Or go have one now.', why: 'Self-care is the foundation. This one act changes everything.' },
+    water:   { nav: 'wellness',     action: 'Log your water in Wellness → Water Tracker.', why: 'Hydration affects energy, focus and mood more than most things.' },
+    journaling:{ nav: 'productivity',action: 'Write 3 sentences in Notes. Anything. Even "I\'m back."', why: 'Journalling processes what you\'ve been carrying. It closes loops.' },
+    finances:{ nav: 'finance',      action: 'Log one expense in Finance, however small.', why: 'Reconnecting with your finances removes the anxiety of not knowing.' },
+  };
+
+  if(slipped.length > 0){
+    const topHabits = slipped.slice(0, 3);
+    sections.push(`
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft);margin-bottom:12px">Your micro plan for today</div>
+        ${topHabits.map((h, idx) => {
+          const plan = habitPlan[h];
+          if(!plan) return '';
+          return `
+            <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:${idx===0?'var(--pink-glow)':'white'};border:1.5px solid var(--border);border-radius:14px;margin-bottom:8px">
+              <div style="width:24px;height:24px;border-radius:50%;background:${idx===0?'var(--pink-deep)':'var(--border)'};color:${idx===0?'white':'var(--text-soft)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">${idx+1}</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${plan.action}</div>
+                <div style="font-size:11px;color:var(--text-soft);font-style:italic">${plan.why}</div>
+              </div>
+              <button onclick="navTo('${plan.nav}');document.getElementById('reEngagementBanner').innerHTML='';_recordActivity()"
+                style="background:${idx===0?'var(--pink-deep)':'var(--pink-glow)'};color:${idx===0?'white':'var(--pink-deep)'};border:none;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'Outfit',sans-serif">
+                Go →
+              </button>
+            </div>`;
+        }).join('')}
+      </div>`);
+  }
+
+  // ── Barrier reframe ────────────────────────────────────────────
+  const barrierReframes = {
+    time:         { reframe: 'Time isn\'t the real barrier — permission is.', tip: 'You don\'t need 30 minutes. You need 3 minutes and permission to do a tiny version. Tiny beats nothing every single time.' },
+    energy:       { reframe: 'Low energy needs tiny habits, not no habits.', tip: 'When energy is low, the goal shifts: not to do your full routine, but to do the minimum viable version. Log one thing. That\'s it.' },
+    motivation:   { reframe: 'Motivation is a result, not a prerequisite.', tip: 'You can\'t wait for motivation to start. Start first, motivation arrives after. The first 2 minutes of any habit are always the hardest — after that, you\'re already in it.' },
+    overwhelm:    { reframe: 'You don\'t need to catch up. You need to restart.', tip: 'There\'s nothing to catch up on. Today is a new day, not day 3 of a comeback. Log today\'s data. Yesterday doesn\'t exist in this app — only patterns matter.' },
+    perfectionism:{ reframe: 'Done badly beats not done every time.', tip: 'Perfectionism is fear wearing productivity\'s clothes. A 20 min gym session you actually did beats the perfect hour-long workout you didn\'t. Log the imperfect thing.' },
+    nothing:      { reframe: 'You said nothing\'s stopping you.', tip: 'Then the only thing left is to start. Right now. Pick the first thing on your list and do it before you close this.' },
+  };
+  if(barrier && barrierReframes[barrier]){
+    const br = barrierReframes[barrier];
+    sections.push(`
+      <div style="margin-bottom:20px;padding:14px 16px;background:linear-gradient(135deg,#f8f4ff,#ede8ff);border-radius:14px;border-left:3px solid #9060d0">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6040a0;margin-bottom:6px">Your barrier, reframed</div>
+        <div style="font-size:13px;font-weight:700;color:#3020a0;margin-bottom:5px">${br.reframe}</div>
+        <div style="font-size:13px;color:#5040a0;line-height:1.65">${br.tip}</div>
+      </div>`);
+  }
+
+  // ── Their commitment ───────────────────────────────────────────
+  if(commit){
+    sections.push(`
+      <div style="padding:14px 16px;background:linear-gradient(135deg,#eef7ee,#d4f4d4);border-radius:14px;border-left:3px solid #4a9a6a">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#2a6a2a;margin-bottom:6px">You said</div>
+        <div style="font-size:14px;font-weight:700;color:#1a4a1a;font-style:italic">"${commit}"</div>
+        <div style="font-size:12px;color:#3a7a3a;margin-top:6px">Hold yourself to that. Write it down somewhere if it helps. The fact that you named it makes it 40% more likely to happen.</div>
+      </div>`);
+  }
+
+  // ── If nothing answered ────────────────────────────────────────
+  if(sections.length === 0){
+    sections.push(`
+      <div style="padding:20px;text-align:center;color:var(--text-mid);font-size:13px;font-style:italic">
+        You came back. That's the whole thing. Welcome. ✦
+      </div>`);
+  }
+
+  // ── Always: the "longer away" note ────────────────────────────
+  if(days >= 14){
+    const wks = Math.round(days/7);
+    sections.unshift(`
+      <div style="margin-bottom:20px;padding:12px 16px;background:#fff8e0;border-radius:12px;border-left:3px solid #e0c040">
+        <div style="font-size:12px;font-weight:700;color:#806820;margin-bottom:4px">A note on ${wks} weeks away</div>
+        <div style="font-size:12px;color:#a08030;line-height:1.6">
+          ${wks >= 4
+            ? 'A month is long enough for neural pathways to weaken. You\'re not picking up where you left off — you\'re starting a new chapter. That\'s actually fine. Clean slate, same person, better understanding.'
+            : 'Two weeks is enough time for habits to disappear. That\'s not a moral failing — it\'s neuroscience. The good news: habits rebuild faster the second time. Your brain remembers.'}
+        </div>
+      </div>`);
+  }
+
+  return sections.join('');
+}
+
 (async function boot(){
   // 1. Load local cache instantly
   const hadLocal = loadLocal();
@@ -18084,6 +19160,8 @@ function _shuffle(arr){
     refreshAllRenderers();
     // ── Migration: re-compress any oversized vision board images from before compression was added ──
     setTimeout(()=>{ try{ _migrateAndCompressExistingImages(); }catch(e){} }, 1500);
+    // ── Re-engagement: check how long they've been away ──
+    setTimeout(()=>{ try{ _checkReEngagement(); }catch(e){} }, 800);
   }
 
   // 2. Check for saved sync ID
@@ -18504,6 +19582,7 @@ window.refreshAllRenderers = function(){
   const _wellnessActive = document.getElementById('page-wellness')?.classList.contains('active');
   if(_wellnessActive){
     try { renderShowerTracker(); } catch(e){}
+  try { renderPhoneTracker(); } catch(e){}
     try { renderSleepTracker(); } catch(e){}
     try { renderMoodTracker(); } catch(e){}
     try { renderPeriodTracker(); } catch(e){}
