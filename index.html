@@ -19442,7 +19442,7 @@ function refreshAllRenderers(){
       _autoBadgeCheck('therapy');
       _autoBadgeCheck('joy');
     } catch(e){}
-    renderHrmDailyLog(); renderHrmResetLog();
+    renderHrmDailyLog(); renderHrmResetLog(); renderHrmWeekChart(); renderViceTiers(); try{renderHrmCurveMarker();}catch(e){}
     renderReflectionHistory();
   } catch(e){ console.warn('Refresh error:', e); }
 }
@@ -20190,6 +20190,8 @@ window.restoreAllData = function(d){
   if(d.tgnNotes) tgnNotes.splice(0, tgnNotes.length, ...d.tgnNotes);
   if(d.totalXP !== undefined) totalXP = d.totalXP;
   if(d.playerLevel !== undefined) playerLevel = d.playerLevel;
+  // Re-render vice tiers immediately so they're visible after restore
+  try{ renderViceTiers(); } catch(e){}
 };
 
 // Extend refreshAllRenderers
