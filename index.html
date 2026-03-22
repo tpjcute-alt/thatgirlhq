@@ -2293,28 +2293,49 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <!-- The curve diagram -->
     <div class="card" style="margin-bottom:20px">
       <div class="section-label">The Curve</div>
-      <svg viewBox="0 0 700 200" style="width:100%;max-width:700px;display:block;margin:0 auto" id="hrmCurve">
+      <svg viewBox="0 0 700 210" style="width:100%;max-width:700px;display:block;margin:0 auto" id="hrmCurve">
         <!-- background -->
-        <rect width="700" height="200" fill="#fff8fb" rx="12"/>
+        <rect width="700" height="210" fill="#fff8fb" rx="12"/>
         <!-- axis -->
         <line x1="40" y1="160" x2="660" y2="160" stroke="#f0a0c0" stroke-width="2"/>
         <line x1="40" y1="20" x2="40" y2="165" stroke="#f0a0c0" stroke-width="2"/>
-        <!-- curve path: spike, cold turkey low, ideal dose bumps, ramp up, binge peak, reset drop -->
-        <path d="M42,80 L55,20 L70,130 L120,125 L145,110 L160,125 L180,118 L200,115 L280,112 L310,105 L330,100 L350,98 L380,85 L420,55 L460,25 L490,22 L510,28 L540,130 L560,140 L600,140 L620,135 L640,140" fill="none" stroke="#e07898" stroke-width="3" stroke-linejoin="round"/>
+        <!-- curve path -->
+        <path d="M42,80 L55,20 L70,130 L120,125 L145,110 L160,125 L180,118 L200,115 L280,112 L310,105 L330,100 L350,98 L380,85 L420,55 L460,25 L490,22 L510,28 L540,130 L560,140 L600,140 L620,135 L640,148" fill="none" stroke="#e07898" stroke-width="3" stroke-linejoin="round"/>
         <!-- green baseline -->
         <line x1="42" y1="148" x2="640" y2="148" stroke="#a8d8a8" stroke-width="2.5"/>
         <!-- dashed reset line -->
         <line x1="600" y1="20" x2="600" y2="160" stroke="#f0a0c0" stroke-width="1.5" stroke-dasharray="5,4"/>
+        <!-- Phase zone shading -->
+        <rect x="42" y="20" width="38" height="140" fill="#e07898" opacity="0.06" rx="2"/>
+        <rect x="80" y="20" width="120" height="140" fill="#a8c8f8" opacity="0.06" rx="2"/>
+        <rect x="200" y="20" width="220" height="140" fill="#a8d8a8" opacity="0.07" rx="2"/>
+        <rect x="420" y="20" width="180" height="140" fill="#f8c8a8" opacity="0.07" rx="2"/>
+        <rect x="600" y="20" width="60" height="140" fill="#f8e8a8" opacity="0.10" rx="2"/>
         <!-- labels -->
-        <text x="80" y="185" fill="#d8a8c0" font-size="10" font-family="Outfit" text-anchor="middle">Cold Turkey</text>
-        <text x="310" y="185" fill="#d8a8c0" font-size="10" font-family="Outfit" text-anchor="middle">Ideal Dose</text>
-        <text x="480" y="185" fill="#d8a8c0" font-size="10" font-family="Outfit" text-anchor="middle">Ramp Up &amp; Binge</text>
-        <text x="620" y="185" fill="#d8a8c0" font-size="10" font-family="Outfit" text-anchor="middle">Reset</text>
-        <text x="490" y="18" fill="#e07898" font-size="10" font-family="Outfit" font-weight="700">VICES ↑</text>
-        <text x="620" y="18" fill="#f8c840" font-size="10" font-family="Outfit" font-weight="700">RESET</text>
-        <text x="660" y="162" fill="#d8a8c0" font-size="10" font-family="Outfit">TIME →</text>
-        <text x="28" y="150" fill="#a8d8a8" font-size="10" font-family="Outfit" font-weight="700">PRODUCTIVITY</text>
+        <text x="80" y="195" fill="#d8a8c0" font-size="9" font-family="Outfit" text-anchor="middle">Cold Turkey</text>
+        <text x="310" y="195" fill="#d8a8c0" font-size="9" font-family="Outfit" text-anchor="middle">Ideal Dose</text>
+        <text x="480" y="195" fill="#d8a8c0" font-size="9" font-family="Outfit" text-anchor="middle">Ramp Up &amp; Binge</text>
+        <text x="625" y="195" fill="#d8a8c0" font-size="9" font-family="Outfit" text-anchor="middle">Reset</text>
+        <text x="490" y="18" fill="#e07898" font-size="9" font-family="Outfit" font-weight="700">VICES ↑</text>
+        <text x="625" y="18" fill="#c8a820" font-size="9" font-family="Outfit" font-weight="700">RESET</text>
+        <text x="660" y="162" fill="#d8a8c0" font-size="9" font-family="Outfit">TIME →</text>
+        <text x="28" y="150" fill="#a8d8a8" font-size="9" font-family="Outfit" font-weight="700" text-anchor="middle" transform="rotate(-90,28,140)">PRODUCTIVITY</text>
+        <!-- YOU ARE HERE marker (updated by JS) -->
+        <g id="hrmMarker" style="display:none">
+          <line id="hrmMarkerLine" x1="350" y1="25" x2="350" y2="160" stroke="#c04080" stroke-width="2" stroke-dasharray="4,3"/>
+          <circle id="hrmMarkerDot" cx="350" cy="98" r="7" fill="#e07898" stroke="white" stroke-width="2.5"/>
+          <rect id="hrmMarkerBg" x="320" y="205" width="90" height="0" fill="#e07898" rx="8"/>
+          <text id="hrmMarkerLabel" x="350" y="208" fill="white" font-size="9" font-family="Outfit" font-weight="700" text-anchor="middle">You are here</text>
+        </g>
       </svg>
+      <!-- "You are here" label below SVG -->
+      <div id="hrmYouAreHere" style="display:none;margin-top:8px;background:linear-gradient(135deg,#fee0ee,#fce8f4);border:1.5px solid var(--pink-mid);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">📍</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--pink-deep)" id="hrmYAHPhase"></div>
+          <div style="font-size:11px;color:var(--text-mid)" id="hrmYAHDesc"></div>
+        </div>
+      </div>
     </div>
 
     <!-- The 7 phases -->
@@ -2436,7 +2457,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <div class="card" style="margin-bottom:16px">
       <div class="form-row">
         <label class="form-label">Today's Phase</label>
-        <select class="form-select" id="hrmDailyPhase">
+        <select class="form-select" id="hrmDailyPhase" onchange="_hrmPreviewPhase(this.value)">
           <option value="1">Phase 1 — Identity: Tech Sober</option>
           <option value="2">Phase 2 — Cold Turkey</option>
           <option value="3">Phase 3 — Meditate</option>
@@ -10270,8 +10291,83 @@ function saveHrmDailyLog(){
   document.getElementById('hrmDailyNote').value='';
   renderHrmDailyLog();
   renderHrmWeekChart();
+  renderHrmCurveMarker();
   checkAchievement('hrm_log');
 }
+
+// ── HRM Curve — update "You are here" marker based on latest log ──────────
+
+// Live preview on curve as user selects a phase before logging
+function _hrmPreviewPhase(phaseVal){
+  const phaseMap = {
+    '1':{x:55,y:20},'2':{x:120,y:125},'3':{x:200,y:115},'3.5':{x:280,y:112},
+    '4':{x:350,y:98},'5':{x:460,y:25},'6':{x:560,y:140},'7':{x:640,y:148}
+  };
+  const p = phaseMap[String(phaseVal)]; if(!p) return;
+  const dot  = document.getElementById('hrmMarkerDot');
+  const line = document.getElementById('hrmMarkerLine');
+  const marker = document.getElementById('hrmMarker');
+  if(!marker) return;
+  // Show ghost preview in grey
+  marker.style.display='block';
+  line.setAttribute('x1',p.x); line.setAttribute('x2',p.x);
+  dot.setAttribute('cx',p.x);  dot.setAttribute('cy',p.y);
+  dot.setAttribute('fill','#c0a0b8');
+  line.setAttribute('stroke','#c0a0b8');
+}
+
+function renderHrmCurveMarker(){
+  const marker    = document.getElementById('hrmMarker');
+  const yah       = document.getElementById('hrmYouAreHere');
+  const yahPhase  = document.getElementById('hrmYAHPhase');
+  const yahDesc   = document.getElementById('hrmYAHDesc');
+  const markerLine= document.getElementById('hrmMarkerLine');
+  const markerDot = document.getElementById('hrmMarkerDot');
+  const markerLbl = document.getElementById('hrmMarkerLabel');
+  if(!marker || !yah) return;
+
+  // Get latest logged phase (today first, else most recent)
+  const todayStr = new Date().toLocaleDateString();
+  let latest = hrmDailyLog.find(l=>l.date===todayStr) || hrmDailyLog[0];
+
+  if(!latest){
+    marker.style.display='none'; yah.style.display='none'; return;
+  }
+
+  // Phase → x position on the curve + y position (approximate from path)
+  const phaseMap = {
+    '1':   {x:55,  y:20,  label:'Phase 1 — Identity: Tech Sober',   desc:'You\'re setting the intention. Identity-level change.'},
+    '2':   {x:120, y:125, label:'Phase 2 — Cold Turkey',             desc:'Going without. Low stimulation. This is the hard part.'},
+    '3':   {x:200, y:115, label:'Phase 3 — Meditate',                desc:'Sitting with yourself. Reducing baseline stimulation.'},
+    '3.5': {x:280, y:112, label:'Phase 3.5 — Observe Feelings',      desc:'Sitting with boredom. Learning that discomfort is survivable.'},
+    '4':   {x:350, y:98,  label:'Phase 4 — Ideal Dose',              desc:'Planned, intentional vice. Not reactive. You\'re in control.'},
+    '5':   {x:460, y:25,  label:'Phase 5 — Ramp Up / Binge',         desc:'A slip. Blame the vice, not yourself. Redirect.'},
+    '6':   {x:560, y:140, label:'Phase 6 — Reset',                   desc:'Journalling through what happened. Processing and moving forward.'},
+    '7':   {x:640, y:148, label:'Phase 7 — Productivity Burst ✦',    desc:'The reward. Genuine motivation. Work until you want to stop.'},
+  };
+
+  const p = phaseMap[String(latest.phase)] || phaseMap['4'];
+  const score = latest.score || 5;
+
+  // Colour by score: low=red, mid=pink, high=green
+  const col = score<=3?'#c04040':score<=6?'#e07898':'#4a9a6a';
+
+  // Update SVG marker
+  markerLine.setAttribute('x1', p.x); markerLine.setAttribute('x2', p.x);
+  markerDot.setAttribute('cx', p.x);  markerDot.setAttribute('cy', p.y);
+  markerDot.setAttribute('fill', col);
+  markerLine.setAttribute('stroke', col);
+  marker.style.display = 'block';
+
+  // Update the label below
+  yah.style.display = 'flex';
+  yah.style.borderColor = col+'88';
+  yah.style.background = `linear-gradient(135deg,${col}15,${col}08)`;
+  yahPhase.style.color = col;
+  yahPhase.textContent = p.label + '  (score: ' + score + '/10)';
+  yahDesc.textContent  = p.desc;
+}
+
 function renderHrmDailyLog(){
   const el=document.getElementById('hrmDailyLogList'); if(!el)return;
   if(!hrmDailyLog.length){el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No logs yet — check in daily to track your progress ✦</div>';return;}
@@ -10980,7 +11076,7 @@ let trips=[], giftIdeas=[], quotes=[], quoteFilter='all';
     ()=>{ renderHobbyList(); renderHobbyLog(); updateHobbySelect(); },
     ()=>{ renderMedLog(); renderMedStreak(); },
     renderTimeline, renderContentOverview, renderNotesList,
-    renderUrgeLog, renderHrmDailyLog, renderHrmWeekChart, renderViceTiers,
+    renderUrgeLog, renderHrmDailyLog, renderHrmWeekChart, renderViceTiers, renderHrmCurveMarker,
     renderAchievementsTab, renderAvatarPicker, buildCalendar,
   ];
   fns.forEach(fn=>{ try{ fn(); } catch(e){ console.warn('Init render error:', e); } });
@@ -12727,7 +12823,7 @@ function showPage(id){
   if(id==='productivity'){
     renderTodos('both'); renderGradeList(); renderGradeAvgs(); populateSpendCatSelect(); renderWakeUpSection(); try{renderGymAnalysis();}catch(e){}
     renderCountdowns(); renderProjectList(); renderLectureList();
-    renderUrgeLog(); renderHrmDailyLog(); renderTGNList();
+    renderUrgeLog(); renderHrmDailyLog(); renderHrmWeekChart(); renderHrmCurveMarker(); renderTGNList();
   }
 }
 
@@ -17224,8 +17320,36 @@ function renderStatsPanel(panel){
 function renderCyclePhaseBanner(containerId){
   const el = document.getElementById(containerId); if(!el) return;
   if(!periodLog.length){ el.innerHTML=''; return; }
-  const pred = _getPeriodPrediction(); if(!pred) return;
+  const pred = _getPeriodPrediction(); if(!pred){ el.innerHTML=''; return; }
+
+  // ── HOME PAGE: only show if actively on period ──────────────────────────
+  if(containerId === 'homeCycleBanner'){
+    if(!pred.onPeriod){ el.innerHTML=''; return; }
+    // On period — warm supportive banner only
+    const today = isoDate(new Date());
+    const dayNum = Math.round((new Date(today) - new Date(periodLog[0].startDate)) / 86400000) + 1;
+    const effectiveEnd = _currentPeriodEndDate();
+    const daysLeft = effectiveEnd
+      ? Math.max(0, Math.round((new Date(effectiveEnd) - new Date(today)) / 86400000))
+      : null;
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,#fee0e0,#fce8f0);border:1.5px solid #f0b0c0;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <span style="font-size:24px;flex-shrink:0">🩸</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:#a02020">Period · Day ${dayNum}${daysLeft!==null?' · ~'+daysLeft+' day'+(daysLeft!==1?'s':'')+' left':''}</div>
+          <div style="font-size:12px;color:#b04050;margin-top:2px;line-height:1.5">Your body is working hard. Rest is productive today ✦</div>
+        </div>
+        <button onclick="navTo('wellness');setTimeout(()=>{document.querySelectorAll('#wellTabBar .ritual-tab').forEach(b=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes('period'))switchWellTab(b,'period');});},300)"
+          style="background:#fee0e0;border:1.5px solid #f0b0c0;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;color:#a02020;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;flex-shrink:0">
+          View →
+        </button>
+      </div>`;
+    return;
+  }
+
+  // ── OTHER CONTAINERS (stats etc): show full phase banner ───────────────
   const phase = _phaseInfo[pred.phase];
+  if(!phase){ el.innerHTML=''; return; }
   const col  = {menstrual:'#fee0e0',follicular:'#e8f8e8',ovulation:'#fff8e0',luteal:'#f0e8f8'}[pred.phase];
   const tcol = {menstrual:'#a02020',follicular:'#2a6a2a',ovulation:'#806820',luteal:'#502080'}[pred.phase];
   const warning = pred.daysUntil>=0 && pred.daysUntil<=3
@@ -18961,8 +19085,8 @@ function restoreAllData(d){
     if(d.hrmDailyLog) hrmDailyLog.splice(0,hrmDailyLog.length,...d.hrmDailyLog);
     if(d.viceTiers){
       [1,2,3].forEach(t=>{
-        if(d.viceTiers[t]||d.viceTiers[String(t)])
-          viceTiers[t] = d.viceTiers[t]||d.viceTiers[String(t)];
+        const arr = d.viceTiers[t] || d.viceTiers[String(t)] || [];
+        viceTiers[t].splice(0, viceTiers[t].length, ...arr);
       });
     }
     if(d.hrmResetLog) hrmResetLog.splice(0,hrmResetLog.length,...d.hrmResetLog);
