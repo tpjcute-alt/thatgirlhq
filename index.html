@@ -881,6 +881,69 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   #achXPLog > div { flex-wrap: wrap; }
 }
 
+/* ══════════════════════════════════════
+   STUDY SECTION
+   ══════════════════════════════════════ */
+.study-session-card {
+  background:white;border:1.5px solid var(--border);border-radius:18px;
+  padding:18px 20px;transition:border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;
+}
+.study-session-card:hover { border-color:var(--pink-mid); box-shadow:0 4px 16px rgba(240,160,192,0.12); }
+.study-session-card.planned { border-left:4px solid var(--pink-mid); }
+.study-session-card.done { border-left:4px solid #6ab88a; background:linear-gradient(135deg,#fff,#f4fbf4); }
+.study-session-card.skipped { border-left:4px solid #d08080; opacity:0.75; }
+.study-session-card.catchup { border-left:4px solid #f0a040; background:linear-gradient(135deg,#fff,#fffaf0); }
+.study-session-card.active-timer { border-color:var(--pink-deep); box-shadow:0 0 0 3px rgba(240,160,192,0.2); animation:studyPulse 2s ease-in-out infinite; }
+@keyframes studyPulse { 0%,100%{box-shadow:0 0 0 3px rgba(240,160,192,0.2)} 50%{box-shadow:0 0 0 6px rgba(240,160,192,0.08)} }
+.study-slot-header {
+  font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--text-soft);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.study-intensity-badge {
+  display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+}
+.study-intensity-badge.low { background:#eef7ee;color:#3d7a3d; }
+.study-intensity-badge.mid { background:#fff3e0;color:#e65100; }
+.study-intensity-badge.high { background:#fce4ec;color:#c2185b; }
+.study-method-tag {
+  display:inline-flex;align-items:center;padding:3px 9px;border-radius:14px;
+  font-size:10px;font-weight:600;background:var(--pink-glow);color:var(--pink-deep);
+  border:1px solid var(--pink-mid);
+}
+.study-action-btn {
+  padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:none;
+  font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;
+  color:var(--text-mid);transition:all 0.15s;
+}
+.study-action-btn:hover { background:var(--pink-light);border-color:var(--pink-mid);color:var(--pink-deep); }
+.study-action-btn.primary { background:var(--pink);border-color:var(--pink);color:white; }
+.study-action-btn.start { background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:white;border:none; }
+.study-action-btn.danger { color:#c04040;border-color:#d08080; }
+.study-action-btn.danger:hover { background:#fee8e8;border-color:#c04040; }
+.study-ritual-item {
+  display:flex;align-items:center;gap:12px;padding:11px 16px;
+  background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;
+  transition:all 0.15s;cursor:pointer;user-select:none;
+}
+.study-ritual-item.checked { background:#eef7ee;border-color:#a8d8a8; }
+.study-ritual-item-check {
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  transition:all 0.2s;flex-shrink:0;
+}
+.study-ritual-item.checked .study-ritual-item-check { background:#6ab88a;border-color:#6ab88a;color:white; }
+.study-skip-entry {
+  display:flex;align-items:flex-start;gap:12px;padding:12px 14px;
+  background:var(--pink-glow);border-radius:12px;margin-bottom:8px;border-left:3px solid var(--red);
+}
+body.dark-mode .study-session-card { background:var(--white) !important; }
+body.dark-mode .study-ritual-item { background:var(--pink-glow) !important; }
+body.dark-mode .study-skip-entry { background:var(--pink-glow) !important; }
+.study-task-row:hover { filter: brightness(0.96); }
+.study-task-row:active { transform: scale(0.99); }
+body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1621,10 +1684,13 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 
 <!-- ═══════════════════════ GYM ═══════════════════════ -->
 <div class="page" id="page-gym">
-  <div style="margin-bottom:28px">
+  <div style="margin-bottom:20px">
     <div class="page-title">Gym.</div>
     <div class="page-sub" style="margin-bottom:0">show up. feel strong. become her.</div>
   </div>
+
+  <!-- ── MISSED SESSIONS ALERT ── -->
+  <div id="gymMissedAlert" style="display:none;background:linear-gradient(135deg,#fff0f0,#ffe0e0);border:1.5px solid #f0a0a0;border-radius:14px;padding:14px 18px;margin-bottom:20px"></div>
 
   <!-- ── MY TRAINING SCHEDULE ── -->
   <div class="section-label" style="margin-bottom:14px">My Training Schedule</div>
@@ -1650,8 +1716,21 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   </div>
 
   <!-- ── LOG TODAY'S SESSION ── -->
-  <div class="section-label" style="margin-bottom:14px">Log Today's Session</div>
+  <div class="section-label" style="margin-bottom:14px">Log a Session</div>
   <div class="card" style="margin-bottom:28px">
+
+    <!-- Session type toggle -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;background:var(--pink-glow);border-radius:12px;padding:4px" id="gymSessionTypePicker">
+      <button onclick="setGymSessionType(this,'gym')" class="gym-type-btn active" data-type="gym"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:white;color:var(--pink-deep);box-shadow:0 1px 4px rgba(224,120,152,0.2);transition:all 0.15s">
+        🏋️ Gym Session
+      </button>
+      <button onclick="setGymSessionType(this,'home')" class="gym-type-btn" data-type="home"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-soft);transition:all 0.15s">
+        🏠 At-Home Workout
+      </button>
+    </div>
+
     <div class="grid2" style="margin-bottom:16px">
       <div>
         <div class="section-label" style="margin-bottom:6px">What Was Planned?</div>
@@ -1662,6 +1741,22 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
         <input class="text-input" id="gymLogActual" placeholder="e.g. Mostly legs, skipped HIIT…">
       </div>
     </div>
+
+    <!-- At-home quick picks (shown only in home mode) -->
+    <div id="gymHomeQuickPicks" style="display:none;margin-bottom:16px">
+      <div class="section-label" style="margin-bottom:8px">Quick Picks</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Pilates')" style="font-size:11px">🧘 Pilates</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Yoga')" style="font-size:11px">🌿 Yoga</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('HIIT')" style="font-size:11px">⚡ HIIT</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Core & Abs')" style="font-size:11px">💪 Core & Abs</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Resistance Bands')" style="font-size:11px">🪢 Bands</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Stretching & Mobility')" style="font-size:11px">🤸 Stretch</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Walk / Run')" style="font-size:11px">🚶 Walk/Run</button>
+        <button class="shower-mood-chip" onclick="gymSetHomeWorkout('Dance Workout')" style="font-size:11px">💃 Dance</button>
+      </div>
+    </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
       <div>
         <div class="section-label" style="margin-bottom:6px">Duration (Mins)</div>
@@ -2082,6 +2177,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <button class="ritual-tab" onclick="switchProdTab(this,'hrm')">🔄 Habit Reframe</button>
     <button class="ritual-tab" onclick="switchProdTab(this,'tgn')">✨ ThatGirlNotes</button>
     <button class="ritual-tab" onclick="switchProdTab(this,'screenshotnotes')">📸 Screenshot Notes</button>
+    <button class="ritual-tab" onclick="switchProdTab(this,'study')">📚 Study</button>
   </div>
 
   <!-- ── NOTES ── -->
@@ -2556,6 +2652,578 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════
+       📚 STUDY SECTION
+       ══════════════════════════════════════ -->
+  <div id="prod-study" class="prod-panel" style="display:none">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="page-title" style="font-size:28px;margin-bottom:2px">Study. 📚</div>
+        <div class="page-sub" style="margin-bottom:0">plan it, time it, own it.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="pink-pill" style="font-size:11px" onclick="openStudyPlanModal()">＋ Plan Session</button>
+        <button class="pink-pill" style="font-size:11px;background:linear-gradient(135deg,#fff3e0,#ffe8c0);border-color:#f0c060;color:#a07010" onclick="openStandaloneCatchupModal()">🌅 Catch-Up Day</button>
+        <button class="pink-btn" onclick="openStudyLogModal(null, _currentEnergySlot()||'High Energy')">✦ Log Completed</button>
+      </div>
+    </div>
+
+    <!-- Auto-skip settings banner -->
+    <div id="studyAutoSkipBanner" style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:14px;padding:13px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">📋</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">Auto-skip unplanned days</div>
+          <div style="font-size:11px;color:var(--text-soft);margin-top:1px">If you don't plan any sessions for a day, it gets flagged as skipped — so you can reflect on why.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:11px;color:var(--text-soft)" id="studyAutoSkipLabel">Off</span>
+        <div id="studyAutoSkipToggle" onclick="toggleAutoSkip()" style="width:40px;height:22px;border-radius:11px;background:var(--border);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0">
+          <div id="studyAutoSkipThumb" style="width:18px;height:18px;border-radius:9px;background:white;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.15)"></div>
+        </div>
+        <button class="study-action-btn" style="font-size:10px;padding:5px 10px" onclick="runAutoSkipCheck(true)">Check Now</button>
+      </div>
+    </div>
+
+    <!-- Unplanned-day alert (shown when auto-skip finds days) -->
+    <div id="studyUnplannedAlert" style="display:none;background:linear-gradient(135deg,#fff3e0,#ffe8c0);border:1.5px solid #f0b030;border-radius:14px;padding:14px 18px;margin-bottom:16px"></div>
+
+    <!-- Today's study status strip -->
+    <div id="studyTodayStrip" style="background:radial-gradient(ellipse at 20% 30%,#fff8fb,#fce0ee);border-radius:18px;padding:18px 22px;margin-bottom:20px;border:1.5px solid var(--pink-mid)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:4px">Today's Study Status</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:700;color:var(--text)" id="studyTodayStatus">No sessions planned yet</div>
+          <div style="font-size:12px;color:var(--text-mid);margin-top:2px" id="studyTodayMeta"></div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="text-align:center;background:white;border-radius:14px;padding:10px 16px;min-width:72px">
+            <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="studyTodayDone">0</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Done</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:14px;padding:10px 16px;min-width:72px">
+            <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="studyTodayMins">0</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Mins</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:14px;padding:10px 16px;min-width:72px">
+            <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="studyStreak">0🔥</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Streak</div>
+          </div>
+        </div>
+      </div>
+      <!-- 7-day study heatmap dots -->
+      <div id="studyWeekDots" style="display:flex;gap:5px;margin-top:12px;margin-bottom:4px"></div>
+
+      <!-- Today's daily quote -->
+      <div id="studyDailyQuote" style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.7);border-radius:12px;font-size:13px;color:var(--text-mid);font-style:italic;border-left:3px solid var(--pink)"></div>
+
+      <!-- Today's quick actions if no sessions planned -->
+      <div id="studyTodayQuickActions" style="display:none;margin-top:14px">
+        <div style="font-size:11px;color:var(--text-soft);margin-bottom:8px">What do you want to do today?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="study-action-btn start" onclick="openStudyPlanModal()" style="font-size:11px">📅 Plan a session</button>
+          <button class="study-action-btn" onclick="openStandaloneCatchupModal()" style="font-size:11px;background:#fff3e0;border-color:#f0c060;color:#a07010">🌅 It's a catch-up day</button>
+          <button class="study-action-btn" onclick="openUnplannedSkipModal(null,_todayStr())" style="font-size:11px">✕ Mark today as skipped</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRE-STUDY RITUAL ── (shown first, before energy blocks) -->
+    <div id="studyRitualSection" style="background:radial-gradient(ellipse at 10% 20%,#fff8fb,#fde8f5);border:1.5px solid var(--pink-mid);border-radius:20px;padding:20px 22px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:2px">Pre-Study Ritual 🌿</div>
+          <div style="font-size:12px;color:var(--text-mid);font-style:italic">Tick these before you open your books. It tells your brain: it's time.</div>
+        </div>
+        <button class="study-action-btn" style="font-size:10px;padding:5px 10px" onclick="openRitualEditorInline()">✏️ Edit</button>
+      </div>
+      <div id="studyRitualList" style="display:flex;flex-direction:column;gap:6px"></div>
+      <div id="studyRitualAddRow" style="display:none;margin-top:10px;display:none">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input class="text-input" id="studyRitualInput" placeholder="Add ritual step…" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addStudyRitual()">
+          <button class="pink-btn" style="padding:10px 14px" onclick="addStudyRitual()">＋</button>
+        </div>
+      </div>
+      <div id="studyRitualProgress" style="margin-top:10px;font-size:11px;color:var(--text-soft)"></div>
+    </div>
+
+    <!-- Study sessions for today -->
+    <!-- Today's sessions label + view filter -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="section-label" style="margin-bottom:0">Today's Routine</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="shower-mood-chip" id="studyViewToday" onclick="setStudyView('today')" style="font-size:11px;background:var(--pink-glow);border-color:var(--pink-mid);color:var(--pink-deep);font-weight:700">Today</button>
+        <button class="shower-mood-chip" id="studyViewWeek" onclick="setStudyView('week')" style="font-size:11px">This Week</button>
+        <button class="shower-mood-chip" id="studyViewAll" onclick="setStudyView('all')" style="font-size:11px">All</button>
+        <button class="study-action-btn" style="font-size:10px;padding:5px 12px" onclick="openRoutineEditorModal()">✏️ Edit Routines</button>
+        <button class="study-action-btn" style="font-size:10px;padding:5px 10px;color:#c04040" onclick="_resetTodayTicks()" title="Clear all ticks for today">↺ Reset Ticks</button>
+      </div>
+    </div>
+
+    <!-- Energy slot legend (live, from wake time) -->
+    <div id="studyEnergyLegend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+
+    <!-- Today's 3 energy blocks -->
+    <div id="studySessionsGrid" style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px"></div>
+    <div id="studyEmpty" style="display:none;text-align:center;padding:32px;background:var(--pink-glow);border-radius:16px;color:var(--text-soft);font-size:13px;font-style:italic">
+      No routine set up yet — tap "Edit Routines" to get started ✦
+    </div>
+
+    <!-- ── ACTIVE TIMER (floating, always visible) ── -->
+    <div id="studyTimerBanner" style="display:none;position:sticky;top:108px;z-index:100;background:linear-gradient(135deg,#fce0ee,#f8c4dc);border:2px solid var(--pink-deep);border-radius:18px;padding:16px 20px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--pink-deep);margin-bottom:2px" id="studyTimerModeLabel">⏱ IN PROGRESS</div>
+          <div style="font-family:'Playfair Display',serif;font-size:14px;font-style:italic;color:var(--text);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="studyTimerSubject">—</div>
+          <div style="font-size:11px;color:var(--text-mid);margin-top:1px" id="studyTimerPace">—</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:38px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep);letter-spacing:-1px;line-height:1;min-width:90px;text-align:center" id="studyTimerDisplay">00:00</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button onclick="studyTimerPause()" id="studyTimerPauseBtn" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--pink-deep);background:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--pink-deep);transition:all 0.15s;white-space:nowrap">⏸ Pause</button>
+            <button onclick="studyTimerFinish()" style="padding:6px 14px;border-radius:20px;border:none;background:var(--pink-deep);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:white;transition:all 0.15s;white-space:nowrap">✓ Done</button>
+            <button onclick="studyTimerAbandon()" style="padding:5px 14px;border-radius:20px;border:1.5px solid #d08080;background:none;font-size:10px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:#c04040;white-space:nowrap">✕ Abandon</button>
+          </div>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="margin-top:10px;height:5px;background:rgba(255,255,255,0.5);border-radius:3px;overflow:hidden">
+        <div id="studyTimerProgress" style="height:100%;background:var(--pink-deep);border-radius:3px;width:0%;transition:width 1s linear"></div>
+      </div>
+    </div>
+
+    <!-- ── STUDY MOTIVATION CORNER ── -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div class="section-label" style="margin-bottom:0">✨ Your Why</div>
+        <button class="pink-pill" style="font-size:11px" onclick="refreshStudyMotivation()">🔀 Refresh</button>
+      </div>
+      <div id="studyMotivationCard" style="background:radial-gradient(ellipse at 20% 20%,#fff8fb,#fde0ee);border-radius:16px;padding:18px 20px;margin-bottom:14px">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:var(--text);line-height:1.5" id="studyMotivationText">Loading your motivation…</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-top:10px" id="studyMotivationSrc"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label class="form-label">Add your own motivation</label>
+          <input class="text-input" id="studyMotivationInput" placeholder="Why does this matter to you?…" style="font-size:13px">
+        </div>
+        <button class="pink-btn" style="margin-top:22px;white-space:nowrap" onclick="saveStudyMotivation()">Save ✦</button>
+      </div>
+    </div>
+
+    <!-- ── POST-COMPLETION INTRINSIC MOTIVATION QUESTIONS ── -->
+    <div id="studyCompletionQs" style="display:none;background:linear-gradient(135deg,#fff8fb,#fce8f4);border:2px solid var(--pink-mid);border-radius:20px;padding:24px;margin-bottom:24px">
+      <div style="font-size:24px;text-align:center;margin-bottom:8px">🌟</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px">You did all three. That's a full day.</div>
+      <div style="font-size:13px;color:var(--text-mid);text-align:center;font-style:italic;margin-bottom:20px">Take a moment. Reflect on what just happened.</div>
+      <div id="studyCompletionQsContent" style="display:flex;flex-direction:column;gap:14px"></div>
+      <button class="pink-btn" style="width:100%;margin-top:16px" onclick="saveCompletionReflection()">Save Reflection ✦</button>
+    </div>
+
+    <!-- ── WEEKLY STUDY CHART ── -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div class="section-label" style="margin-bottom:0">Weekly Study Map</div>
+        <div style="font-size:12px;color:var(--text-mid)" id="studyWeekTotal"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;height:80px" id="studyWeekChart"></div>
+      <div style="display:flex;gap:8px;margin-top:6px" id="studyWeekLabels"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap" id="studyWeekStats"></div>
+    </div>
+
+    <!-- ── SKIP LOG (accountability section) ── -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div class="section-label" style="margin-bottom:0">Skip Log 📋</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div style="font-size:11px;color:var(--text-soft)" id="studySkipCount"></div>
+          <button class="study-action-btn" style="font-size:10px;padding:5px 10px" onclick="openUnplannedSkipModal(null,_todayStr())">＋ Log Unplanned Skip</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:14px">No shame — just awareness. Every skip holds a lesson.</div>
+      <div id="studySkipLog"></div>
+    </div>
+
+    <!-- ── CATCH-UP LOG ── -->
+    <div style="background:linear-gradient(135deg,#fffaf0,#fff3e0);border:1.5px solid #f0c060;border-radius:20px;padding:22px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Catch-Up Log 🌅</div>
+          <div style="font-size:11px;color:#a07010;font-style:italic">You came back. That already takes courage.</div>
+        </div>
+        <button class="study-action-btn" style="font-size:10px;padding:5px 10px;background:#fff3e0;border-color:#f0c060;color:#a07010" onclick="openStandaloneCatchupModal()">＋ Log Catch-Up</button>
+      </div>
+      <div id="studyCatchupLog"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ── ROUTINE EDITOR MODAL ── -->
+<div class="modal-overlay" id="routineEditorModal">
+  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('routineEditorModal')">×</button>
+    <div class="modal-title">Your Daily Study Routines. ✏️</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px">
+      Set up your three energy-level routines. These repeat every day — just check off tasks as you go.
+      Energy slots are based on your wake time from the Slow Planner.
+    </div>
+
+    <!-- Energy slot info pulled from slow planner -->
+    <div id="routineEditorSlotInfo" style="background:var(--pink-glow);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text-mid)"></div>
+
+    <!-- Tab bar for the 3 routines -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;background:var(--pink-glow);border-radius:12px;padding:4px" id="routineEditorTabs">
+      <button onclick="switchRoutineTab(this,'High Energy')" class="routine-editor-tab active" data-rt="High Energy"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:white;color:var(--pink-deep);box-shadow:0 1px 4px rgba(224,120,152,0.2);transition:all 0.15s">
+        ⚡ High Energy
+      </button>
+      <button onclick="switchRoutineTab(this,'Medium Energy')" class="routine-editor-tab" data-rt="Medium Energy"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-soft);transition:all 0.15s">
+        🌤 Medium Energy
+      </button>
+      <button onclick="switchRoutineTab(this,'Low Energy')" class="routine-editor-tab" data-rt="Low Energy"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-soft);transition:all 0.15s">
+        🌙 Low Energy
+      </button>
+    </div>
+
+    <!-- Routine panels -->
+    <div id="routineEditorPanels">
+      <!-- rendered by JS -->
+    </div>
+
+    <!-- Add task row -->
+    <div style="display:flex;gap:8px;margin-top:16px;align-items:flex-start">
+      <div style="flex:1">
+        <input class="text-input" id="routineTaskInput" placeholder="Add a task… e.g. Old Anki, 3 passtest questions, Break" style="font-size:13px;margin-bottom:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="routineTaskSuggestions">
+          <!-- Quick-add chips rendered by JS -->
+        </div>
+      </div>
+      <button class="pink-btn" style="padding:10px 16px;white-space:nowrap;flex-shrink:0" onclick="addRoutineTask()">＋ Add</button>
+    </div>
+
+    <!-- Session settings for this routine -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">Session Settings</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="form-label">Target duration (mins)</label>
+          <input class="text-input" type="number" id="routineDurationInput" placeholder="e.g. 45" min="5">
+        </div>
+        <div>
+          <label class="form-label">Default study method</label>
+          <select class="form-select" id="routineMethodInput">
+            <option value="">Mixed</option>
+            <option value="Anki">🃏 Anki</option>
+            <option value="Past Papers">📝 Past Papers</option>
+            <option value="Active Recall">🧠 Active Recall</option>
+            <option value="Notes">✍️ Notes</option>
+            <option value="Textbook">📖 Textbook</option>
+            <option value="Videos">🎥 Videos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="pink-btn" style="width:100%;margin-top:16px" onclick="saveRoutineEditor()">Save Routines ✦</button>
+  </div>
+</div>
+
+<!-- ── STUDY PLAN MODAL (quick one-off session, not routine) ── -->
+<div class="modal-overlay" id="studyPlanModal">
+  <div class="modal-box" style="max-width:540px">
+    <button class="modal-close" onclick="closeModal('studyPlanModal')">×</button>
+    <div class="modal-title" id="studyPlanModalTitle">Add Extra Session. 📚</div>
+    <input type="hidden" id="studyPlanEditIdx" value="">
+
+    <div class="form-row">
+      <label class="form-label">Date</label>
+      <input class="text-input" type="date" id="studyPlanDate">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Energy Level</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="studySlotPicker">
+        <button class="shower-mood-chip" onclick="setStudySlot(this,'High Energy')" data-slot="High Energy">⚡ High Energy</button>
+        <button class="shower-mood-chip" onclick="setStudySlot(this,'Medium Energy')" data-slot="Medium Energy">🌤 Medium Energy</button>
+        <button class="shower-mood-chip" onclick="setStudySlot(this,'Low Energy')" data-slot="Low Energy">🌙 Low Energy</button>
+      </div>
+      <div id="studyIntensityHint" style="font-size:11px;color:var(--text-soft);font-style:italic;margin-top:6px"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">What are you studying?</label>
+      <input class="text-input" id="studyPlanSubject" placeholder="e.g. Extra Anki review, anatomy chapter, past papers…">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Planned Duration (mins)</label>
+      <input class="text-input" type="number" id="studyPlanDuration" placeholder="e.g. 45" min="5" max="480">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Notes / Goal (optional)</label>
+      <input class="text-input" id="studyPlanGoal" placeholder="e.g. Get through 50 Anki cards, finish chapter 4…">
+    </div>
+
+    <button class="pink-btn" style="width:100%" onclick="saveStudyPlan()">Add Session ✦</button>
+  </div>
+</div>
+
+<!-- ── STUDY LOG MODAL (completed) ── -->
+<div class="modal-overlay" id="studyLogModal">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close" onclick="closeModal('studyLogModal')">×</button>
+    <div class="modal-title">Log Completed Session. ✦</div>
+    <input type="hidden" id="studyLogPlanId" value="">
+    <input type="hidden" id="studyLogSlot" value="">
+
+    <div class="form-row">
+      <label class="form-label">Subject / Topic</label>
+      <input class="text-input" id="studyLogSubject" placeholder="What did you study?">
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="form-row">
+      <div><label class="form-label">Planned (mins)</label><input class="text-input" type="number" id="studyLogPlanned" placeholder="60"></div>
+      <div><label class="form-label">Actual (mins)</label><input class="text-input" type="number" id="studyLogActual" placeholder="75"></div>
+    </div>
+
+    <div id="studyLogPaceMsg" style="font-size:12px;padding:8px 12px;border-radius:10px;margin-bottom:10px;display:none"></div>
+
+    <div class="form-row">
+      <label class="form-label">How focused were you? (1–5)</label>
+      <div style="display:flex;gap:8px" id="studyFocusStars">
+        <button onclick="setStudyFocus(this,1)" class="shower-mood-chip" data-f="1">😵</button>
+        <button onclick="setStudyFocus(this,2)" class="shower-mood-chip" data-f="2">😐</button>
+        <button onclick="setStudyFocus(this,3)" class="shower-mood-chip" data-f="3">🙂</button>
+        <button onclick="setStudyFocus(this,4)" class="shower-mood-chip" data-f="4">😊</button>
+        <button onclick="setStudyFocus(this,5)" class="shower-mood-chip" data-f="5">🔥</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">How did it go?</label>
+      <textarea class="text-input" rows="2" id="studyLogNote" placeholder="What clicked? What's still fuzzy? Any wins?"></textarea>
+    </div>
+
+    <button class="pink-btn" style="width:100%" onclick="saveStudyLog()">Log It ✦</button>
+  </div>
+</div>
+
+<!-- ── STUDY SKIP MODAL ── -->
+<div class="modal-overlay" id="studySkipModal">
+  <div class="modal-box" style="max-width:460px">
+    <button class="modal-close" onclick="closeModal('studySkipModal')">×</button>
+    <div class="modal-title">Session Skipped 💭</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px">No judgement — let's just understand it so it doesn't happen again.</div>
+    <input type="hidden" id="studySkipPlanId" value="">
+    <input type="hidden" id="studySkipSlot" value="">
+
+    <div class="form-row">
+      <label class="form-label">Why did you skip?</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="studySkipReasonChips">
+        <button class="shower-mood-chip" onclick="toggleSkipReason(this,'Too tired')">😴 Too tired</button>
+        <button class="shower-mood-chip" onclick="toggleSkipReason(this,'Overwhelmed')">😰 Overwhelmed</button>
+        <button class="shower-mood-chip" onclick="toggleSkipReason(this,'Life happened')">🌀 Life happened</button>
+        <button class="shower-mood-chip" onclick="toggleSkipReason(this,'Lost motivation')">😶 Lost motivation</button>
+        <button class="shower-mood-chip" onclick="toggleSkipReason(this,'Forgot')">🫠 Forgot</button>
+        <button class="shower-mood-chip" onclick="toggleSkipReason(this,'Avoided it')">🙈 Avoided it</button>
+      </div>
+      <input class="text-input" id="studySkipCustom" placeholder="Or write your own reason…">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">How can you prevent this next time?</label>
+      <textarea class="text-input" rows="2" id="studySkipPrevent" placeholder="e.g. Set an alarm, prepare the night before, make the session shorter…"></textarea>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Will you catch up?</label>
+      <div style="display:flex;gap:8px">
+        <button class="shower-mood-chip" onclick="setSkipCatchup(this,true)" id="skipCatchupYes">Yes — I'll reschedule</button>
+        <button class="shower-mood-chip" onclick="setSkipCatchup(this,false)" id="skipCatchupNo">No — moving on</button>
+      </div>
+    </div>
+
+    <button class="pink-btn" style="width:100%" onclick="saveStudySkip()">Save ✦</button>
+  </div>
+</div>
+
+<!-- ── INCOMPLETE SLOT REFLECTION MODAL ── -->
+<div class="modal-overlay" id="incompleteSlotModal">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="closeModal('incompleteSlotModal')">×</button>
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">💭</div>
+    <div class="modal-title" style="text-align:center" id="incompleteSlotTitle">Yesterday's session.</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px;text-align:center" id="incompleteSlotSub">
+      You didn't finish — that's okay. Let's understand why.
+    </div>
+    <input type="hidden" id="incompleteSlotDate" value="">
+    <input type="hidden" id="incompleteSlotSlots" value="">
+
+    <div class="form-row">
+      <label class="form-label">Which session(s) did you miss?</label>
+      <div id="incompleteSlotChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">What got in the way?</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="incompleteReasonChips">
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Too tired')">😴 Too tired</button>
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Ran out of time')">⏰ No time</button>
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Overwhelmed')">😰 Overwhelmed</button>
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Life happened')">🌀 Life happened</button>
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Lost motivation')">😶 Lost motivation</button>
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Forgot')">🫠 Forgot</button>
+        <button class="shower-mood-chip" onclick="toggleIncompleteReason(this,'Needed rest')">🛌 Needed rest</button>
+      </div>
+      <input class="text-input" id="incompleteReasonCustom" placeholder="Or write your own…" style="font-size:13px">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">What would help next time?</label>
+      <div id="incompleteTipsBox" style="background:var(--pink-glow);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:none">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">💡 Tips based on what you picked</div>
+        <div id="incompleteTipsContent" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <textarea class="text-input" rows="2" id="incompletePrevent" placeholder="e.g. Set an earlier alarm, do low energy first, break it into 10 mins…"></textarea>
+    </div>
+
+    <button class="pink-btn" style="width:100%" onclick="saveIncompleteReflection()">Reflect & Move Forward ✦</button>
+  </div>
+</div>
+
+<!-- ── STANDALONE CATCH-UP DAY MODAL (custom todo list, no energy slots) ── -->
+<div class="modal-overlay" id="standaloneCatchupModal">
+  <div class="modal-box" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('standaloneCatchupModal')">×</button>
+    <div style="font-size:32px;text-align:center;margin-bottom:8px">🌅</div>
+    <div class="modal-title" style="text-align:center">Catch-Up Day.</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px;text-align:center">
+      Your routines are resting today. Build your own list — one step at a time.
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Which day are you catching up from?</label>
+      <input class="text-input" type="date" id="scuFromDate">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Your catch-up to-do list</label>
+      <div style="font-size:11px;color:var(--text-soft);margin-bottom:8px">Add anything — even one item counts. No energy slots, just your own pace.</div>
+      <div id="scuTodoList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input class="text-input" id="scuTodoInput" placeholder="e.g. 10 old Anki, review one lecture, passtest…" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addScuTodo()">
+        <button class="pink-btn" style="padding:10px 14px;flex-shrink:0" onclick="addScuTodo()">＋</button>
+      </div>
+      <!-- Quick add chips -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px" id="scuQuickChips">
+        <button class="shower-mood-chip" onclick="addScuQuick('10 old Anki')" style="font-size:10px">10 old Anki</button>
+        <button class="shower-mood-chip" onclick="addScuQuick('5 new Anki cards')" style="font-size:10px">5 new Anki</button>
+        <button class="shower-mood-chip" onclick="addScuQuick('3 passtest questions')" style="font-size:10px">3 passtest</button>
+        <button class="shower-mood-chip" onclick="addScuQuick('Review one lecture')" style="font-size:10px">Review lecture</button>
+        <button class="shower-mood-chip" onclick="addScuQuick('Edit Anki cards')" style="font-size:10px">Edit cards</button>
+        <button class="shower-mood-chip" onclick="addScuQuick('Passive review')" style="font-size:10px">Passive review</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">How are you feeling about coming back? <span style="font-weight:400;color:var(--text-soft)">(optional)</span></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="scuMoodChips">
+        <button class="shower-mood-chip" onclick="setScuMood(this,'motivated')" style="font-size:12px">🔥 Ready</button>
+        <button class="shower-mood-chip" onclick="setScuMood(this,'okay')" style="font-size:12px">🙂 Okay</button>
+        <button class="shower-mood-chip" onclick="setScuMood(this,'tired')" style="font-size:12px">😴 Tired</button>
+        <button class="shower-mood-chip" onclick="setScuMood(this,'guilty')" style="font-size:12px">😬 Guilty</button>
+        <button class="shower-mood-chip" onclick="setScuMood(this,'proud')" style="font-size:12px">✨ Proud</button>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#fff8fb,#fce0ee);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--text-mid);font-style:italic;border-left:3px solid var(--pink)">
+      ✦ Catch-up days count toward your streak and earn XP. Your usual energy routines are paused for today.
+    </div>
+
+    <button class="pink-btn" style="width:100%;background:linear-gradient(135deg,#f0c060,#e0a030);box-shadow:0 4px 16px rgba(240,192,96,0.4)" onclick="saveStandaloneCatchup()">🌅 Start Catch-Up Day ✦</button>
+  </div>
+</div>
+
+<!-- ── STUDY CATCH-UP MODAL (linked to a skipped plan) ── -->
+<div class="modal-overlay" id="studyCatchupModal">
+  <div class="modal-box" style="max-width:460px">
+    <button class="modal-close" onclick="closeModal('studyCatchupModal')">×</button>
+    <div class="modal-title">Catch-Up Day 🌅</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px">You showed up when it counted. A catch-up session still earns its XP.</div>
+    <input type="hidden" id="catchupPlanId" value="">
+
+    <div class="form-row">
+      <label class="form-label">What are you catching up on?</label>
+      <input class="text-input" id="catchupSubject" placeholder="Topic / session you missed">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Duration (mins)</label>
+      <input class="text-input" type="number" id="catchupDuration" placeholder="e.g. 60">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Quick note</label>
+      <textarea class="text-input" rows="2" id="catchupNote" placeholder="How did it feel to come back?"></textarea>
+    </div>
+    <button class="pink-btn" style="width:100%" onclick="saveCatchup()">Log Catch-Up ✦</button>
+  </div>
+</div>
+
+<!-- ── STANDALONE CATCH-UP DAY MODAL ── -->
+
+<!-- ── UNPLANNED DAY SKIP MODAL ── -->
+<div class="modal-overlay" id="unplannedSkipModal">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="closeModal('unplannedSkipModal')">×</button>
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">📋</div>
+    <div class="modal-title" style="text-align:center">Day Skipped.</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:6px;text-align:center">
+      Logging it isn't punishment — it's data. Let's figure out what happened.
+    </div>
+
+    <div id="unplannedSkipDateBadge" style="text-align:center;margin-bottom:20px">
+      <span style="display:inline-block;background:var(--pink-glow);border:1.5px solid var(--pink-mid);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;color:var(--pink-deep)"></span>
+    </div>
+
+    <input type="hidden" id="unplannedSkipDate" value="">
+
+    <div class="form-row">
+      <label class="form-label">Why didn't you study? <span style="font-weight:400;color:var(--text-soft)">(pick all that apply)</span></label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="unplannedSkipChips">
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Too tired / burnt out')">😴 Burnt out</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Overwhelmed by content')">😰 Overwhelmed</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Life happened')">🌀 Life happened</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Lost motivation')">😶 Lost motivation</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Didn\'t plan / forgot')">🫠 Didn't plan</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Needed rest (intentional)')">🛌 Intentional rest</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Social / family commitments')">👨‍👩‍👧 Social</button>
+        <button class="shower-mood-chip" onclick="toggleUnplannedSkipReason(this,'Ill / unwell')">🤒 Unwell</button>
+      </div>
+      <input class="text-input" id="unplannedSkipCustom" placeholder="Or write your own reason…" style="font-size:13px">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">What would have helped you study that day?</label>
+      <textarea class="text-input" rows="2" id="unplannedSkipPrevent" placeholder="e.g. Planned the night before, shorter session goal, blocked time in calendar…"></textarea>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Will you catch up?</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="shower-mood-chip" onclick="setUnplannedCatchup(this,true)" id="usCatchupYes">🌅 Yes — I'll do a catch-up</button>
+        <button class="shower-mood-chip" onclick="setUnplannedCatchup(this,false)" id="usCatchupNo">→ No — moving forward</button>
+      </div>
+    </div>
+
+    <button class="pink-btn" style="width:100%" onclick="saveUnplannedSkip()">Save & Reflect ✦</button>
+  </div>
 </div>
 
 <!-- ── SCREENSHOT NOTE MODAL ── -->
@@ -3916,6 +4584,7 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
     <button class="ritual-tab" onclick="switchStatsTab(this,'mind')">🧠 Mind</button>
     <button class="ritual-tab" onclick="switchStatsTab(this,'money')">💰 Money</button>
     <button class="ritual-tab" onclick="switchStatsTab(this,'growth')">🌱 Growth</button>
+    <button class="ritual-tab" onclick="switchStatsTab(this,'study')">📚 Study</button>
     <button class="ritual-tab" onclick="switchStatsTab(this,'insights')">💡 Insights</button>
     <button class="ritual-tab" onclick="switchStatsTab(this,'weekly')">📋 Weekly Analysis</button>
     <button class="ritual-tab" onclick="switchStatsTab(this,'data')">💾 Data & Backup</button>
@@ -4052,6 +4721,45 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
   <!-- INSIGHTS -->
   <div id="stats-insights" class="stats-panel" style="display:none">
     <div id="statsInsightCards"></div>
+  </div>
+
+  <!-- STUDY STATS -->
+  <div id="stats-study" class="stats-panel" style="display:none">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:6px">Study Stats. 📚</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px">Your consistency, effort, and growth — all in one place.</div>
+    <div class="grid4" style="margin-bottom:20px" id="studyStatsSummaryCards"></div>
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:14px">30-Day Study Heatmap</div>
+      <div id="studyStats30DayGrid" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+      <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap" id="studyStatsHeatmapLegend">
+        <span style="font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--pink-deep);display:inline-block"></span>Studied</span>
+        <span style="font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f0c060;display:inline-block"></span>Catch-up</span>
+        <span style="font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#d08080;display:inline-block"></span>Skipped</span>
+        <span style="font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--border);display:inline-block"></span>No data</span>
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:20px">
+      <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px">
+        <div class="section-label" style="margin-bottom:12px">Skip Patterns</div>
+        <div id="studyStatsSkipAnalysis"></div>
+      </div>
+      <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px">
+        <div class="section-label" style="margin-bottom:12px">Energy Completion</div>
+        <div id="studyStatsEnergyRates"></div>
+      </div>
+    </div>
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:14px">Incomplete Session Reflections</div>
+      <div id="studyStatsReflectionLog"></div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fffaf0,#fff3e0);border:1.5px solid #f0c060;border-radius:20px;padding:22px;margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:14px">Catch-Up History 🌅</div>
+      <div id="studyStatsCatchupLog"></div>
+    </div>
+    <div style="background:radial-gradient(ellipse at 20% 20%,#fff8fb,#fde0ee);border:1.5px solid var(--pink-mid);border-radius:20px;padding:22px">
+      <div class="section-label" style="margin-bottom:14px">Full-Day Reflection Answers ✦</div>
+      <div id="studyStatsCompletionLog"></div>
+    </div>
   </div>
 
   <!-- WEEKLY ANALYSIS -->
@@ -9328,6 +10036,277 @@ function _confirmHold(workout){
 }
 
 // ── Pill drag handlers ────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════
+// GYM ENHANCEMENTS: session type, at-home, skip detection
+// ═══════════════════════════════════════════════════════════
+
+let _gymSessionType = 'gym'; // 'gym' | 'home'
+let gymSkips = []; // { date, reason, createdAt }
+
+function _loadGymSkips(){
+  try{ gymSkips=JSON.parse(localStorage.getItem('tgh_gymSkips')||'[]'); }catch(e){ gymSkips=[]; }
+}
+function _saveGymSkips(){
+  try{ localStorage.setItem('tgh_gymSkips',JSON.stringify(gymSkips)); }catch(e){}
+  try{ scheduleSave(); }catch(e){}
+}
+
+// ── Session type toggle ──
+function setGymSessionType(btn, type){
+  _gymSessionType = type;
+  document.querySelectorAll('.gym-type-btn').forEach(b=>{
+    const active = b.dataset.type === type;
+    b.style.background     = active ? 'white' : 'transparent';
+    b.style.color          = active ? 'var(--pink-deep)' : 'var(--text-soft)';
+    b.style.boxShadow      = active ? '0 1px 4px rgba(224,120,152,0.2)' : 'none';
+  });
+  const picks = document.getElementById('gymHomeQuickPicks');
+  if(picks) picks.style.display = type === 'home' ? 'block' : 'none';
+
+  // Update placeholders
+  const planned = document.getElementById('gymLogPlanned');
+  const actual  = document.getElementById('gymLogActual');
+  if(type === 'home'){
+    if(planned) planned.placeholder = 'e.g. Home HIIT, Pilates, Yoga…';
+    if(actual)  actual.placeholder  = 'e.g. 20 min core, full pilates session…';
+  } else {
+    if(planned) planned.placeholder = 'e.g. Leg Day — squats, lunges…';
+    if(actual)  actual.placeholder  = 'e.g. Mostly legs, skipped HIIT…';
+  }
+}
+
+function gymSetHomeWorkout(name){
+  const planned = document.getElementById('gymLogPlanned');
+  if(planned) planned.value = name;
+  // Deselect all quick-pick chips, select the tapped one
+  document.querySelectorAll('#gymHomeQuickPicks .shower-mood-chip').forEach(b=>{
+    b.classList.toggle('active', b.textContent.trim().includes(name.split(' ')[0]));
+  });
+}
+
+// ── Override saveGymLog to include session type ──
+const _origSaveGymLog = saveGymLog;
+window.saveGymLog = function(){
+  _origSaveGymLog();
+  // Tag the most recent log with sessionType
+  if(gymLogs.length > 0 && !gymLogs[0].sessionType){
+    gymLogs[0].sessionType = _gymSessionType;
+    gymLogs[0].isHome = _gymSessionType === 'home';
+  }
+  // Reset type back to gym
+  const gymBtn = document.querySelector('.gym-type-btn[data-type="gym"]');
+  if(gymBtn) setGymSessionType(gymBtn, 'gym');
+  _saveGymSkips();
+  renderGymMissedAlert();
+};
+
+// ── Override renderGymLog to show session type badge ──
+const _origRenderGymLog = renderGymLog;
+window.renderGymLog = function(){
+  const el = document.getElementById('gymLogList');
+  if(!el) return;
+  if(!gymLogs.length){
+    el.innerHTML = '<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:16px 0">No sessions yet — log your first 🏋️</div>';
+    return;
+  }
+
+  // Build skip map
+  const skipDates = new Set(gymSkips.map(s=>s.date));
+
+  el.innerHTML = gymLogs.map((l,i)=>{
+    const isHome = l.isHome || l.sessionType === 'home';
+    const icon   = isHome ? '🏠' : '🏋️';
+    const typeBadge = isHome
+      ? '<span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#eef7ee;color:#3d7a3d;padding:2px 7px;border-radius:8px;margin-left:6px">At Home</span>'
+      : '';
+
+    return `<div class="gym-session-card">
+      <div class="gym-session-icon">${icon}</div>
+      <div class="gym-session-info">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${l.workout}${typeBadge}</div>
+        <div style="font-size:12px;color:var(--pink-deep)">${l.date}${l.dur?' · '+l.dur+'min':''}${l.cals?' · '+l.cals+'kcal':''}${l.feel?' · '+l.feel:''}</div>
+        ${l.planned&&l.actual&&l.planned!==l.actual?`<div style="font-size:11px;color:var(--text-soft);margin-top:2px;font-style:italic">Planned: ${l.planned}</div>`:''}
+      </div>
+      <button onclick="gymLogs.splice(${i},1);renderGymLog();renderGymFreqChart()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:4px">🗑</button>
+    </div>`;
+  }).join('');
+};
+
+// ── Gym missed session detection ──
+function _getMissedGymDays(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cutoff = new Date(today); cutoff.setDate(today.getDate()-7); // look back 7 days
+
+  const scheduledDayNames = Object.entries(gymSchedule)
+    .filter(([,w])=>w&&w!=='Rest').map(([d])=>d);
+  if(!scheduledDayNames.length) return [];
+
+  const missed = [];
+  const d = new Date(cutoff);
+  while(d < today){
+    const ds = isoDate(d);
+    const dn = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+    const isScheduled = scheduledDayNames.includes(dn);
+    const ov = gymOverrides[ds];
+    const isCancelled = _gymSessionCancelled(ds);
+
+    if(isScheduled && !isCancelled){
+      const logged   = gymLogs.some(l=>l.date===ds);
+      const skipped  = gymSkips.some(s=>s.date===ds);
+      if(!logged && !skipped) missed.push({ date:ds, dayName:dn, workout:gymSchedule[dn] });
+    }
+    d.setDate(d.getDate()+1);
+  }
+  return missed;
+}
+
+function renderGymMissedAlert(){
+  const alertEl = document.getElementById('gymMissedAlert');
+  if(!alertEl) return;
+
+  const missed = _getMissedGymDays();
+  if(missed.length === 0){ alertEl.style.display='none'; return; }
+
+  const labels = missed.map(m=>
+    new Date(m.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})
+  );
+
+  alertEl.style.display = 'block';
+  alertEl.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <div style="font-size:22px;flex-shrink:0">💪</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:#c04040;margin-bottom:4px">
+          ${missed.length} gym session${missed.length>1?'s':''} not logged
+        </div>
+        <div style="font-size:12px;color:#a03030;margin-bottom:10px">
+          ${labels.join(', ')} — log them or mark as skipped.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${missed.slice(0,5).map(m=>`
+            <button onclick="openGymSkipModal('${m.date}','${m.workout||''}')"
+              style="padding:5px 12px;border-radius:20px;border:1.5px solid #f0a0a0;background:#fff0f0;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:#c04040">
+              ✕ Skip ${new Date(m.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}
+            </button>
+            <button onclick="prefillGymLogForDate('${m.date}','${m.workout||''}')"
+              style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--pink-mid);background:var(--pink-glow);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--pink-deep)">
+              ✓ Log ${new Date(m.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}
+            </button>
+          `).join('')}
+          <button onclick="document.getElementById('gymMissedAlert').style.display='none'"
+            style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-soft)">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function prefillGymLogForDate(date, workout){
+  const plannedEl = document.getElementById('gymLogPlanned');
+  const dateEl    = document.getElementById('gymLogDate');
+  if(plannedEl) plannedEl.value = workout || '';
+  if(dateEl)    dateEl.value    = date;
+  document.getElementById('gymLogDate')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ── Gym skip modal ──
+function openGymSkipModal(date, workout){
+  const existing = document.getElementById('gymSkipModalEl');
+  if(existing) existing.remove();
+
+  const dateLabel = new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  const modal = document.createElement('div');
+  modal.id = 'gymSkipModalEl';
+  modal.className = 'modal-overlay open';
+  modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(58,26,40,0.4);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;overflow-y:auto;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--white);border-radius:24px;padding:32px;width:100%;max-width:440px;position:relative;border:1.5px solid var(--border);animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);margin:auto">
+      <button onclick="document.getElementById('gymSkipModalEl').remove()" style="position:absolute;top:16px;right:20px;background:var(--pink-glow);border:none;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;color:var(--pink-deep);display:flex;align-items:center;justify-content:center">×</button>
+      <div style="font-size:24px;text-align:center;margin-bottom:6px">💪</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px">Gym Skip.</div>
+      <div style="font-size:12px;color:var(--text-soft);text-align:center;font-style:italic;margin-bottom:4px">${dateLabel}</div>
+      <div style="font-size:13px;color:var(--text-mid);font-style:italic;text-align:center;margin-bottom:20px">No judgement — rest is part of the process.</div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">Why did you skip?</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="gymSkipReasonChips">
+          <button class="shower-mood-chip" onclick="this.classList.toggle('active')">😴 Too tired</button>
+          <button class="shower-mood-chip" onclick="this.classList.toggle('active')">🤒 Unwell</button>
+          <button class="shower-mood-chip" onclick="this.classList.toggle('active')">⏰ No time</button>
+          <button class="shower-mood-chip" onclick="this.classList.toggle('active')">😰 Overwhelmed</button>
+          <button class="shower-mood-chip" onclick="this.classList.toggle('active')">🌀 Life happened</button>
+          <button class="shower-mood-chip" onclick="this.classList.toggle('active')">🛌 Rest day needed</button>
+        </div>
+        <input class="text-input" id="gymSkipCustomReason" placeholder="Or write your own reason…" style="font-size:13px">
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">Will you make it up?</div>
+        <div style="display:flex;gap:8px">
+          <button class="shower-mood-chip" id="gymSkipMakeupYes" onclick="this.classList.add('active');document.getElementById('gymSkipMakeupNo').classList.remove('active')">💪 Yes — I'll do it</button>
+          <button class="shower-mood-chip" id="gymSkipMakeupNo"  onclick="this.classList.add('active');document.getElementById('gymSkipMakeupYes').classList.remove('active')">→ No — moving on</button>
+        </div>
+      </div>
+
+      <button onclick="saveGymSkip('${date}','${(workout||'').replace(/'/g,"\\'")}')"
+        style="width:100%;padding:12px;border:none;border-radius:50px;background:linear-gradient(135deg,var(--pink-mid),var(--pink));color:white;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer">
+        Log Skip ✦
+      </button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveGymSkip(date, workout){
+  const reasonChips = document.querySelectorAll('#gymSkipReasonChips .shower-mood-chip.active');
+  const customReason = document.getElementById('gymSkipCustomReason')?.value.trim();
+  const reasons = [...Array.from(reasonChips).map(b=>b.textContent.trim()), ...(customReason?[customReason]:[])];
+  const willMakeup = document.getElementById('gymSkipMakeupYes')?.classList.contains('active');
+
+  gymSkips.unshift({
+    id: _genId ? _genId() : Date.now().toString(36),
+    date, workout: workout||'', reasons, willMakeup,
+    createdAt: new Date().toISOString(),
+  });
+  // Also set gymOverride so it shows as skipped in upcoming sessions
+  gymOverrides[date] = '__skip__';
+
+  _saveGymSkips();
+  scheduleSave();
+  document.getElementById('gymSkipModalEl')?.remove();
+  renderGymMissedAlert();
+  renderGymUpcomingSessions();
+  try{ buildCalendar(); }catch(e){}
+  showToast('Gym skip logged ✦ Rest is part of training.');
+}
+
+// ── Extend gym page navigation to check for missed sessions ──
+const _origNavTo = window.navTo;
+window.navTo = function(page){
+  _origNavTo(page);
+  if(page === 'gym'){
+    setTimeout(()=>{ try{ renderGymMissedAlert(); }catch(e){} }, 300);
+  }
+};
+
+// ── Extend collectAllData / restoreAllData for gymSkips ──
+const _baseCollectGymSkips = window.collectAllData;
+window.collectAllData = function(){
+  const d = _baseCollectGymSkips();
+  d.gymSkips = gymSkips;
+  return d;
+};
+
+const _baseRestoreGymSkips = window.restoreAllData;
+window.restoreAllData = function(d){
+  _baseRestoreGymSkips(d);
+  if(d.gymSkips) gymSkips.splice(0, gymSkips.length, ...d.gymSkips);
+};
+
+// ── Init ──
+_loadGymSkips();
+setTimeout(()=>{ try{ renderGymMissedAlert(); }catch(e){}; try{ renderGymLog(); }catch(e){}; }, 500);
 function _weekPillDragStart(e){
   _weekDragRi   = parseInt(this.dataset.ri);
   _weekDragDate = this.dataset.date;
@@ -20249,6 +21228,2182 @@ document.querySelectorAll('button').forEach(b=>{
   if(b.textContent.trim()==='🎁 Claim a Prize') b.setAttribute('onclick','manualClaimPrize()');
 });
 
+// ══════════════════════════════════════════════
+// 📚 STUDY SECTION v2 — Routine-Based System
+// ══════════════════════════════════════════════
+
+// ── Data stores ──
+let studyPlans       = [];
+let studyLogs        = [];
+let studySkips       = [];
+let studyRituals     = [];
+let studyMotivations = [];
+let studyCurrentView = 'today';
+
+// ── Daily Routines (the 3 energy-level templates) ──
+// Each routine = { tasks: [{id, text, checked, timerMins}], duration: mins, method: string }
+let studyRoutines = {
+  'High Energy':   { tasks: [], duration: 45, method: 'Mixed' },
+  'Medium Energy': { tasks: [], duration: 45, method: 'Mixed' },
+  'Low Energy':    { tasks: [], duration: 30, method: 'Mixed' },
+};
+
+// ── Daily task completion log ──
+// { date, slot, taskId, checked, completedAt }
+let studyTaskChecks = [];
+
+// ── Timer state ──
+let _studyTimerInterval  = null;
+let _studyTimerSecs      = 0;
+let _studyTimerPlanned   = 0;
+let _studyTimerPlanId    = null;
+let _studyTimerSlot      = null;
+let _studyTimerPaused    = false;
+let _studyTimerSubject   = '';
+let _studyTimerStartedAt = null;
+
+// ── Routine editor state ──
+let _routineEditorSlot   = 'High Energy';
+
+const STUDY_BUILT_IN_QUOTES = [
+  { text: "You didn't come this far to only come this far.", src: "— Temi's inner voice" },
+  { text: "Every Anki card, every past paper, every late lecture — it's all compounding.", src: "— The process" },
+  { text: "Your patients will one day depend on what you choose to learn today.", src: "— Future you" },
+  { text: "Discipline is choosing your future self over your present comfort.", src: "— Anonymous" },
+  { text: "The woman you're becoming will cost you relationships, habits, and comfort. Pay it.", src: "— Anonymous" },
+  { text: "Done is better than perfect. A 20-minute session still rewires neural pathways.", src: "— Neuroscience" },
+  { text: "Mastery is not a destination — it's 10,000 micro-moments of showing up.", src: "— Anonymous" },
+  { text: "You are literally training to save lives. No textbook chapter is too hard for that.", src: "— That girl logic" },
+  { text: "Hard days build the version of you that coasts through harder ones.", src: "— Growth mindset" },
+  { text: "Progress, not perfection. A skipped session is not a failed journey.", src: "— Be kind to yourself" },
+  { text: "One focused hour beats six scattered ones. Quality over quantity.", src: "— Study science" },
+  { text: "The library version of you is just as 'that girl' as the gym version.", src: "— ThatGirlHQ" },
+];
+
+const STUDY_SLOT_CONFIG = {
+  'High Energy':   { emoji:'⚡', color:'#f0c0d8', bg:'#fff0f6', textColor:'#c0406080', label:'High Energy', hint:'First ~7 hrs after waking. Your sharpest window — deep work, hard recall, past papers.' },
+  'Medium Energy': { emoji:'🌤', color:'#f0d080', bg:'#fffbee', textColor:'#806000',  label:'Medium Energy', hint:'~7–10 hrs after waking. Still productive — NotebookLM, review, structured tasks.' },
+  'Low Energy':    { emoji:'🌙', color:'#c8c0e8', bg:'#f4f0ff', textColor:'#504080',  label:'Low Energy',   hint:'10+ hrs after waking. Wind-down energy — light Anki, editing cards, passive review.' },
+};
+
+const ROUTINE_TASK_SUGGESTIONS = {
+  'High Energy':   ['Old Anki','New Anki cards','17 new Anki cards','5 + 4 new Anki cards','Past papers','Passtest questions','3 passtest questions','NotebookLM video','NotebookLM quiz','Add research to notes','Studyglow','Break'],
+  'Medium Energy': ['Prep NotebookLM','NotebookLM slide deck','NotebookLM video','5 + 4 new Anki cards','Add research to notes','Studyglow','Passtest questions','10 min slow start — tea & notes review','Break'],
+  'Low Energy':    ['5 new Anki cards','10 old Anki','Edit Anki cards','Edit Anki OD1, ISD3, Radiology','Make stats deck','3 passtest questions','Passive review','Break'],
+};
+
+// ── Util ──
+function _todayStr(){ return new Date().toISOString().slice(0,10); }
+function _weekStart(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
+function _fmtMins(m){ if(!m||m<1) return '0 mins'; if(m<60) return m+' mins'; const h=Math.floor(m/60),r=m%60; return h+'h'+(r?' '+r+'m':''); }
+function _fmtSecs(s){ const m=Math.floor(s/60),sec=s%60; return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); }
+function _genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function _escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Get energy slots from slow planner wake time ──
+function _getEnergySlots(){
+  // Use slowPlanWakeTime if available
+  const wt = (typeof slowPlanWakeTime !== 'undefined' && slowPlanWakeTime) ? slowPlanWakeTime : null;
+  if(!wt) return null;
+  const [h,m] = wt.split(':').map(Number);
+  if(isNaN(h)) return null;
+  const wake = h*60+m;
+  const highEnd = wake + 7*60;
+  const medEnd  = highEnd + 3*60;
+  const fmt = mins => { const hh=Math.floor(mins/60)%24, mm=mins%60; return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`; };
+  return {
+    'High Energy':   { start: fmt(wake), end: fmt(highEnd) },
+    'Medium Energy': { start: fmt(highEnd), end: fmt(medEnd) },
+    'Low Energy':    { start: fmt(medEnd), end: null },
+  };
+}
+
+function _currentEnergySlot(){
+  const slots = _getEnergySlots();
+  if(!slots) return null;
+  const now = new Date(); const nowM = now.getHours()*60+now.getMinutes();
+  const toM = t=>{ if(!t) return Infinity; const[h,m]=t.split(':').map(Number); return h*60+m; };
+  if(nowM < toM(slots['High Energy'].end))   return 'High Energy';
+  if(nowM < toM(slots['Medium Energy'].end)) return 'Medium Energy';
+  return 'Low Energy';
+}
+
+// ── Save / Load ──
+function saveStudyData(){
+  try {
+    localStorage.setItem('tgh_studyPlans',    JSON.stringify(studyPlans));
+    localStorage.setItem('tgh_studyLogs',     JSON.stringify(studyLogs));
+    localStorage.setItem('tgh_studySkips',    JSON.stringify(studySkips));
+    localStorage.setItem('tgh_studyRituals',  JSON.stringify(studyRituals));
+    localStorage.setItem('tgh_studyMotivs',   JSON.stringify(studyMotivations));
+    localStorage.setItem('tgh_studyRoutines', JSON.stringify(studyRoutines));
+    localStorage.setItem('tgh_studyTaskChecks',JSON.stringify(studyTaskChecks));
+  } catch(e){}
+  try { scheduleSave(); } catch(e){}
+}
+
+function loadStudyData(){
+  try { studyPlans       = JSON.parse(localStorage.getItem('tgh_studyPlans')    ||'[]'); } catch(e){ studyPlans=[]; }
+  try { studyLogs        = JSON.parse(localStorage.getItem('tgh_studyLogs')     ||'[]'); } catch(e){ studyLogs=[]; }
+  try { studySkips       = JSON.parse(localStorage.getItem('tgh_studySkips')    ||'[]'); } catch(e){ studySkips=[]; }
+  try { studyRituals     = JSON.parse(localStorage.getItem('tgh_studyRituals')  ||'[]'); } catch(e){ studyRituals=[]; }
+  try { studyMotivations = JSON.parse(localStorage.getItem('tgh_studyMotivs')   ||'[]'); } catch(e){ studyMotivations=[]; }
+  try { studyTaskChecks  = JSON.parse(localStorage.getItem('tgh_studyTaskChecks')||'[]'); } catch(e){ studyTaskChecks=[]; }
+  try {
+    const r = JSON.parse(localStorage.getItem('tgh_studyRoutines')||'{}');
+    if(r && typeof r==='object'){
+      ['High Energy','Medium Energy','Low Energy'].forEach(k=>{
+        if(r[k]) studyRoutines[k] = r[k];
+        if(!studyRoutines[k].tasks) studyRoutines[k].tasks=[];
+      });
+    }
+  } catch(e){}
+
+  // Seed default routines if empty
+  if(!studyRoutines['High Energy'].tasks.length && !studyRoutines['Medium Energy'].tasks.length && !studyRoutines['Low Energy'].tasks.length){
+    studyRoutines = {
+      'High Energy': {
+        duration:45, method:'Mixed',
+        tasks:[
+          {id:_genId(),text:'Old Anki',timerMins:null},
+          {id:_genId(),text:'Break',timerMins:5},
+          {id:_genId(),text:'17 new Anki cards',timerMins:null},
+          {id:_genId(),text:'3 passtest questions',timerMins:null},
+          {id:_genId(),text:'5 + 4 new Anki cards',timerMins:null},
+          {id:_genId(),text:'10 old Anki',timerMins:null},
+        ],
+      },
+      'Medium Energy': {
+        duration:45, method:'Mixed',
+        tasks:[
+          {id:_genId(),text:'10 min slow start — tea & notes review',timerMins:10},
+          {id:_genId(),text:'Prep NotebookLM',timerMins:null},
+          {id:_genId(),text:'5 + 4 new Anki cards',timerMins:null},
+          {id:_genId(),text:'Add research to notes',timerMins:null},
+          {id:_genId(),text:'Studyglow',timerMins:null},
+          {id:_genId(),text:'NotebookLM video',timerMins:null},
+          {id:_genId(),text:'NotebookLM slide deck',timerMins:null},
+          {id:_genId(),text:'NotebookLM quiz',timerMins:null},
+          {id:_genId(),text:'3 passtest questions',timerMins:null},
+          {id:_genId(),text:'10 old Anki',timerMins:null},
+        ],
+      },
+      'Low Energy': {
+        duration:30, method:'Mixed',
+        tasks:[
+          {id:_genId(),text:'5 new Anki cards',timerMins:null},
+          {id:_genId(),text:'3 passtest questions',timerMins:null},
+          {id:_genId(),text:'Edit Anki cards, OD1, ISD3, Radiology',timerMins:null},
+          {id:_genId(),text:'Make stats deck',timerMins:null},
+          {id:_genId(),text:'10 old Anki',timerMins:null},
+        ],
+      },
+    };
+    saveStudyData();
+  }
+
+  if(studyRituals.length===0){
+    studyRituals=[
+      {id:_genId(),text:'Clear desk & get water',checked:false},
+      {id:_genId(),text:'Phone face-down / Do Not Disturb',checked:false},
+      {id:_genId(),text:'Open notes / materials',checked:false},
+      {id:_genId(),text:'Set intention for this session',checked:false},
+    ];
+  }
+}
+
+// ── Task check state helpers ──
+function _getTaskCheck(slot, taskId){
+  const today = _todayStr();
+  return studyTaskChecks.find(c=>c.date===today&&c.slot===slot&&c.taskId===taskId);
+}
+function _isTaskChecked(slot, taskId){
+  return !!_getTaskCheck(slot,taskId);
+}
+function _toggleTaskCheck(slot, taskId){
+  const today=_todayStr(), existing=_getTaskCheck(slot,taskId);
+  if(existing){
+    studyTaskChecks=studyTaskChecks.filter(c=>!(c.date===today&&c.slot===slot&&c.taskId===taskId));
+  } else {
+    studyTaskChecks.push({date:today,slot,taskId,checkedAt:new Date().toISOString()});
+    // XP for ticking a task
+    try{ addXP(5,'Study task: tick'); }catch(e){}
+    // Celebrate if all tasks in this slot are done
+    const tasks=(studyRoutines[slot]||{}).tasks||[];
+    const allDone=tasks.length>0&&tasks.every(t=>_isTaskChecked(slot,t.id));
+    if(allDone){
+      showToast(slot+' done ✦ '+{'High Energy':'🔥 Peak session complete!','Medium Energy':'⚡ Solid session!','Low Energy':'🌙 Showed up anyway — that counts!'}[slot]||'✓');
+      try{ addXP(15,slot+' session complete'); }catch(e){}
+    }
+  }
+  saveStudyData();
+  renderStudySessions();
+  renderStudyTodayStrip();
+}
+
+function _resetTodayTicks(){
+  const today=_todayStr();
+  const count=studyTaskChecks.filter(c=>c.date===today).length;
+  if(count===0){ showToast('No ticks to reset.'); return; }
+  studyTaskChecks=studyTaskChecks.filter(c=>c.date!==today);
+  saveStudyData();
+  renderStudySessions();
+  renderStudyTodayStrip();
+  showToast('Today\'s ticks cleared ✦');
+}
+
+// ── Energy legend ──
+function renderEnergyLegend(){
+  const el=document.getElementById('studyEnergyLegend'); if(!el) return;
+  const slots=_getEnergySlots();
+  const currentSlot=_currentEnergySlot();
+  el.innerHTML=Object.entries(STUDY_SLOT_CONFIG).map(([slot,cfg])=>{
+    const times=slots?slots[slot]:null;
+    const isCurrent=currentSlot===slot;
+    const timeStr=times?(times.start+(times.end?' – '+times.end:'+')):null;
+    return `<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:${isCurrent?cfg.bg:'var(--pink-glow)'};border:1.5px solid ${isCurrent?cfg.color:'var(--border)'};font-size:11px;font-weight:${isCurrent?'700':'500'};color:var(--text-mid)">
+      ${cfg.emoji} <span style="font-weight:700;color:${isCurrent?'var(--pink-deep)':'var(--text-soft)'}">${slot}</span>${timeStr?`<span style="color:var(--text-soft);font-size:10px">${timeStr}</span>`:''}
+      ${isCurrent?'<span style="background:var(--pink-deep);color:white;font-size:9px;padding:1px 6px;border-radius:10px;margin-left:2px">NOW</span>':''}
+    </div>`;
+  }).join('');
+}
+
+// ── Main sessions renderer ──
+function renderStudySessions(){
+  const grid=document.getElementById('studySessionsGrid');
+  const empty=document.getElementById('studyEmpty');
+  if(!grid) return;
+
+  const today=_todayStr();
+  const slots=_getEnergySlots();
+  const currentSlot=_currentEnergySlot();
+
+  // Show routines + any extra one-off plans for today
+  const energySlots=['High Energy','Medium Energy','Low Energy'];
+  const extraPlans=studyPlans.filter(p=>p.date===today);
+
+  const hasRoutines=energySlots.some(s=>studyRoutines[s]?.tasks?.length>0);
+  if(!hasRoutines && extraPlans.length===0){ grid.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+
+  let html='';
+
+  // Show view filter results if not 'today'
+  if(studyCurrentView!=='today'){
+    html+=_renderHistoryView();
+    grid.innerHTML=html;
+    return;
+  }
+
+  energySlots.forEach(slot=>{
+    const routine=studyRoutines[slot]||{tasks:[],duration:45};
+    const cfg=STUDY_SLOT_CONFIG[slot];
+    const timeInfo=slots?slots[slot]:null;
+    const isCurrent=currentSlot===slot;
+    const isTimerActive=_studyTimerSlot===slot&&_studyTimerInterval;
+
+    const tasks=routine.tasks||[];
+    const doneTasks=tasks.filter(t=>_isTaskChecked(slot,t.id)).length;
+    const allDone=tasks.length>0&&doneTasks===tasks.length;
+    const pct=tasks.length>0?Math.round(doneTasks/tasks.length*100):0;
+
+    const timeLabel=timeInfo?(timeInfo.start+(timeInfo.end?' – '+timeInfo.end:'+')):'';
+
+    html+=`
+    <div class="study-session-card${allDone?' done':''}${isTimerActive?' active-timer':''}" id="studySlotCard_${slot.replace(' ','_')}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="font-size:18px">${cfg.emoji}</span>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${isCurrent?'var(--pink-deep)':'var(--text-soft)'}">${slot}</div>
+              ${timeLabel?`<div style="font-size:10px;color:var(--text-soft)">${timeLabel}</div>`:''}
+            </div>
+            ${isCurrent&&!allDone?'<span style="background:var(--pink-deep);color:white;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700">Now</span>':''}
+            ${allDone?'<span style="background:#6ab88a;color:white;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700">✓ Done</span>':''}
+          </div>
+
+          ${tasks.length>0?`
+          <!-- Progress bar -->
+          <div style="height:4px;background:var(--pink-glow);border-radius:2px;overflow:hidden;margin-bottom:10px;max-width:200px">
+            <div style="height:100%;width:${pct}%;background:${allDone?'#6ab88a':'var(--pink-mid)'};border-radius:2px;transition:width 0.4s"></div>
+          </div>
+
+          <!-- Task list -->
+          <div style="display:flex;flex-direction:column;gap:4px">
+            ${tasks.map(task=>{
+              const checked=_isTaskChecked(slot,task.id);
+              return `<div onclick="_toggleTaskCheck('${slot}','${task.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${checked?'#eef7ee':'var(--pink-glow)'};cursor:pointer;transition:all 0.15s;user-select:none" class="study-task-row">
+                <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${checked?'#6ab88a':'var(--border)'};background:${checked?'#6ab88a':'white'};display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0;transition:all 0.2s">${checked?'✓':''}</div>
+                <span style="font-size:13px;color:var(--text);${checked?'text-decoration:line-through;color:var(--text-soft);':''};flex:1">${_escHtml(task.text)}</span>
+                ${task.timerMins?`<span style="font-size:10px;color:var(--text-soft);flex-shrink:0">${task.timerMins}m</span>`:''}
+              </div>`;
+            }).join('')}
+          </div>
+          `:'<div style="font-size:12px;color:var(--text-soft);font-style:italic">No tasks set — tap Edit Routines to add some ✦</div>'}
+
+          <div style="font-size:11px;color:var(--text-soft);margin-top:8px">${doneTasks}/${tasks.length} tasks · Target ${_fmtMins(routine.duration||45)}</div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+          ${isTimerActive?`
+            <button onclick="studyTimerPause()" id="studyCardPauseBtn_${slot.replace(' ','_')}" style="padding:6px 12px;border-radius:14px;border:1.5px solid var(--pink-deep);background:white;font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:var(--pink-deep)">${_studyTimerPaused?'▶ Resume':'⏸ Pause'}</button>
+            <button onclick="studyTimerFinish()" style="padding:6px 12px;border-radius:14px;border:none;background:var(--pink-deep);font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:white">✓ Done</button>
+            <button onclick="studyTimerAbandon()" style="padding:5px 12px;border-radius:14px;border:1.5px solid #d08080;background:none;font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:#c04040">✕ Abandon</button>
+          `:!allDone?`
+            <button onclick="startStudyTimer('${slot}')" class="study-action-btn start" style="font-size:10px;padding:6px 12px">▶ Start Timer</button>
+            <button onclick="openStudyLogModal(null,'${slot}')" class="study-action-btn primary" style="font-size:10px;padding:6px 12px">✓ Log Session</button>
+            <button onclick="openStudySkipModal(null,'${slot}')" class="study-action-btn danger" style="font-size:10px;padding:6px 12px">✕ Skip</button>
+          `:`
+            <button onclick="openStudyLogModal(null,'${slot}')" class="study-action-btn" style="font-size:10px;padding:6px 12px">📝 Log it</button>
+          `}
+          <button onclick="openRoutineEditorModal('${slot}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft);padding:2px;text-decoration:underline">edit</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // Extra one-off plans
+  if(extraPlans.length>0){
+    html+=`<div class="section-label" style="margin-top:8px;margin-bottom:8px">Extra Sessions</div>`;
+    extraPlans.forEach(p=>{
+      const log=studyLogs.find(l=>l.planId===p.id);
+      html+=`
+      <div class="study-session-card${p.status==='done'?' done':p.status==='skipped'?' skipped':''}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:2px">Extra · ${p.slot||''}</div>
+            <div style="font-size:15px;font-weight:700;color:var(--text)">${p.subject}</div>
+            <div style="font-size:11px;color:var(--text-soft)">⏱ ${_fmtMins(p.duration||60)}${p.goal?' · '+p.goal:''}</div>
+            ${log?`<div style="font-size:11px;color:#3d7a3d;margin-top:3px">✓ Logged ${_fmtMins(log.actual||0)}</div>`:''}
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${p.status!=='done'?`<button onclick="openStudyLogModal('${p.id}')" class="study-action-btn primary" style="font-size:10px">✓ Log</button>`:''}
+            <button onclick="deleteStudyPlan('${p.id}')" class="study-action-btn danger" style="font-size:10px">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  grid.innerHTML=html;
+}
+
+function _renderHistoryView(){
+  const today=_todayStr(), wkStart=_weekStart();
+  const logs=[...studyLogs].sort((a,b)=>b.date>a.date?1:-1);
+  const filtered=studyCurrentView==='week'?logs.filter(l=>l.date>=wkStart&&l.date<=today):logs;
+  if(filtered.length===0) return '<div style="text-align:center;padding:32px;background:var(--pink-glow);border-radius:16px;color:var(--text-soft);font-size:13px;font-style:italic">No sessions logged yet ✦</div>';
+  return filtered.map(l=>`
+    <div class="study-session-card done">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:2px">${new Date(l.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${l.slot||''}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text)">${_escHtml(l.subject||l.slot||'Session')}</div>
+          <div style="font-size:11px;color:#3d7a3d">✓ ${_fmtMins(l.actual||0)} ${l.focus?'· Focus '+l.focus+'/5':''}</div>
+          ${l.note?`<div style="font-size:11px;color:var(--text-soft);font-style:italic;margin-top:2px">"${l.note}"</div>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Routine editor ──
+let _routineEditorTasks={};
+
+function openRoutineEditorModal(slot){
+  _routineEditorSlot=slot||'High Energy';
+  // Deep copy current routines into editor state
+  _routineEditorTasks={};
+  ['High Energy','Medium Energy','Low Energy'].forEach(s=>{
+    _routineEditorTasks[s]=(studyRoutines[s]?.tasks||[]).map(t=>({...t}));
+  });
+  _renderRoutineEditorSlotInfo();
+  switchRoutineTab(null,_routineEditorSlot);
+  openModal('routineEditorModal');
+}
+
+function _renderRoutineEditorSlotInfo(){
+  const el=document.getElementById('routineEditorSlotInfo'); if(!el) return;
+  const slots=_getEnergySlots();
+  if(!slots){
+    el.innerHTML='⚠️ No wake time set — go to Slow Planner to set yours. Energy slots will show times once set.';
+    return;
+  }
+  el.innerHTML=Object.entries(slots).map(([slot,times])=>{
+    const cfg=STUDY_SLOT_CONFIG[slot];
+    return `<span style="margin-right:14px">${cfg.emoji} <strong>${slot}:</strong> ${times.start}${times.end?' – '+times.end:'+'}</span>`;
+  }).join('');
+}
+
+function switchRoutineTab(btn, slot){
+  _routineEditorSlot=slot;
+  document.querySelectorAll('.routine-editor-tab').forEach(b=>{
+    const active=b.dataset.rt===slot;
+    b.style.background=active?'white':'transparent';
+    b.style.color=active?'var(--pink-deep)':'var(--text-soft)';
+    b.style.boxShadow=active?'0 1px 4px rgba(224,120,152,0.2)':'none';
+  });
+  _renderRoutineEditorPanel();
+  _renderRoutineTaskSuggestions();
+  // Populate settings
+  const r=studyRoutines[slot];
+  const di=document.getElementById('routineDurationInput');
+  const mi=document.getElementById('routineMethodInput');
+  if(di) di.value=r?.duration||45;
+  if(mi) mi.value=r?.method||'Mixed';
+}
+
+function _renderRoutineEditorPanel(){
+  const el=document.getElementById('routineEditorPanels'); if(!el) return;
+  const tasks=_routineEditorTasks[_routineEditorSlot]||[];
+  const cfg=STUDY_SLOT_CONFIG[_routineEditorSlot];
+
+  if(tasks.length===0){
+    el.innerHTML=`<div style="text-align:center;padding:24px;background:var(--pink-glow);border-radius:12px;font-size:13px;color:var(--text-soft);font-style:italic">No tasks yet — add some below or pick from suggestions ✦</div>`;
+    return;
+  }
+
+  el.innerHTML=`
+    <div style="font-size:11px;color:var(--text-soft);margin-bottom:8px">Tasks run in order each day. Drag to reorder.</div>
+    <div id="routineTaskList" style="display:flex;flex-direction:column;gap:6px">
+      ${tasks.map((t,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px">
+          <span style="font-size:16px;cursor:grab;color:var(--text-soft)">⋮⋮</span>
+          <span style="flex:1;font-size:13px;color:var(--text)">${t.text}</span>
+          ${t.timerMins?`<span style="font-size:10px;color:var(--text-soft);background:white;padding:2px 7px;border-radius:8px;border:1px solid var(--border)">${t.timerMins}m</span>`:''}
+          <button onclick="_removeRoutineTask(${i})" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:0 4px">🗑</button>
+        </div>`).join('')}
+    </div>`;
+}
+
+function _renderRoutineTaskSuggestions(){
+  const el=document.getElementById('routineTaskSuggestions'); if(!el) return;
+  const sugg=ROUTINE_TASK_SUGGESTIONS[_routineEditorSlot]||[];
+  const existing=(_routineEditorTasks[_routineEditorSlot]||[]).map(t=>t.text.toLowerCase());
+  el.innerHTML=sugg.filter(s=>!existing.includes(s.toLowerCase())).map(s=>`
+    <button onclick="document.getElementById('routineTaskInput').value='${s.replace(/'/g,"\\'")}'" class="shower-mood-chip" style="font-size:11px">${s}</button>
+  `).join('');
+}
+
+function addRoutineTask(){
+  const inp=document.getElementById('routineTaskInput');
+  const text=inp.value.trim(); if(!text) return;
+  if(!_routineEditorTasks[_routineEditorSlot]) _routineEditorTasks[_routineEditorSlot]=[];
+  _routineEditorTasks[_routineEditorSlot].push({id:_genId(),text,timerMins:null});
+  inp.value='';
+  _renderRoutineEditorPanel();
+  _renderRoutineTaskSuggestions();
+}
+
+function _removeRoutineTask(idx){
+  _routineEditorTasks[_routineEditorSlot].splice(idx,1);
+  _renderRoutineEditorPanel();
+  _renderRoutineTaskSuggestions();
+}
+
+function saveRoutineEditor(){
+  ['High Energy','Medium Energy','Low Energy'].forEach(s=>{
+    if(!studyRoutines[s]) studyRoutines[s]={};
+    studyRoutines[s].tasks=(_routineEditorTasks[s]||[]).map(t=>({...t}));
+  });
+  // Save duration/method for current tab
+  const di=document.getElementById('routineDurationInput');
+  const mi=document.getElementById('routineMethodInput');
+  if(di&&di.value) studyRoutines[_routineEditorSlot].duration=parseInt(di.value)||45;
+  if(mi) studyRoutines[_routineEditorSlot].method=mi.value||'Mixed';
+  saveStudyData();
+  closeModal('routineEditorModal');
+  renderStudySessions();
+  renderStudyTodayStrip();
+  showToast('Routines saved ✦');
+}
+
+// ── Timer — FIXED ──
+function startStudyTimer(slot){
+  if(_studyTimerInterval){
+    showToast('A timer is already running ✦'); return;
+  }
+  const routine=studyRoutines[slot];
+  _studyTimerSecs      = 0;
+  _studyTimerPlanned   = (routine?.duration||45)*60;
+  _studyTimerPlanId    = null;
+  _studyTimerSlot      = slot;
+  _studyTimerPaused    = false;
+  _studyTimerSubject   = slot;
+  _studyTimerStartedAt = Date.now();
+
+  const banner=document.getElementById('studyTimerBanner');
+  if(banner){
+    banner.style.display='block';
+    const subj=document.getElementById('studyTimerSubject');
+    if(subj) subj.textContent=slot;
+    const pauseBtn=document.getElementById('studyTimerPauseBtn');
+    if(pauseBtn) pauseBtn.textContent='⏸ Pause';
+  }
+
+  _studyTimerInterval=setInterval(()=>{
+    if(_studyTimerPaused) return;
+    _studyTimerSecs++;
+    _updateTimerDisplay();
+  },1000);
+
+  renderStudySessions();
+  showToast('Timer started 🔥 Focus mode on.');
+  banner?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function _updateTimerDisplay(){
+  const disp=document.getElementById('studyTimerDisplay');
+  const prog=document.getElementById('studyTimerProgress');
+  const pace=document.getElementById('studyTimerPace');
+  if(disp){
+    const remaining=_studyTimerPlanned>0?Math.max(0,_studyTimerPlanned-_studyTimerSecs):0;
+    if(_studyTimerPlanned>0 && _studyTimerSecs<_studyTimerPlanned){
+      // Countdown mode
+      disp.textContent=_fmtSecs(remaining);
+      disp.title='Elapsed: '+_fmtSecs(_studyTimerSecs);
+    } else {
+      // Elapsed mode (over target)
+      disp.textContent='+'+_fmtSecs(_studyTimerSecs-_studyTimerPlanned);
+      disp.title='Over target by '+_fmtSecs(_studyTimerSecs-_studyTimerPlanned);
+    }
+  }
+  const pct=_studyTimerPlanned>0?_studyTimerSecs/_studyTimerPlanned:0;
+  const pctCapped=Math.min(pct*100,100);
+  if(prog) prog.style.width=pctCapped+'%';
+  if(pace){
+    if(pct<0.15)      pace.textContent='🔥 Getting started…';
+    else if(pct<0.4)  pace.textContent='⚡ Building momentum';
+    else if(pct<0.65) pace.textContent='✦ In the zone';
+    else if(pct<0.85) pace.textContent='💪 Keep going — nearly there';
+    else if(pct<1.0)  pace.textContent='✓ Final stretch!';
+    else if(pct<1.2)  pace.textContent='📌 Over target — great effort';
+    else              pace.textContent='⏰ Well over — wrap up when ready';
+  }
+  // Flash timer banner red when paused
+  const banner=document.getElementById('studyTimerBanner');
+  if(banner){
+    if(_studyTimerPaused){
+      banner.style.opacity='0.75';
+      banner.style.borderColor='#d08080';
+    } else {
+      banner.style.opacity='1';
+      banner.style.borderColor='var(--pink-deep)';
+    }
+  }
+}
+
+function studyTimerPause(){
+  _studyTimerPaused=!_studyTimerPaused;
+  const label=_studyTimerPaused?'▶ Resume':'⏸ Pause';
+  // Update both banner button and card button
+  const bannerBtn=document.getElementById('studyTimerPauseBtn');
+  if(bannerBtn) bannerBtn.textContent=label;
+  if(_studyTimerSlot){
+    const cardBtn=document.getElementById('studyCardPauseBtn_'+_studyTimerSlot.replace(' ','_'));
+    if(cardBtn) cardBtn.textContent=label;
+  }
+  showToast(_studyTimerPaused?'Timer paused ⏸':'Timer resumed ▶');
+}
+
+function studyTimerFinish(){
+  if(!_studyTimerInterval) return;
+  clearInterval(_studyTimerInterval);
+  _studyTimerInterval=null;
+  const banner=document.getElementById('studyTimerBanner');
+  if(banner) banner.style.display='none';
+  const actualMins=Math.round(_studyTimerSecs/60);
+  const slot=_studyTimerSlot;
+  _studyTimerSlot=null;
+  renderStudySessions();
+  openStudyLogModal(null,slot,actualMins);
+}
+
+function studyTimerAbandon(){
+  if(!_studyTimerInterval) return;
+  // No confirm — just clear (confirm dialogs block in some mobile browsers)
+  clearInterval(_studyTimerInterval);
+  _studyTimerInterval=null;
+  _studyTimerPaused=false;
+  const banner=document.getElementById('studyTimerBanner');
+  if(banner) banner.style.display='none';
+  _studyTimerSlot=null;
+  _studyTimerPlanId=null;
+  _studyTimerSecs=0;
+  renderStudySessions();
+  showToast('Session abandoned.');
+}
+
+// ── Log modal ──
+function openStudyLogModal(planId, slot, prefillMins){
+  document.getElementById('studyLogPlanId').value=planId||'';
+  document.getElementById('studyLogSlot').value=slot||'';
+  document.getElementById('studyLogSubject').value='';
+  document.getElementById('studyLogPlanned').value=slot&&studyRoutines[slot]?studyRoutines[slot].duration||'':'';
+  document.getElementById('studyLogActual').value=prefillMins||'';
+  document.getElementById('studyLogNote').value='';
+  const paceMsg=document.getElementById('studyLogPaceMsg');
+  if(paceMsg) paceMsg.style.display='none';
+  document.querySelectorAll('#studyFocusStars .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  window._studyLogFocus=3;
+  // Update modal title
+  const title=document.querySelector('#studyLogModal .modal-title');
+  if(title) title.textContent=slot?`Log ${slot} Session. ✦`:'Log Session. ✦';
+  openModal('studyLogModal');
+}
+
+function setStudyFocus(btn,val){
+  document.querySelectorAll('#studyFocusStars .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window._studyLogFocus=val;
+}
+
+function saveStudyLog(){
+  const planId =document.getElementById('studyLogPlanId').value;
+  const slot   =document.getElementById('studyLogSlot')?.value||'';
+  const subject=document.getElementById('studyLogSubject').value.trim()||slot||'Study session';
+  const planned=parseInt(document.getElementById('studyLogPlanned').value)||0;
+  const actual =parseInt(document.getElementById('studyLogActual').value)||0;
+  const note   =document.getElementById('studyLogNote').value.trim();
+  const focus  =window._studyLogFocus||3;
+  if(!actual){ showToast('Add time spent ✦'); return; }
+  const log={
+    id:_genId(),planId:planId||null,slot,subject,planned,actual,focus,note,
+    date:_todayStr(),createdAt:new Date().toISOString(),pace:planned?Math.round(actual/planned*100):100,
+  };
+  studyLogs.push(log);
+  if(planId){ const p=studyPlans.find(x=>x.id===planId); if(p){p.status='done';p.logId=log.id;} }
+  saveStudyData();
+  closeModal('studyLogModal');
+  renderStudySessions();
+  renderStudyTodayStrip();
+  renderStudyWeekChart();
+  renderStudySkipLog();
+  const xp=Math.min(80,Math.round(actual/60*40)+(focus>=4?10:0));
+  try{ addXP(xp,'Study: '+subject); showToast('Logged! +'+xp+' XP ✦'); }catch(e){ showToast('Session logged ✦'); }
+  _checkStudyStreak();
+}
+
+// ── Plan modal (one-off extra sessions) ──
+function openStudyPlanModal(planId){
+  document.getElementById('studyPlanEditIdx').value=planId||'';
+  document.getElementById('studyPlanDate').value=_todayStr();
+  document.getElementById('studyPlanSubject').value='';
+  document.getElementById('studyPlanDuration').value='';
+  document.getElementById('studyPlanGoal').value='';
+  document.getElementById('studyIntensityHint').textContent='';
+  // Pre-select current energy slot
+  const curSlot=_currentEnergySlot()||'High Energy';
+  document.querySelectorAll('#studySlotPicker .shower-mood-chip').forEach(b=>{
+    b.classList.toggle('active', b.dataset.slot===curSlot);
+  });
+  const hints={'High Energy':'First ~7hrs after waking — deep work window','Medium Energy':'~7-10hrs — structured tasks','Low Energy':'10hrs+ — light review & Anki'};
+  const el=document.getElementById('studyIntensityHint');
+  if(el) el.textContent=hints[curSlot]||'';
+  openModal('studyPlanModal');
+}
+
+function setStudySlot(btn,slot){
+  document.querySelectorAll('#studySlotPicker .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const hints={'High Energy':'First ~7hrs after waking — deep work window','Medium Energy':'~7-10hrs — structured tasks','Low Energy':'10hrs+ — light review & Anki'};
+  const el=document.getElementById('studyIntensityHint');
+  if(el) el.textContent=hints[slot]||'';
+}
+
+function saveStudyPlan(){
+  const date    =document.getElementById('studyPlanDate').value||_todayStr();
+  const subject =document.getElementById('studyPlanSubject').value.trim();
+  const duration=parseInt(document.getElementById('studyPlanDuration').value)||60;
+  const goal    =document.getElementById('studyPlanGoal').value.trim();
+  const editId  =document.getElementById('studyPlanEditIdx').value;
+  const slotBtn =document.querySelector('#studySlotPicker .shower-mood-chip.active');
+  if(!subject){ showToast('Add what you\'re studying ✦'); return; }
+  const plan={id:editId||_genId(),date,slot:slotBtn?.dataset.slot||'High Energy',subject,duration,goal,status:'planned',createdAt:new Date().toISOString()};
+  if(editId){ const idx=studyPlans.findIndex(x=>x.id===editId); if(idx>=0) studyPlans[idx]=plan; else studyPlans.push(plan); }
+  else studyPlans.push(plan);
+  saveStudyData();
+  closeModal('studyPlanModal');
+  renderStudySessions();
+  renderStudyTodayStrip();
+  showToast('Extra session added ✦');
+}
+
+// ── Skip modal ──
+let _studySkipReasons=[], _studySkipCatchup=false;
+
+function openStudySkipModal(planId, slot){
+  _studySkipReasons=[];_studySkipCatchup=false;
+  document.getElementById('studySkipPlanId').value=planId||'';
+  document.getElementById('studySkipSlot').value=slot||'';
+  document.getElementById('studySkipCustom').value='';
+  document.getElementById('studySkipPrevent').value='';
+  document.querySelectorAll('#studySkipReasonChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  document.getElementById('skipCatchupYes').classList.remove('active');
+  document.getElementById('skipCatchupNo').classList.remove('active');
+  const title=document.querySelector('#studySkipModal .modal-title');
+  if(title) title.textContent=slot?`Skipped ${slot}. 💭`:'Session Skipped. 💭';
+  openModal('studySkipModal');
+}
+
+function toggleSkipReason(btn,reason){
+  btn.classList.toggle('active');
+  if(btn.classList.contains('active')) _studySkipReasons.push(reason);
+  else _studySkipReasons=_studySkipReasons.filter(r=>r!==reason);
+}
+
+function setSkipCatchup(btn,val){
+  _studySkipCatchup=val;
+  document.getElementById('skipCatchupYes').classList.toggle('active',val===true);
+  document.getElementById('skipCatchupNo').classList.toggle('active',val===false);
+}
+
+function saveStudySkip(){
+  const planId =document.getElementById('studySkipPlanId').value;
+  const slot   =document.getElementById('studySkipSlot')?.value||'';
+  const custom =document.getElementById('studySkipCustom').value.trim();
+  const prevent=document.getElementById('studySkipPrevent').value.trim();
+  const reasons=[..._studySkipReasons,...(custom?[custom]:[])];
+  const plan=studyPlans.find(x=>x.id===planId);
+  const skip={id:_genId(),planId,slot,subject:plan?.subject||slot||'Session',date:_todayStr(),reasons,prevent,catchup:_studySkipCatchup,createdAt:new Date().toISOString()};
+  studySkips.push(skip);
+  if(plan) plan.status='skipped';
+  saveStudyData();
+  closeModal('studySkipModal');
+  renderStudySessions();
+  renderStudyTodayStrip();
+  renderStudySkipLog();
+  if(_studySkipCatchup) setTimeout(()=>openCatchupModal(planId),400);
+  else showToast('Logged. Come back stronger ✦');
+}
+
+// ── Other helpers ──
+function openCatchupModal(planId){
+  document.getElementById('catchupPlanId').value=planId||'';
+  const plan=studyPlans.find(x=>x.id===planId);
+  document.getElementById('catchupSubject').value=plan?plan.subject:'';
+  document.getElementById('catchupDuration').value=plan?plan.duration||60:60;
+  document.getElementById('catchupNote').value='';
+  openModal('studyCatchupModal');
+}
+
+function saveCatchup(){
+  const planId =document.getElementById('catchupPlanId').value;
+  const subject=document.getElementById('catchupSubject').value.trim();
+  const duration=parseInt(document.getElementById('catchupDuration').value)||60;
+  const note   =document.getElementById('catchupNote').value.trim();
+  if(!subject){ showToast('Add a subject ✦'); return; }
+  const log={id:_genId(),planId:planId||null,subject,planned:duration,actual:duration,focus:3,note,date:_todayStr(),createdAt:new Date().toISOString(),pace:100,isCatchup:true};
+  studyLogs.push(log);
+  if(planId){ const p=studyPlans.find(x=>x.id===planId); if(p){p.status='catchup';p.logId=log.id;} }
+  saveStudyData();
+  closeModal('studyCatchupModal');
+  renderStudySessions();
+  renderStudyTodayStrip();
+  renderStudyWeekChart();
+  const xp=Math.round(duration/60*30);
+  try{ addXP(xp,'Catch-up: '+subject); showToast('Catch-up logged! +'+xp+' XP 🌅'); }catch(e){ showToast('Catch-up logged ✦'); }
+}
+
+function deleteStudyPlan(planId){
+  studyPlans=studyPlans.filter(p=>p.id!==planId);
+  saveStudyData();
+  renderStudySessions();
+  renderStudyTodayStrip();
+  renderStudyWeekChart();
+  showToast('Session removed.');
+}
+
+// ── Motivation ──
+function saveStudyMotivation(){
+  const inp=document.getElementById('studyMotivationInput');
+  const text=inp.value.trim();
+  if(!text){ showToast('Write something first ✦'); return; }
+  studyMotivations.push({text,src:'— Your words'});
+  inp.value='';
+  saveStudyData();
+  refreshStudyMotivation();
+  showToast('Motivation saved ✦');
+}
+
+function refreshStudyMotivation(){
+  const all=[...STUDY_BUILT_IN_QUOTES,...studyMotivations];
+  const pick=all[Math.floor(Math.random()*all.length)]||STUDY_BUILT_IN_QUOTES[0];
+  const el=document.getElementById('studyMotivationText');
+  const src=document.getElementById('studyMotivationSrc');
+  if(el) el.textContent=pick.text;
+  if(src) src.textContent=pick.src;
+}
+
+// ── Rituals ──
+function addStudyRitual(){
+  const inp=document.getElementById('studyRitualInput');
+  const text=inp.value.trim(); if(!text) return;
+  studyRituals.push({id:_genId(),text,checked:false});
+  inp.value='';
+  saveStudyData();
+  renderStudyRituals();
+}
+
+function toggleStudyRitual(id){
+  const r=studyRituals.find(x=>x.id===id);
+  if(r) r.checked=!r.checked;
+  saveStudyData();
+  renderStudyRituals();
+}
+
+function deleteStudyRitual(id){
+  studyRituals=studyRituals.filter(x=>x.id!==id);
+  saveStudyData();
+  renderStudyRituals();
+}
+
+function renderStudyRituals(){
+  const el=document.getElementById('studyRitualList'); if(!el) return;
+  if(studyRituals.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No rituals yet — add one above ✦</div>'; return; }
+  el.innerHTML=studyRituals.map(r=>`
+    <div class="study-ritual-item${r.checked?' checked':''}" onclick="toggleStudyRitual('${r.id}')">
+      <div class="study-ritual-item-check">${r.checked?'✓':''}</div>
+      <div style="flex:1;font-size:13px;color:var(--text);${r.checked?'text-decoration:line-through;color:var(--text-soft);':''}">${r.text}</div>
+      <button onclick="event.stopPropagation();deleteStudyRitual('${r.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+    </div>`).join('');
+}
+
+// ── Streak ──
+function _checkStudyStreak(){
+  const dates=[...new Set([...studyLogs.map(l=>l.date),...studyTaskChecks.map(c=>c.date)])].sort();
+  let streak=0;
+  const today=_todayStr();
+  let cursor=new Date(today);
+  for(let i=0;i<365;i++){
+    const ds=cursor.toISOString().slice(0,10);
+    if(dates.includes(ds)){ streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+// ── Today strip ──
+function renderStudyTodayStrip(){
+  const today=_todayStr();
+  const todayLogs=studyLogs.filter(l=>l.date===today);
+  const totalMins=todayLogs.reduce((s,l)=>s+(l.actual||0),0);
+  const doneCount=todayLogs.length;
+  const streak=_checkStudyStreak();
+
+  // Count ticked tasks today
+  const tickedToday=studyTaskChecks.filter(c=>c.date===today).length;
+  const totalTasks=['High Energy','Medium Energy','Low Energy'].reduce((s,sl)=>s+(studyRoutines[sl]?.tasks?.length||0),0);
+
+  const statusEl=document.getElementById('studyTodayStatus');
+  const metaEl=document.getElementById('studyTodayMeta');
+  const currentSlot=_currentEnergySlot();
+
+  if(statusEl){
+    if(tickedToday===0&&doneCount===0){
+      statusEl.textContent=currentSlot?`${STUDY_SLOT_CONFIG[currentSlot].emoji} ${currentSlot} window`:'Ready to study';
+      if(metaEl) metaEl.textContent=currentSlot?STUDY_SLOT_CONFIG[currentSlot].hint:'Set your wake time in Slow Planner for energy-based scheduling.';
+    } else if(totalTasks>0&&tickedToday>=totalTasks){
+      statusEl.textContent='✦ All tasks ticked!';
+      if(metaEl) metaEl.textContent=`${_fmtMins(totalMins)} studied · ${streak} day streak`;
+    } else {
+      statusEl.textContent=`${tickedToday}/${totalTasks} tasks done`;
+      if(metaEl) metaEl.textContent=totalMins>0?`${_fmtMins(totalMins)} logged · ${streak} day streak`:`${streak>0?streak+'🔥 day streak':''} — keep going`;
+    }
+  }
+
+  const doneEl=document.getElementById('studyTodayDone');
+  const minsEl=document.getElementById('studyTodayMins');
+  const streakEl=document.getElementById('studyStreak');
+  if(doneEl) doneEl.textContent=tickedToday+(doneCount>0?'+'+doneCount:'');
+  if(minsEl) minsEl.textContent=totalMins;
+  if(streakEl) streakEl.textContent=streak+(streak>0?'🔥':'');
+
+  const qEl=document.getElementById('studyDailyQuote');
+  if(qEl){
+    const all=[...STUDY_BUILT_IN_QUOTES,...studyMotivations];
+    const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
+    const pick=all[doy%all.length];
+    qEl.textContent='"'+pick.text+'"';
+  }
+
+  // 7-day dot heatmap
+  const dotsEl=document.getElementById('studyWeekDots');
+  if(dotsEl){
+    const dayNames=['M','T','W','T','F','S','S'];
+    const today2=_todayStr();
+    const dots=[];
+    for(let i=6;i>=0;i--){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      const ds=d.toISOString().slice(0,10);
+      const hasTicks=studyTaskChecks.some(c=>c.date===ds);
+      const hasLog=studyLogs.some(l=>l.date===ds);
+      const hasCatchup=(typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds);
+      const hasSkip=studySkips.some(s=>s.date===ds)||(typeof studyUnplannedSkips!=='undefined'&&studyUnplannedSkips.some(s=>s.date===ds));
+      const isToday2=ds===today2;
+      let dotCol='var(--border)', dotTitle='No activity';
+      if(hasTicks||hasLog||hasCatchup){ dotCol='var(--pink-deep)'; dotTitle='Studied ✓'; }
+      else if(hasSkip){ dotCol='#d08080'; dotTitle='Skipped'; }
+      const shadow=isToday2?'box-shadow:0 0 0 2px var(--pink-mid);':'';
+      const fw=isToday2?'700':'400';
+      dots.push('<div title="'+dotTitle+'" style="display:flex;flex-direction:column;align-items:center;gap:2px">'
+        +'<div style="width:10px;height:10px;border-radius:50%;background:'+dotCol+';'+shadow+'"></div>'
+        +'<div style="font-size:8px;color:var(--text-soft);font-weight:'+fw+'">'+dayNames[6-i]+'</div>'
+        +'</div>');
+    }
+    dotsEl.innerHTML=dots.join('');
+  }
+
+  // Quick actions: show if nothing at all today
+  const qa=document.getElementById('studyTodayQuickActions');
+  if(qa){
+    const hasAnything=tickedToday>0||doneCount>0||studySkips.some(s=>s.date===today);
+    qa.style.display=hasAnything?'none':'block';
+  }
+}
+
+// ── View toggle ──
+function setStudyView(view){
+  studyCurrentView=view;
+  ['Today','Week','All'].forEach(v=>{
+    const id='studyView'+v; const btn=document.getElementById(id);
+    const active=view===v.toLowerCase();
+    if(btn){
+      btn.style.background=active?'var(--pink-glow)':'none';
+      btn.style.borderColor=active?'var(--pink-mid)':'var(--border)';
+      btn.style.color=active?'var(--pink-deep)':'var(--text-mid)';
+      btn.style.fontWeight=active?'700':'500';
+    }
+  });
+  renderStudySessions();
+}
+
+// ── Weekly chart ──
+function renderStudyWeekChart(){
+  const chartEl=document.getElementById('studyWeekChart');
+  const labelEl=document.getElementById('studyWeekLabels');
+  const totalEl=document.getElementById('studyWeekTotal');
+  const statsEl=document.getElementById('studyWeekStats');
+  if(!chartEl) return;
+  const days=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+  const today=_todayStr();
+  // Count both logged mins and ticked task count
+  const dayMins=days.map(date=>studyLogs.filter(l=>l.date===date).reduce((s,l)=>s+(l.actual||0),0));
+  const dayTicks=days.map(date=>studyTaskChecks.filter(c=>c.date===date).length);
+  const maxMins=Math.max(...dayMins,30);
+  const totalMins=dayMins.reduce((a,b)=>a+b,0);
+  const studyDays=days.filter((_,i)=>dayMins[i]>0||dayTicks[i]>0).length;
+  if(totalEl) totalEl.textContent=_fmtMins(totalMins)+' logged this week';
+  const dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  chartEl.innerHTML=days.map((date,i)=>{
+    const mins=dayMins[i], ticks=dayTicks[i], pct=Math.round(mins/maxMins*100);
+    const isToday=date===today;
+    const col=mins===0?(ticks>0?'var(--pink-light)':'var(--pink-glow)'):(isToday?'var(--pink-deep)':'var(--pink-mid)');
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="font-size:9px;color:var(--text-soft)">${mins>0?_fmtMins(mins):ticks>0?ticks+'✓':''}</div>
+      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+        <div style="width:100%;height:${Math.max(pct>0?pct:ticks>0?10:3,3)}%;background:${col};border-radius:4px 4px 0 0;transition:height 0.5s;min-height:3px"></div>
+      </div>
+    </div>`;
+  }).join('');
+  labelEl.innerHTML=dayLabels.map((l,i)=>{
+    const isToday=days[i]===today;
+    return `<div style="flex:1;text-align:center;font-size:9px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--pink-deep)':'var(--text-soft)'}">${l}</div>`;
+  }).join('');
+  if(statsEl){
+    statsEl.innerHTML=`
+      <div style="background:var(--pink-glow);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text)">📅 <strong>${studyDays}/7</strong> days active</div>
+      <div style="background:var(--pink-glow);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text)">⏱ <strong>${_fmtMins(Math.round(totalMins/7))}</strong> avg/day</div>
+      <div style="background:var(--pink-glow);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text)">🔥 <strong>${_checkStudyStreak()}</strong> day streak</div>`;
+  }
+}
+
+// ── Skip log renderer ──
+function renderStudySkipLog(){
+  const el=document.getElementById('studySkipLog');
+  const countEl=document.getElementById('studySkipCount');
+  if(!el) return;
+  if(countEl) countEl.textContent=studySkips.length+' total skip'+(studySkips.length!==1?'s':'');
+  if(studySkips.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No skips logged yet — the streak is alive 🔥</div>'; return; }
+  const recent=[...studySkips].sort((a,b)=>b.createdAt>a.createdAt?1:-1).slice(0,8);
+  el.innerHTML=recent.map(s=>`
+    <div class="study-skip-entry">
+      <div style="font-size:20px;flex-shrink:0">📋</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${s.slot||s.subject||'Session'}</div>
+        <div style="font-size:11px;color:var(--text-soft);margin-top:1px">${new Date((s.date||_todayStr())+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div>
+        ${s.reasons?.length?`<div style="font-size:12px;color:var(--text-mid);margin-top:4px">Why: ${s.reasons.join(', ')}</div>`:''}
+        ${s.prevent?`<div style="font-size:12px;color:#3d7a3d;margin-top:2px">Next time: ${s.prevent}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ── Link challenge card ──
+function goToStudySection(){
+  navTo('productivity');
+  setTimeout(()=>{ const btn=document.querySelector('#prodTabBar .ritual-tab[onclick*="study"]'); if(btn) switchProdTab(btn,'study'); },350);
+}
+
+function _patchStudyGoalCard(){
+  const el=document.getElementById('studyGoalSection'); if(!el) return;
+  const link=document.createElement('button');
+  link.className='study-action-btn';
+  link.style.cssText='font-size:11px;margin-top:8px;display:block';
+  link.textContent='→ Open Study Section';
+  link.onclick=goToStudySection;
+  el.appendChild(link);
+}
+
+// ── Overdue check ──
+function _checkPlannedSessionsOverdue(){
+  const now=new Date(),today=_todayStr();
+  if(now.getHours()<21) return;
+  const todayTicks=studyTaskChecks.filter(c=>c.date===today).length;
+  const todayLogs=studyLogs.filter(l=>l.date===today).length;
+  if(todayTicks>0||todayLogs>0) return;
+  const totalTasks=['High Energy','Medium Energy','Low Energy'].reduce((s,sl)=>s+(studyRoutines[sl]?.tasks?.length||0),0);
+  if(totalTasks===0) return;
+  const banner=document.createElement('div');
+  banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:white;border:2px solid var(--pink);border-radius:18px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);z-index:9999;max-width:340px;width:calc(100vw - 40px)';
+  banner.innerHTML=`<div style="font-size:24px">📚</div><div style="flex:1"><div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;font-style:italic;color:var(--text)">No study logged today</div><div style="font-size:11px;color:var(--text-mid);margin-top:2px">Want to log, skip, or do a catch-up?</div><div style="display:flex;gap:6px;margin-top:8px"><button class="study-action-btn primary" onclick="goToStudySection();this.closest('div[style*=fixed]').remove()" style="font-size:10px">Go to Study</button><button class="study-action-btn" onclick="this.closest('div[style*=fixed]').remove()" style="font-size:10px">Dismiss</button></div></div>`;
+  document.body.appendChild(banner);
+  setTimeout(()=>{ try{banner.remove();}catch(e){} },10000);
+}
+
+// ── Extend switchProdTab ──
+const _origSwitchProdTabStudy=window.switchProdTab;
+window.switchProdTab=function(btn,panel){
+  _origSwitchProdTabStudy(btn,panel);
+  if(panel==='study'){
+    renderEnergyLegend();
+    renderStudyTodayStrip();
+    renderStudySessions();
+    renderStudyRituals();
+    renderStudyWeekChart();
+    renderStudySkipLog();
+    refreshStudyMotivation();
+  }
+};
+
+// ── Extend collectAllData / restoreAllData ──
+const _baseCollectStudy=window.collectAllData;
+window.collectAllData=function(){
+  const d=_baseCollectStudy();
+  d.studyPlans=studyPlans; d.studyLogs=studyLogs; d.studySkips=studySkips;
+  d.studyRituals=studyRituals; d.studyMotivations=studyMotivations;
+  d.studyRoutines=studyRoutines; d.studyTaskChecks=studyTaskChecks;
+  return d;
+};
+
+const _baseRestoreStudy=window.restoreAllData;
+window.restoreAllData=function(d){
+  _baseRestoreStudy(d);
+  if(d.studyPlans)       studyPlans.splice(0,studyPlans.length,...d.studyPlans);
+  if(d.studyLogs)        studyLogs.splice(0,studyLogs.length,...d.studyLogs);
+  if(d.studySkips)       studySkips.splice(0,studySkips.length,...d.studySkips);
+  if(d.studyRituals)     studyRituals.splice(0,studyRituals.length,...d.studyRituals);
+  if(d.studyMotivations) studyMotivations.splice(0,studyMotivations.length,...d.studyMotivations);
+  if(d.studyTaskChecks)  studyTaskChecks.splice(0,studyTaskChecks.length,...d.studyTaskChecks);
+  if(d.studyRoutines && typeof d.studyRoutines==='object'){
+    ['High Energy','Medium Energy','Low Energy'].forEach(k=>{ if(d.studyRoutines[k]) studyRoutines[k]=d.studyRoutines[k]; });
+  }
+  try{ renderStudyTodayStrip(); }catch(e){}
+};
+
+// ── Extend refreshAllRenderers ──
+const _baseRefreshStudy=window.refreshAllRenderers;
+window.refreshAllRenderers=function(){
+  _baseRefreshStudy();
+  try{ renderStudyTodayStrip(); }catch(e){}
+  try{ renderStudyWeekChart(); }catch(e){}
+};
+
+// ── Keyboard shortcut: Space = pause/resume active timer ──
+document.addEventListener('keydown', function(e){
+  if(e.code==='Space' && _studyTimerInterval &&
+     !['INPUT','TEXTAREA','SELECT','BUTTON'].includes(e.target.tagName)){
+    e.preventDefault();
+    studyTimerPause();
+  }
+});
+
+// ══════════════════════════════════════════
+// NEW: Incomplete slot reflections store
+// ══════════════════════════════════════════
+let studyIncompleteReflections = [];
+let studyCompletionReflections = [];
+let studyCatchupTodos          = {};  // date → [{id,text,checked}]
+let studyCatchupDays           = {};  // date → { mood, fromDate, note }
+let _incompleteReasons         = [];
+let _scuTodos                  = [];
+let _scuMoodVal                = '';
+
+function _loadStudyExtra2(){
+  try{ studyIncompleteReflections=JSON.parse(localStorage.getItem('tgh_studyIncomplRefl')||'[]'); }catch(e){ studyIncompleteReflections=[]; }
+  try{ studyCompletionReflections=JSON.parse(localStorage.getItem('tgh_studyCompRefl')||'[]'); }catch(e){ studyCompletionReflections=[]; }
+  try{ studyCatchupTodos=JSON.parse(localStorage.getItem('tgh_studyCatchupTodos')||'{}'); }catch(e){ studyCatchupTodos={}; }
+  try{ studyCatchupDays=JSON.parse(localStorage.getItem('tgh_studyCatchupDays')||'{}'); }catch(e){ studyCatchupDays={}; }
+}
+function _saveStudyExtra2(){
+  try{
+    localStorage.setItem('tgh_studyIncomplRefl',JSON.stringify(studyIncompleteReflections));
+    localStorage.setItem('tgh_studyCompRefl',JSON.stringify(studyCompletionReflections));
+    localStorage.setItem('tgh_studyCatchupTodos',JSON.stringify(studyCatchupTodos));
+    localStorage.setItem('tgh_studyCatchupDays',JSON.stringify(studyCatchupDays));
+  }catch(e){}
+  try{ scheduleSave(); }catch(e){}
+}
+
+// ══════════════════════════════════════════
+// RITUAL EDITOR (inline show/hide)
+// ══════════════════════════════════════════
+let _ritualEditMode = false;
+function openRitualEditorInline(){
+  _ritualEditMode = !_ritualEditMode;
+  const row = document.getElementById('studyRitualAddRow');
+  if(row) row.style.display = _ritualEditMode ? 'block' : 'none';
+  renderStudyRituals();
+}
+
+// Override renderStudyRituals to include edit/delete when in edit mode
+function renderStudyRituals(){
+  const el=document.getElementById('studyRitualList'); if(!el) return;
+  const today=_todayStr();
+  if(studyRituals.length===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic;padding:4px 0">No rituals yet — tap ✏️ Edit to add some ✦</div>';
+    return;
+  }
+  const doneCount=studyRituals.filter(r=>r.checked).length;
+  el.innerHTML=studyRituals.map((r,i)=>{
+    const checked=r.checked;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:${checked?'#eef7ee':'var(--pink-glow)'};transition:all 0.15s;${_ritualEditMode?'':'cursor:pointer;'}" ${_ritualEditMode?'':'onclick="toggleStudyRitual(\''+r.id+'\')"'}>
+      <div onclick="toggleStudyRitual('${r.id}')" style="width:18px;height:18px;border-radius:50%;border:2px solid ${checked?'#6ab88a':'var(--border)'};background:${checked?'#6ab88a':'white'};display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0;cursor:pointer;transition:all 0.2s">${checked?'✓':''}</div>
+      <span style="flex:1;font-size:13px;color:var(--text);${checked?'text-decoration:line-through;color:var(--text-soft);':''}">${_escHtml(r.text)}</span>
+      ${_ritualEditMode?`<button onclick="deleteStudyRitual('${r.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:#c04040;padding:2px 6px;flex-shrink:0">🗑</button>`:''}
+    </div>`;
+  }).join('');
+  // Progress indicator
+  const prog=document.getElementById('studyRitualProgress');
+  if(prog){
+    if(doneCount===studyRituals.length && studyRituals.length>0){
+      prog.innerHTML='<span style="color:#3d7a3d;font-weight:700">✓ All rituals done — you\'re ready to study ✦</span>';
+    } else {
+      prog.textContent=doneCount+'/'+studyRituals.length+' done';
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+// CATCH-UP DAY: custom todo list
+// ══════════════════════════════════════════
+function openStandaloneCatchupModal(forDate){
+  _scuTodos=[]; _scuMoodVal='';
+  const yesterday=(()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10)})();
+  const fromDateEl=document.getElementById('scuFromDate');
+  if(fromDateEl) fromDateEl.value=forDate||yesterday;
+  const todoInpEl=document.getElementById('scuTodoInput');
+  if(todoInpEl) todoInpEl.value='';
+  document.querySelectorAll('#scuMoodChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  _renderScuTodos();
+  openModal('standaloneCatchupModal');
+}
+
+function addScuTodo(){
+  const inp=document.getElementById('scuTodoInput');
+  const text=inp.value.trim(); if(!text) return;
+  _scuTodos.push({id:_genId(),text,checked:false});
+  inp.value=''; _renderScuTodos();
+}
+
+function addScuQuick(text){
+  _scuTodos.push({id:_genId(),text,checked:false});
+  _renderScuTodos();
+}
+
+function setScuMood(btn, mood){
+  _scuMoodVal=mood;
+  document.querySelectorAll('#scuMoodChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function _renderScuTodos(){
+  const el=document.getElementById('scuTodoList'); if(!el) return;
+  if(_scuTodos.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No tasks yet — add some below ✦</div>'; return; }
+  el.innerHTML=_scuTodos.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:10px;background:var(--pink-glow);font-size:13px">
+      <span style="flex:1;color:var(--text)">${_escHtml(t.text)}</span>
+      <button onclick="_scuTodos.splice(${i},1);_renderScuTodos()" style="background:none;border:none;cursor:pointer;color:#c04040;font-size:12px">🗑</button>
+    </div>`).join('');
+}
+
+function saveStandaloneCatchup(){
+  const fromDateEl=document.getElementById('scuFromDate');
+  const fromDate=(fromDateEl&&fromDateEl.value)||_todayStr();
+  const today=_todayStr();
+  if(_scuTodos.length===0){ showToast('Add at least one task ✦'); return; }
+
+  // Store catch-up day state
+  studyCatchupDays[today]={ mood:_scuMoodVal, fromDate, createdAt:new Date().toISOString() };
+  studyCatchupTodos[today]=_scuTodos.map(t=>({...t}));
+  _saveStudyExtra2();
+
+  // Also log to studyCatchupLogs for history
+  if(typeof studyCatchupLogs!=='undefined'){
+    studyCatchupLogs.push({
+      id:_genId(), date:today, fromDate, subject:'Catch-up: '+_scuTodos.map(t=>t.text).join(', ').slice(0,60),
+      duration:0, intensity:'low', focus:3, note:_scuMoodVal,
+      createdAt:new Date().toISOString(), isCatchup:true, isStandalone:true,
+      todos:_scuTodos.map(t=>({...t})),
+    });
+    try{ _saveStudyExtended(); }catch(e){}
+  }
+
+  closeModal('standaloneCatchupModal');
+  renderStudySessions();
+  renderStudyTodayStrip();
+  try{ renderStudyCatchupLog(); }catch(e){}
+  try{ addXP(20,'Catch-up day started'); }catch(e){}
+  showToast('Catch-up day started 🌅 Your routines are resting today.');
+}
+
+// Check if today is a catch-up day
+function _isCatchupDay(date){ return !!(studyCatchupDays&&studyCatchupDays[date||_todayStr()]); }
+
+// ══════════════════════════════════════════
+// CATCH-UP DAY: todo tick management
+// ══════════════════════════════════════════
+function toggleCatchupTodo(date, todoId){
+  if(!studyCatchupTodos[date]) return;
+  const t=studyCatchupTodos[date].find(x=>x.id===todoId);
+  if(!t) return;
+  t.checked=!t.checked;
+  _saveStudyExtra2();
+  renderStudySessions();
+  renderStudyTodayStrip();
+  // XP on tick
+  if(t.checked){ try{ addXP(5,'Catch-up task'); }catch(e){} }
+  // All done?
+  const allDone=studyCatchupTodos[date].every(t=>t.checked);
+  if(allDone && studyCatchupTodos[date].length>0){
+    showToast('🌅 All catch-up tasks done! You\'re more that girl than you know ✦');
+    try{ addXP(15,'All catch-up tasks done'); }catch(e){}
+  }
+}
+
+// ══════════════════════════════════════════
+// OVERRIDE renderStudySessions for catch-up day
+// ══════════════════════════════════════════
+const _origRenderStudySessions = renderStudySessions;
+window.renderStudySessions = function(){
+  const today=_todayStr();
+  const isCatchup=_isCatchupDay(today);
+
+  if(studyCurrentView!=='today' || !isCatchup){
+    _origRenderStudySessions();
+    return;
+  }
+
+  // Catch-up day view — greyed out routines + custom list
+  const grid=document.getElementById('studySessionsGrid');
+  const empty=document.getElementById('studyEmpty');
+  if(!grid) return;
+  if(empty) empty.style.display='none';
+
+  const todos=(studyCatchupTodos[today]||[]);
+  const dayInfo=studyCatchupDays[today]||{};
+  const doneCount=todos.filter(t=>t.checked).length;
+  const moodEmojis={motivated:'🔥',okay:'🙂',tired:'😴',guilty:'😬',proud:'✨'};
+
+  let html=`
+    <!-- Catch-up day banner -->
+    <div style="background:linear-gradient(135deg,#fffaf0,#fff3e0);border:2px solid #f0c060;border-radius:18px;padding:18px 20px;margin-bottom:14px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a07010;margin-bottom:4px">🌅 Catch-Up Day</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;font-weight:700;color:var(--text)">Your routines are resting today.</div>
+          <div style="font-size:12px;color:#a07010;margin-top:2px">Work through your own list — at your own pace.</div>
+          ${dayInfo.mood?`<div style="font-size:11px;color:var(--text-soft);margin-top:4px">Mood: ${moodEmojis[dayInfo.mood]||''} ${dayInfo.mood}</div>`:''}
+        </div>
+        <div style="text-align:center;background:white;border-radius:12px;padding:8px 14px">
+          <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:#e0a030">${doneCount}/${todos.length}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Done</div>
+        </div>
+      </div>
+      ${todos.length>0?`<div style="height:4px;background:rgba(255,255,255,0.5);border-radius:2px;overflow:hidden;margin-top:12px"><div style="height:100%;width:${todos.length>0?Math.round(doneCount/todos.length*100):0}%;background:#e0a030;border-radius:2px;transition:width 0.4s"></div></div>`:''}
+    </div>
+
+    <!-- Custom todo list -->
+    <div style="background:white;border:1.5px solid #f0d080;border-radius:18px;padding:18px 20px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a07010;margin-bottom:12px">Your List</div>
+      ${todos.length===0?'<div style="font-size:13px;color:var(--text-soft);font-style:italic">No tasks added yet.</div>':''}
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${todos.map(t=>`<div onclick="toggleCatchupTodo('${today}','${t.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:${t.checked?'#eef7ee':'var(--pink-glow)'};cursor:pointer;user-select:none;transition:all 0.15s">
+          <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${t.checked?'#6ab88a':'var(--border)'};background:${t.checked?'#6ab88a':'white'};display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0;transition:all 0.2s">${t.checked?'✓':''}</div>
+          <span style="flex:1;font-size:13px;color:var(--text);${t.checked?'text-decoration:line-through;color:var(--text-soft);':''}">${_escHtml(t.text)}</span>
+        </div>`).join('')}
+      </div>
+      <!-- Add more tasks inline -->
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <input class="text-input" id="catchupInlineInput" placeholder="Add another task…" style="flex:1;font-size:12px;padding:8px 12px" onkeydown="if(event.key==='Enter')_addCatchupInlineTask()">
+        <button onclick="_addCatchupInlineTask()" class="study-action-btn" style="font-size:11px;padding:7px 12px">＋</button>
+      </div>
+    </div>
+
+    <!-- Greyed-out energy slots -->
+    <div style="font-size:11px;color:var(--text-soft);font-style:italic;margin-bottom:8px;text-align:center">Your regular energy routines are paused today.</div>
+    ${['High Energy','Medium Energy','Low Energy'].map(slot=>{
+      const cfg=STUDY_SLOT_CONFIG[slot];
+      return `<div style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;opacity:0.4;pointer-events:none">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft)">${cfg.emoji} ${slot} — resting today</div>
+      </div>`;
+    }).join('')}
+  `;
+
+  grid.innerHTML=html;
+};
+
+function _addCatchupInlineTask(){
+  const inp=document.getElementById('catchupInlineInput');
+  const text=inp?.value?.trim(); if(!text) return;
+  const today=_todayStr();
+  if(!studyCatchupTodos[today]) studyCatchupTodos[today]=[];
+  studyCatchupTodos[today].push({id:_genId(),text,checked:false});
+  inp.value='';
+  _saveStudyExtra2();
+  renderStudySessions();
+}
+
+// ══════════════════════════════════════════
+// SLOT COMPLETION CELEBRATIONS (better messages)
+// ══════════════════════════════════════════
+const SLOT_COMPLETION_MSGS = {
+  'High Energy': [
+    '🔥 That\'s your high energy session done. You are that girl.',
+    '⚡ Peak performance. This is what sets you apart.',
+    '✦ You showed up in your sharpest window. Patients will be lucky to have you.',
+    '🧠 High energy session complete. Your brain just got stronger.',
+    '💪 That\'s discipline in action. That girl energy, confirmed.'
+  ],
+  'Medium Energy': [
+    '☀️ Medium energy, maximum effort. You\'re amazing.',
+    '✦ Structured session done. You\'re becoming her every single day.',
+    '📚 That\'s your medium session. Consistent and unstoppable.',
+    '🌤 You showed up even in the middle of the day. That\'s commitment.',
+    '💛 Done. That girl doesn\'t skip the in-between sessions.'
+  ],
+  'Low Energy': [
+    '🌙 Low energy session done. You studied when it would have been easy not to. That counts.',
+    '✦ You didn\'t skip just because you were tired. That\'s character.',
+    '🌸 Even in your wind-down window, you showed up. Truly that girl.',
+    '💜 Low energy Temi still studied. Both versions of you are impressive.',
+    '🌙 Ended your day with intention. That\'s everything.'
+  ]
+};
+
+// Patch _toggleTaskCheck to use better messages
+const _origToggleTaskCheck = _toggleTaskCheck;
+window._toggleTaskCheck = function(slot, taskId){
+  const tasks=(studyRoutines[slot]||{}).tasks||[];
+  const wasAllDone=tasks.length>0&&tasks.every(t=>_isTaskChecked(slot,t.id));
+  _origToggleTaskCheck(slot, taskId);
+  if(!wasAllDone){
+    const nowAllDone=tasks.length>0&&tasks.every(t=>_isTaskChecked(slot,t.id));
+    if(nowAllDone){
+      const msgs=SLOT_COMPLETION_MSGS[slot]||['✦ Session complete!'];
+      showToast(msgs[Math.floor(Math.random()*msgs.length)]);
+      try{ addXP(15,slot+' complete'); }catch(e){}
+      // Check if ALL three are done → trigger completion questions
+      setTimeout(()=>_checkAllSlotsComplete(), 300);
+    }
+  }
+};
+
+// ══════════════════════════════════════════
+// POST-COMPLETION INTRINSIC MOTIVATION Qs
+// ══════════════════════════════════════════
+const COMPLETION_QUESTIONS = [
+  { id:'q1', q:'What did you learn today that surprised you?', placeholder:'Even one small thing counts…' },
+  { id:'q2', q:'How did it feel to complete all three sessions?', placeholder:'Be honest — proud, relieved, surprised?' },
+  { id:'q3', q:'What would make tomorrow\'s sessions even better?', placeholder:'Earlier start? Better environment? Different order?' },
+  { id:'q4', q:'One reason today\'s study will matter to your future patients:', placeholder:'Connect what you learned to the patient you\'ll one day treat…' },
+];
+
+function _checkAllSlotsComplete(){
+  const today=_todayStr();
+  if(_isCatchupDay(today)) return; // catch-up day has different flow
+  const slots=['High Energy','Medium Energy','Low Energy'];
+  const allComplete=slots.every(sl=>{
+    const tasks=(studyRoutines[sl]||{}).tasks||[];
+    return tasks.length>0&&tasks.every(t=>_isTaskChecked(sl,t.id));
+  });
+  if(!allComplete) return;
+  // Already answered today?
+  if(studyCompletionReflections.some(r=>r.date===today)) return;
+  // Show the questions block
+  const block=document.getElementById('studyCompletionQs');
+  if(!block) return;
+  const cont=document.getElementById('studyCompletionQsContent');
+  if(cont){
+    cont.innerHTML=COMPLETION_QUESTIONS.map(q=>`
+      <div style="background:rgba(255,255,255,0.7);border-radius:14px;padding:14px 16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">${q.q}</div>
+        <textarea class="text-input" id="compQ_${q.id}" rows="2" placeholder="${q.placeholder}" style="font-size:12px"></textarea>
+      </div>`).join('');
+  }
+  block.style.display='block';
+  block.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function saveCompletionReflection(){
+  const today=_todayStr();
+  const answers={};
+  COMPLETION_QUESTIONS.forEach(q=>{
+    const el=document.getElementById('compQ_'+q.id);
+    answers[q.id]={question:q.q, answer:el?el.value.trim():''};
+  });
+  const anyAnswered=Object.values(answers).some(a=>a.answer);
+  studyCompletionReflections.push({
+    id:_genId(), date:today, answers,
+    createdAt:new Date().toISOString(),
+  });
+  _saveStudyExtra2();
+  document.getElementById('studyCompletionQs').style.display='none';
+  try{ addXP(20,'Full day reflection'); }catch(e){}
+  showToast('Reflection saved ✦ You\'re building something real.');
+}
+
+// ══════════════════════════════════════════
+// AUTO-SKIP: if no tasks ticked AND past midnight
+// ══════════════════════════════════════════
+function _checkYesterdayIncomplete(){
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yd=yesterday.toISOString().slice(0,10);
+
+  // Already reflected on this day?
+  if(studyIncompleteReflections.some(r=>r.date===yd)) return;
+  if(studySkips.some(s=>s.date===yd && !s.isIncomplete)) return;
+  if(typeof studyUnplannedSkips!=='undefined'&&studyUnplannedSkips.some(s=>s.date===yd)) return;
+  if(_isCatchupDay(yd)) return;
+
+  const slots=['High Energy','Medium Energy','Low Energy'];
+
+  // Only consider slots that have tasks set up in the routine
+  const slotsWithTasks=slots.filter(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
+  if(slotsWithTasks.length===0) return; // no routines configured yet
+
+  // Find which slots had zero ticks yesterday
+  const incompleteSlots=slotsWithTasks.filter(sl=>{
+    const ticked=studyTaskChecks.filter(c=>c.date===yd&&c.slot===sl).length;
+    return ticked===0;
+  });
+
+  if(incompleteSlots.length===0) return; // all configured slots were ticked — fully done
+
+  openIncompleteSlotModal(yd, incompleteSlots, slotsWithTasks);
+}
+
+// Selected slot state for incomplete modal
+let _incompleteSelectedSlots = [];
+
+function openIncompleteSlotModal(date, incompleteSlots, allSlots){
+  _incompleteReasons = [];
+  _incompleteSelectedSlots = [...incompleteSlots]; // pre-select all missed slots
+
+  const dateLabel=new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('incompleteSlotDate').value=date;
+  document.getElementById('incompleteSlotSlots').value=JSON.stringify(incompleteSlots);
+  document.getElementById('incompleteSlotTitle').textContent=dateLabel+'.';
+
+  const allMissed=incompleteSlots.length===(allSlots||incompleteSlots).length;
+  const sub=allMissed
+    ? 'You didn\'t tick anything yesterday. No judgement — let\'s understand why.'
+    : incompleteSlots.length===1
+      ? 'You completed most sessions — just one slot was missed. What happened?'
+      : 'You got some done — great. What got in the way of the rest?';
+  document.getElementById('incompleteSlotSub').textContent=sub;
+
+  // Slot chips — SELECTABLE toggles (pre-selected = the missed ones)
+  const chipsEl=document.getElementById('incompleteSlotChips');
+  if(chipsEl){
+    const cfg={
+      'High Energy':  {e:'⚡',bg:'#fce4f0',activeBg:'#f0a0c0',text:'#a02060'},
+      'Medium Energy':{e:'🌤',bg:'#fff3d0',activeBg:'#f0d060',text:'#806000'},
+      'Low Energy':   {e:'🌙',bg:'#ede8f8',activeBg:'#b0a0e0',text:'#503080'},
+    };
+    chipsEl.innerHTML=(allSlots||incompleteSlots).map(sl=>{
+      const c=cfg[sl]||{e:'📚',bg:'var(--pink-glow)',activeBg:'var(--pink-mid)',text:'var(--text)'};
+      const isSelected=_incompleteSelectedSlots.includes(sl);
+      return `<button
+        onclick="_toggleIncompleteSlot(this,'${sl}')"
+        data-slot="${sl}"
+        style="padding:7px 14px;border-radius:20px;border:2px solid ${isSelected?c.activeBg:c.bg};background:${isSelected?c.activeBg:c.bg};font-size:12px;font-weight:700;color:${c.text};cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;${isSelected?'box-shadow:0 2px 8px rgba(0,0,0,0.12)':''}"
+        class="${isSelected?'incomplete-slot-chip selected':'incomplete-slot-chip'}"
+      >${c.e} ${sl}</button>`;
+    }).join('');
+  }
+
+  // Clear reason chips and fields
+  document.querySelectorAll('#incompleteReasonChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  const customEl=document.getElementById('incompleteReasonCustom');
+  const preventEl=document.getElementById('incompletePrevent');
+  const tipsBox=document.getElementById('incompleteTipsBox');
+  if(customEl) customEl.value='';
+  if(preventEl) preventEl.value='';
+  if(tipsBox) tipsBox.style.display='none';
+
+  openModal('incompleteSlotModal');
+}
+
+function _toggleIncompleteSlot(btn, slot){
+  const cfg={
+    'High Energy':  {bg:'#fce4f0',activeBg:'#f0a0c0',text:'#a02060'},
+    'Medium Energy':{bg:'#fff3d0',activeBg:'#f0d060',text:'#806000'},
+    'Low Energy':   {bg:'#ede8f8',activeBg:'#b0a0e0',text:'#503080'},
+  };
+  const c=cfg[slot]||{bg:'var(--pink-glow)',activeBg:'var(--pink-mid)',text:'var(--text)'};
+
+  if(_incompleteSelectedSlots.includes(slot)){
+    _incompleteSelectedSlots=_incompleteSelectedSlots.filter(s=>s!==slot);
+    btn.style.background=c.bg;
+    btn.style.borderColor=c.bg;
+    btn.style.boxShadow='none';
+    btn.classList.remove('selected');
+  } else {
+    _incompleteSelectedSlots.push(slot);
+    btn.style.background=c.activeBg;
+    btn.style.borderColor=c.activeBg;
+    btn.style.boxShadow='0 2px 8px rgba(0,0,0,0.12)';
+    btn.classList.add('selected');
+  }
+  // Update hidden field
+  const el=document.getElementById('incompleteSlotSlots');
+  if(el) el.value=JSON.stringify(_incompleteSelectedSlots);
+}
+
+function toggleIncompleteReason(btn, reason){
+  btn.classList.toggle('active');
+  if(btn.classList.contains('active')) _incompleteReasons.push(reason);
+  else _incompleteReasons=_incompleteReasons.filter(r=>r!==reason);
+  _renderIncompleteTips();
+}
+
+const INCOMPLETE_TIPS = {
+  'Too tired': [
+    'Try doing Low Energy first when you wake up — even before breakfast.',
+    'Aim for 1 tick per slot minimum. One task is infinitely better than zero.',
+    'Protect your sleep. Consistently tired = routinely skipped sessions.',
+  ],
+  'Ran out of time': [
+    'Schedule your study blocks in your calendar the night before.',
+    'Low Energy can always fit in 15 mins before bed — it\'s designed for that.',
+    'Block time the way you block clinic. Non-negotiable.',
+  ],
+  'Overwhelmed': [
+    'Pick just ONE task per slot. Done is better than perfect.',
+    'You don\'t have to do everything — you have to do something.',
+    'Break passtest questions into 1 instead of 3. Lower the bar when overwhelmed.',
+  ],
+  'Lost motivation': [
+    'Read your "Why" in the study section before starting.',
+    'Remember: future patients depend on what you learn today.',
+    'Pair a task with something you enjoy — study + your favourite drink.',
+  ],
+  'Forgot': [
+    'Set a recurring alarm at your usual study time.',
+    'Keep your study materials visible — on the desk, not put away.',
+    'Add study blocks to your calendar as recurring events.',
+  ],
+};
+
+function _renderIncompleteTips(){
+  const tips=[];
+  _incompleteReasons.forEach(r=>{ if(INCOMPLETE_TIPS[r]) tips.push(...INCOMPLETE_TIPS[r]); });
+  const box=document.getElementById('incompleteTipsBox');
+  const cont=document.getElementById('incompleteTipsContent');
+  if(!box||!cont) return;
+  if(tips.length===0){ box.style.display='none'; return; }
+  box.style.display='block';
+  const unique=[...new Set(tips)].slice(0,3);
+  cont.innerHTML=unique.map(t=>`<div style="font-size:12px;color:var(--text);padding:6px 10px;background:white;border-radius:8px">💡 ${t}</div>`).join('');
+}
+
+function saveIncompleteReflection(){
+  const date=document.getElementById('incompleteSlotDate').value;
+  const slots=_incompleteSelectedSlots.length>0
+    ? _incompleteSelectedSlots
+    : JSON.parse(document.getElementById('incompleteSlotSlots').value||'[]');
+  const custom=document.getElementById('incompleteReasonCustom').value.trim();
+  const prevent=document.getElementById('incompletePrevent').value.trim();
+  const reasons=[..._incompleteReasons,...(custom?[custom]:[])];
+
+  studyIncompleteReflections.push({
+    id:_genId(), date, slots, reasons, prevent,
+    createdAt:new Date().toISOString(),
+  });
+  _saveStudyExtra2();
+
+  // Log as a skip entry for the skip log
+  if(slots.length>0){
+    studySkips.push({
+      id:_genId(), planId:null, slot:slots.join(', '),
+      subject:'Incomplete: '+slots.join(', '),
+      date, reasons, prevent, catchup:false,
+      createdAt:new Date().toISOString(), isIncomplete:true,
+    });
+    saveStudyData();
+  }
+
+  closeModal('incompleteSlotModal');
+  renderStudySkipLog();
+  showToast('Reflection saved ✦ Every honest moment makes you better.');
+}
+
+// ══════════════════════════════════════════
+// STUDY STATS PANEL RENDERER
+// ══════════════════════════════════════════
+function renderStudyStatsPanel(){
+  _renderStudyStatsSummary();
+  _renderStudyStats30Day();
+  _renderStudyStatsSkipAnalysis();
+  _renderStudyStatsEnergyRates();
+  _renderStudyStatsReflectionLog();
+  _renderStudyStatsCatchupLog();
+  _renderStudyStatsCompletionLog();
+}
+
+function _renderStudyStatsSummary(){
+  const el=document.getElementById('studyStatsSummaryCards'); if(!el) return;
+  const today=_todayStr();
+  const streak=_checkStudyStreak();
+  const totalLogs=studyLogs.length;
+  const totalMins=studyLogs.reduce((s,l)=>s+(l.actual||0),0);
+  const totalSkips=(studySkips.length)+(typeof studyUnplannedSkips!=='undefined'?studyUnplannedSkips.length:0);
+  const totalCatchups=(typeof studyCatchupLogs!=='undefined'?studyCatchupLogs.length:0)+(Object.keys(studyCatchupDays).length);
+  const totalCompleteDays=studyCompletionReflections.length;
+
+  const cards=[
+    {label:'Day Streak',val:streak+'🔥',sub:'current'},
+    {label:'Sessions Logged',val:totalLogs,sub:'all time'},
+    {label:'Hours Studied',val:Math.round(totalMins/60)+'h',sub:totalMins+' mins total'},
+    {label:'Skips Logged',val:totalSkips,sub:'with reflection'},
+    {label:'Catch-Up Days',val:totalCatchups,sub:'you came back'},
+    {label:'Full Days',val:totalCompleteDays,sub:'all 3 slots done'},
+    {label:'Reflections',val:studyIncompleteReflections.length,sub:'incomplete sessions'},
+    {label:'XP from Study',val:'—',sub:'tracked in achievements'},
+  ];
+
+  el.style.gridTemplateColumns='repeat(auto-fill,minmax(140px,1fr))';
+  el.innerHTML=cards.map(c=>`
+    <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px;text-align:center">
+      <div style="font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)">${c.val}</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft);margin-top:2px">${c.label}</div>
+      <div style="font-size:10px;color:var(--text-soft);margin-top:1px;font-style:italic">${c.sub}</div>
+    </div>`).join('');
+}
+
+function _renderStudyStats30Day(){
+  const el=document.getElementById('studyStats30DayGrid'); if(!el) return;
+  const days=[];
+  for(let i=29;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+  const today=_todayStr();
+  el.innerHTML=days.map(date=>{
+    const hasTicks=studyTaskChecks.some(c=>c.date===date);
+    const hasLog=studyLogs.some(l=>l.date===date);
+    const hasCatchup=_isCatchupDay(date)||((typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===date));
+    const hasSkip=studySkips.some(s=>s.date===date)||((typeof studyUnplannedSkips!=='undefined')&&studyUnplannedSkips.some(s=>s.date===date));
+    const isToday=date===today;
+    let bg='var(--border)';
+    if(hasTicks||hasLog) bg='var(--pink-deep)';
+    else if(hasCatchup) bg='#f0c060';
+    else if(hasSkip) bg='#d08080';
+    const label=new Date(date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return `<div title="${label}" style="width:18px;height:18px;border-radius:3px;background:${bg};${isToday?'box-shadow:0 0 0 2px var(--pink-deep);':''};cursor:default" title="${label}"></div>`;
+  }).join('');
+}
+
+function _renderStudyStatsSkipAnalysis(){
+  const el=document.getElementById('studyStatsSkipAnalysis'); if(!el) return;
+  const allSkips=[...studySkips,...((typeof studyUnplannedSkips!=='undefined')?studyUnplannedSkips:[]),...studyIncompleteReflections];
+  if(allSkips.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No skips logged yet 🔥</div>'; return; }
+  // Top reasons
+  const reasons={};
+  allSkips.forEach(s=>(s.reasons||[]).forEach(r=>{ reasons[r]=(reasons[r]||0)+1; }));
+  const sorted=Object.entries(reasons).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  el.innerHTML=sorted.map(([r,n])=>`
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span style="color:var(--text)">${r}</span><span style="font-weight:700;color:var(--pink-deep)">${n}x</span>
+      </div>
+      <div style="height:5px;background:var(--pink-glow);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(n/allSkips.length*100)}%;background:var(--pink-mid);border-radius:3px"></div>
+      </div>
+    </div>`).join('');
+}
+
+function _renderStudyStatsEnergyRates(){
+  const el=document.getElementById('studyStatsEnergyRates'); if(!el) return;
+  const slots=['High Energy','Medium Energy','Low Energy'];
+  const emojis={' High Energy':'⚡','Medium Energy':'🌤','Low Energy':'🌙'};
+  // Get unique dates with any activity
+  const allDates=[...new Set(studyTaskChecks.map(c=>c.date))];
+  if(allDates.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No data yet ✦</div>'; return; }
+  el.innerHTML=slots.map(slot=>{
+    const cfg=STUDY_SLOT_CONFIG[slot];
+    const tasks=(studyRoutines[slot]||{}).tasks||[];
+    if(tasks.length===0) return `<div style="margin-bottom:10px;font-size:12px;color:var(--text-soft)">${cfg.emoji} ${slot}: no tasks set</div>`;
+    const datesWithSlot=allDates.filter(date=>{
+      const ticks=studyTaskChecks.filter(c=>c.date===date&&c.slot===slot).length;
+      return ticks>0;
+    });
+    const rate=allDates.length>0?Math.round(datesWithSlot.length/allDates.length*100):0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:4px">
+        <span style="font-weight:700;color:var(--text)">${cfg.emoji} ${slot}</span>
+        <span style="font-weight:700;color:var(--pink-deep)">${rate}%</span>
+      </div>
+      <div style="height:6px;background:var(--pink-glow);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${rate}%;background:${rate>=70?'#6ab88a':rate>=40?'var(--pink-mid)':'#d08080'};border-radius:3px;transition:width 0.5s"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text-soft);margin-top:2px">${datesWithSlot.length}/${allDates.length} days</div>
+    </div>`;
+  }).join('');
+}
+
+function _renderStudyStatsReflectionLog(){
+  const el=document.getElementById('studyStatsReflectionLog'); if(!el) return;
+  if(studyIncompleteReflections.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No reflections yet — they appear when you miss a slot ✦</div>'; return; }
+  const sorted=[...studyIncompleteReflections].sort((a,b)=>b.date>a.date?1:-1).slice(0,10);
+  el.innerHTML=sorted.map(r=>`
+    <div style="padding:12px 14px;background:var(--pink-glow);border-radius:12px;margin-bottom:8px;border-left:3px solid var(--pink-mid)">
+      <div style="font-size:11px;font-weight:700;color:var(--text-soft)">${new Date(r.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div>
+      <div style="font-size:12px;color:var(--text);margin-top:3px">Missed: ${(r.slots||[]).join(', ')}</div>
+      ${r.reasons?.length?`<div style="font-size:11px;color:var(--text-mid);margin-top:2px">Why: ${r.reasons.join(', ')}</div>`:''}
+      ${r.prevent?`<div style="font-size:11px;color:#3d7a3d;margin-top:2px">Next time: ${r.prevent}</div>`:''}
+    </div>`).join('');
+}
+
+function _renderStudyStatsCatchupLog(){
+  const el=document.getElementById('studyStatsCatchupLog'); if(!el) return;
+  const logs=(typeof studyCatchupLogs!=='undefined'?studyCatchupLogs:[]);
+  const dayEntries=Object.entries(studyCatchupDays||{});
+  if(logs.length===0&&dayEntries.length===0){ el.innerHTML='<div style="font-size:12px;color:#a07010;font-style:italic">No catch-up days yet — keep the streak going! ✦</div>'; return; }
+  // Merge both sources
+  const all=[...dayEntries.map(([date,info])=>({date,subject:'Catch-up day',todos:(studyCatchupTodos[date]||[]),mood:info.mood,fromDate:info.fromDate,source:'day'})), ...logs.map(l=>({...l,source:'log'}))].sort((a,b)=>b.date>a.date?1:-1).slice(0,8);
+  el.innerHTML=all.map(c=>`
+    <div style="padding:12px 14px;background:rgba(255,255,255,0.7);border-radius:12px;margin-bottom:8px;border-left:3px solid #f0c060">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;color:#a07010">${new Date((c.date||_todayStr())+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</span>
+        ${c.mood?`<span style="font-size:10px;background:#fff3e0;padding:2px 8px;border-radius:10px;color:#a07010">${{motivated:'🔥',okay:'🙂',tired:'😴',guilty:'😬',proud:'✨'}[c.mood]||''} ${c.mood}</span>`:''}
+      </div>
+      ${c.todos?.length?`<div style="font-size:11px;color:var(--text-mid);margin-top:4px">Tasks: ${c.todos.map(t=>_escHtml(t.text)).join(' · ')}</div>`:''}
+      ${c.fromDate&&c.fromDate!==c.date?`<div style="font-size:10px;color:var(--text-soft);margin-top:2px">Catching up from ${new Date(c.fromDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div>`:''}
+    </div>`).join('');
+}
+
+function _renderStudyStatsCompletionLog(){
+  const el=document.getElementById('studyStatsCompletionLog'); if(!el) return;
+  if(studyCompletionReflections.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">Complete all 3 daily slots to unlock these ✦</div>'; return; }
+  const sorted=[...studyCompletionReflections].sort((a,b)=>b.date>a.date?1:-1).slice(0,5);
+  el.innerHTML=sorted.map(r=>`
+    <div style="padding:14px 16px;background:rgba(255,255,255,0.7);border-radius:14px;margin-bottom:12px;border-left:3px solid var(--pink-deep)">
+      <div style="font-size:11px;font-weight:700;color:var(--pink-deep);margin-bottom:8px">${new Date(r.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
+      ${Object.values(r.answers||{}).filter(a=>a.answer).map(a=>`
+        <div style="margin-bottom:8px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-soft)">${a.question}</div>
+          <div style="font-size:13px;color:var(--text);font-style:italic;margin-top:2px">"${_escHtml(a.answer)}"</div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// Hook switchStatsTab to render study stats
+const _origSwitchStatsTab=window.switchStatsTab||function(){};
+window.switchStatsTab=function(btn,panel){
+  _origSwitchStatsTab(btn,panel);
+  if(panel==='study') renderStudyStatsPanel();
+};
+
+// ══════════════════════════════════════════
+// EXTEND collectAllData / restoreAllData
+// ══════════════════════════════════════════
+const _baseCollectExtra2=window.collectAllData;
+window.collectAllData=function(){
+  const d=_baseCollectExtra2();
+  d.studyIncompleteReflections=studyIncompleteReflections;
+  d.studyCompletionReflections=studyCompletionReflections;
+  d.studyCatchupTodos=studyCatchupTodos;
+  d.studyCatchupDays=studyCatchupDays;
+  return d;
+};
+
+const _baseRestoreExtra2=window.restoreAllData;
+window.restoreAllData=function(d){
+  _baseRestoreExtra2(d);
+  if(d.studyIncompleteReflections) studyIncompleteReflections.splice(0,studyIncompleteReflections.length,...d.studyIncompleteReflections);
+  if(d.studyCompletionReflections) studyCompletionReflections.splice(0,studyCompletionReflections.length,...d.studyCompletionReflections);
+  if(d.studyCatchupTodos) Object.assign(studyCatchupTodos,d.studyCatchupTodos);
+  if(d.studyCatchupDays) Object.assign(studyCatchupDays,d.studyCatchupDays);
+};
+
+// Also extend switchProdTab to render study panel
+const _origSwitchProdTabFinal=window.switchProdTab;
+window.switchProdTab=function(btn,panel){
+  _origSwitchProdTabFinal(btn,panel);
+  if(panel==='study'){
+    renderStudyRituals();
+    setTimeout(_checkYesterdayIncomplete,800); // slight delay to not interrupt render
+  }
+};
+
+// ── ── INIT ──
+loadStudyData();
+setTimeout(()=>{
+  renderStudyTodayStrip();
+  renderStudyWeekChart();
+  _patchStudyGoalCard();
+  setInterval(_checkPlannedSessionsOverdue,3600000);
+  _checkPlannedSessionsOverdue();
+},200);
+
+// ── Auto-skip setting ──
+let studyAutoSkipEnabled = false;
+let studyUnplannedSkips  = []; // separate store for day-level skips (no plan)
+let studyCatchupLogs     = []; // standalone catch-up sessions
+
+function _loadStudyExtended(){
+  try { studyAutoSkipEnabled = JSON.parse(localStorage.getItem('tgh_studyAutoSkip') || 'false'); } catch(e){ studyAutoSkipEnabled=false; }
+  try { studyUnplannedSkips  = JSON.parse(localStorage.getItem('tgh_studyUnplannedSkips') || '[]'); } catch(e){ studyUnplannedSkips=[]; }
+  try { studyCatchupLogs     = JSON.parse(localStorage.getItem('tgh_studyCatchupLogs') || '[]'); } catch(e){ studyCatchupLogs=[]; }
+}
+
+function _saveStudyExtended(){
+  try {
+    localStorage.setItem('tgh_studyAutoSkip',       JSON.stringify(studyAutoSkipEnabled));
+    localStorage.setItem('tgh_studyUnplannedSkips', JSON.stringify(studyUnplannedSkips));
+    localStorage.setItem('tgh_studyCatchupLogs',    JSON.stringify(studyCatchupLogs));
+  } catch(e){}
+  try { scheduleSave(); } catch(e){}
+}
+
+// ── Toggle auto-skip UI ──
+function toggleAutoSkip(){
+  studyAutoSkipEnabled = !studyAutoSkipEnabled;
+  _saveStudyExtended();
+  _renderAutoSkipToggle();
+  if(studyAutoSkipEnabled) runAutoSkipCheck(false);
+  showToast(studyAutoSkipEnabled ? 'Auto-skip enabled ✦ Past unplanned days will be flagged.' : 'Auto-skip disabled.');
+}
+
+function _renderAutoSkipToggle(){
+  const toggle = document.getElementById('studyAutoSkipToggle');
+  const thumb  = document.getElementById('studyAutoSkipThumb');
+  const label  = document.getElementById('studyAutoSkipLabel');
+  if(!toggle) return;
+  if(studyAutoSkipEnabled){
+    toggle.style.background = 'var(--pink-deep)';
+    thumb.style.left = '20px';
+    if(label) label.textContent = 'On';
+  } else {
+    toggle.style.background = 'var(--border)';
+    thumb.style.left = '2px';
+    if(label) label.textContent = 'Off';
+  }
+}
+
+// ── Auto-skip detection ──
+// Looks back up to 30 days and finds days where NO routine tasks were ticked
+function runAutoSkipCheck(showToastOnNone){
+  const today = _todayStr();
+  const unaccountedDays = [];
+
+  // Only check if routines are actually configured
+  const slotsWithTasks=['High Energy','Medium Energy','Low Energy'].filter(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
+  if(slotsWithTasks.length===0){
+    if(showToastOnNone) showToast('Set up your routines first ✦');
+    return;
+  }
+
+  for(let i=1; i<=30; i++){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+
+    // Already accounted for by other means?
+    const hasSkip          = studySkips.some(s=>s.date===ds);
+    const hasUnplannedSkip = (typeof studyUnplannedSkips!=='undefined')&&studyUnplannedSkips.some(s=>s.date===ds);
+    const hasCatchup       = _isCatchupDay(ds)||((typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds));
+    const hasIncomplRefl   = (typeof studyIncompleteReflections!=='undefined')&&studyIncompleteReflections.some(r=>r.date===ds);
+
+    if(hasSkip||hasUnplannedSkip||hasCatchup||hasIncomplRefl) continue;
+
+    // Check if they ticked ANY routine task this day
+    const hasTick = studyTaskChecks.some(c=>c.date===ds && slotsWithTasks.includes(c.slot));
+    if(!hasTick){
+      unaccountedDays.push(ds);
+    }
+  }
+
+  const alertEl = document.getElementById('studyUnplannedAlert');
+  if(!alertEl) return;
+
+  if(unaccountedDays.length === 0){
+    alertEl.style.display = 'none';
+    if(showToastOnNone) showToast('All days accounted for ✦');
+    return;
+  }
+
+  if(!studyAutoSkipEnabled && !showToastOnNone){ alertEl.style.display='none'; return; }
+
+  // Build alert
+  const dayLabels = unaccountedDays.slice(0,5).map(ds=>{
+    return new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  });
+  const overflow = unaccountedDays.length > 5 ? ` + ${unaccountedDays.length-5} more` : '';
+
+  alertEl.style.display = 'block';
+  alertEl.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <div style="font-size:22px;flex-shrink:0">⚠️</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:#a07010;margin-bottom:4px">${unaccountedDays.length} day${unaccountedDays.length>1?'s':''} with no routine ticks found</div>
+        <div style="font-size:12px;color:#806010;margin-bottom:10px">
+          ${dayLabels.join(', ')}${overflow} — no routine tasks were ticked.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${unaccountedDays.slice(0,5).map(ds=>`
+            <button class="study-action-btn" style="font-size:10px;background:#fff3e0;border-color:#f0c060;color:#a07010"
+              onclick="openUnplannedSkipModal(null,'${ds}')">
+              📋 ${new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
+            </button>
+          `).join('')}
+          ${unaccountedDays.length>1?`<button class="study-action-btn" style="font-size:10px" onclick="_autoSkipAllUnaccounted()">Mark all as skipped</button>`:''}
+          <button class="study-action-btn" style="font-size:10px" onclick="document.getElementById('studyUnplannedAlert').style.display='none'">Dismiss</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _autoSkipAllUnaccounted(){
+  const slotsWithTasks=['High Energy','Medium Energy','Low Energy'].filter(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
+  let count = 0;
+  for(let i=1; i<=30; i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().slice(0,10);
+    const hasSkip          = studySkips.some(s=>s.date===ds);
+    const hasUnplannedSkip = (typeof studyUnplannedSkips!=='undefined')&&studyUnplannedSkips.some(s=>s.date===ds);
+    const hasCatchup       = _isCatchupDay(ds)||((typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds));
+    const hasIncomplRefl   = (typeof studyIncompleteReflections!=='undefined')&&studyIncompleteReflections.some(r=>r.date===ds);
+    const hasTick          = studyTaskChecks.some(c=>c.date===ds&&slotsWithTasks.includes(c.slot));
+    if(!hasSkip&&!hasUnplannedSkip&&!hasCatchup&&!hasIncomplRefl&&!hasTick){
+      studyUnplannedSkips.push({
+        id:_genId(), date:ds, reasons:['Auto-logged — no routine tasks ticked'],
+        prevent:'', catchup:false, createdAt:new Date().toISOString(), isAutoSkip:true,
+      });
+      count++;
+    }
+  }
+  try{ _saveStudyExtended(); }catch(e){}
+  runAutoSkipCheck(false);
+  renderStudySkipLog();
+  showToast(`${count} day${count!==1?'s':''} marked as skipped.`);
+}
+
+// ── Unplanned skip modal ──
+let _unplannedSkipReasons = [];
+let _unplannedSkipCatchup = false;
+
+function openUnplannedSkipModal(planId, dateStr){
+  _unplannedSkipReasons = [];
+  _unplannedSkipCatchup = false;
+  const ds = dateStr || _todayStr();
+  document.getElementById('unplannedSkipDate').value = ds;
+  document.getElementById('unplannedSkipCustom').value = '';
+  document.getElementById('unplannedSkipPrevent').value = '';
+  document.querySelectorAll('#unplannedSkipChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  document.getElementById('usCatchupYes').classList.remove('active');
+  document.getElementById('usCatchupNo').classList.remove('active');
+  // Set date badge
+  const badge = document.querySelector('#unplannedSkipDateBadge span');
+  if(badge) badge.textContent = new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  openModal('unplannedSkipModal');
+}
+
+function toggleUnplannedSkipReason(btn, reason){
+  btn.classList.toggle('active');
+  if(btn.classList.contains('active')){ _unplannedSkipReasons.push(reason); }
+  else { _unplannedSkipReasons = _unplannedSkipReasons.filter(r=>r!==reason); }
+}
+
+function setUnplannedCatchup(btn, val){
+  _unplannedSkipCatchup = val;
+  document.getElementById('usCatchupYes').classList.toggle('active', val===true);
+  document.getElementById('usCatchupNo').classList.toggle('active',  val===false);
+}
+
+function saveUnplannedSkip(){
+  const ds      = document.getElementById('unplannedSkipDate').value || _todayStr();
+  const custom  = document.getElementById('unplannedSkipCustom').value.trim();
+  const prevent = document.getElementById('unplannedSkipPrevent').value.trim();
+  const reasons = [..._unplannedSkipReasons, ...(custom?[custom]:[])];
+
+  const entry = {
+    id: _genId(), date:ds, reasons, prevent,
+    catchup: _unplannedSkipCatchup, createdAt:new Date().toISOString(), isUnplanned:true,
+  };
+  studyUnplannedSkips.push(entry);
+  _saveStudyExtended();
+  closeModal('unplannedSkipModal');
+  renderStudySkipLog();
+  runAutoSkipCheck(false);
+  renderStudyTodayStrip();
+
+  if(_unplannedSkipCatchup){
+    setTimeout(()=>{ openStandaloneCatchupModal(ds); }, 400);
+  } else {
+    showToast('Logged. Every reflection is progress ✦');
+  }
+}
+
+
+// ── Render catch-up log ──
+function renderStudyCatchupLog(){
+  const el = document.getElementById('studyCatchupLog');
+  if(!el) return;
+
+  const all = [...studyCatchupLogs, ...studyLogs.filter(l=>l.isCatchup&&!l.planId)];
+  // Deduplicate by rough time proximity
+  if(all.length===0){
+    el.innerHTML='<div style="font-size:12px;color:#a07010;font-style:italic">No catch-up sessions yet — tap "Log Catch-Up" above when you\'re bouncing back ✦</div>';
+    return;
+  }
+
+  const sorted = [...studyCatchupLogs].sort((a,b)=>b.createdAt>a.createdAt?1:-1);
+  el.innerHTML = sorted.map(c=>`
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.7);border-radius:12px;margin-bottom:8px;border-left:3px solid #f0c060">
+      <div style="font-size:20px;flex-shrink:0">🌅</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${c.subject}</div>
+        <div style="font-size:11px;color:#a07010;margin-top:1px">
+          ${new Date(c.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
+          ${c.fromDate&&c.fromDate!==c.date?' · catching up from '+new Date(c.fromDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):''}
+          · ${_fmtMins(c.duration||0)}
+          ${{low:'🌿',mid:'⚡',high:'🔥'}[c.intensity]||''}
+        </div>
+        ${c.note?`<div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-top:4px">"${c.note}"</div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Extend renderStudySkipLog to include unplanned day skips ──
+const _origRenderStudySkipLog = renderStudySkipLog;
+window.renderStudySkipLog = function(){
+  const el = document.getElementById('studySkipLog');
+  const countEl = document.getElementById('studySkipCount');
+  if(!el) return;
+
+  // Combine planned skips + unplanned day skips
+  const allSkips = [
+    ...studySkips.map(s=>({...s, _type:'planned'})),
+    ...studyUnplannedSkips.map(s=>({...s, _type:'unplanned'})),
+  ].sort((a,b)=>b.date>a.date?1:-1);
+
+  const total = allSkips.length;
+  if(countEl) countEl.textContent = total + ' total skip' + (total!==1?'s':'');
+
+  if(total===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">No skips logged yet — the streak is alive 🔥</div>';
+    return;
+  }
+
+  el.innerHTML = allSkips.slice(0,10).map(s=>{
+    const isUnplanned = s._type==='unplanned';
+    const label = isUnplanned ? '📅 Unplanned day' : '📋 Planned session';
+    const accentColor = isUnplanned ? '#f0b030' : 'var(--red)';
+    const dateStr = new Date(s.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    return `
+      <div class="study-skip-entry" style="border-left-color:${accentColor}">
+        <div style="font-size:20px;flex-shrink:0">${isUnplanned?'📅':'📋'}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">${isUnplanned?'No study day':s.subject||'Session'}</div>
+            <span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${accentColor};background:${isUnplanned?'#fff3e0':'var(--red-light)'};padding:2px 8px;border-radius:10px">${label}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-soft);margin-top:1px">${dateStr}</div>
+          ${s.reasons?.length?`<div style="font-size:12px;color:var(--text-mid);margin-top:4px">Why: ${s.reasons.join(', ')}</div>`:''}
+          ${s.prevent?`<div style="font-size:12px;color:#3d7a3d;margin-top:2px">Next time: ${s.prevent}</div>`:''}
+          ${s.catchup?`<div style="font-size:11px;color:#a07010;margin-top:4px">🌅 Planned to catch up</div>`:''}
+          ${s.isAutoSkip?`<div style="font-size:10px;color:var(--text-soft);font-style:italic;margin-top:2px">Auto-logged</div>`:''}
+        </div>
+      </div>`;
+  }).join('');
+};
+
+// ── Extend renderStudyTodayStrip to show quick actions when no plan ──
+const _origRenderStudyTodayStrip = renderStudyTodayStrip;
+window.renderStudyTodayStrip = function(){
+  _origRenderStudyTodayStrip();
+  const today         = _todayStr();
+  const todayPlans    = studyPlans.filter(p=>p.date===today);
+  const todayLogs     = studyLogs.filter(l=>l.date===today);
+  const todayCatchups = studyCatchupLogs.filter(c=>c.date===today);
+  const todayUnplanned= studyUnplannedSkips.filter(s=>s.date===today);
+
+  const qa = document.getElementById('studyTodayQuickActions');
+  if(!qa) return;
+
+  // Show quick actions only if nothing at all is happening today yet
+  const hasAnything = todayPlans.length>0 || todayLogs.length>0 || todayCatchups.length>0 || todayUnplanned.length>0;
+  qa.style.display = hasAnything ? 'none' : 'block';
+};
+
+// ── Extend switchProdTab to also init extended study ──
+const _origSwitchProdTabExt = window.switchProdTab;
+window.switchProdTab = function(btn, panel){
+  _origSwitchProdTabExt(btn, panel);
+  if(panel==='study'){
+    _renderAutoSkipToggle();
+    runAutoSkipCheck(false);
+    renderStudyCatchupLog();
+    renderStudySkipLog();
+  }
+};
+
+// ── Extend collectAllData / restoreAllData ──
+const _baseCollectExt = window.collectAllData;
+window.collectAllData = function(){
+  const d = _baseCollectExt();
+  d.studyAutoSkipEnabled  = studyAutoSkipEnabled;
+  d.studyUnplannedSkips   = studyUnplannedSkips;
+  d.studyCatchupLogs      = studyCatchupLogs;
+  return d;
+};
+
+const _baseRestoreExt = window.restoreAllData;
+window.restoreAllData = function(d){
+  _baseRestoreExt(d);
+  if(d.studyAutoSkipEnabled  !== undefined) studyAutoSkipEnabled = d.studyAutoSkipEnabled;
+  if(d.studyUnplannedSkips)  studyUnplannedSkips.splice(0,studyUnplannedSkips.length,...d.studyUnplannedSkips);
+  if(d.studyCatchupLogs)     studyCatchupLogs.splice(0,studyCatchupLogs.length,...d.studyCatchupLogs);
+  try{ _renderAutoSkipToggle(); }catch(e){}
+  try{ renderStudyCatchupLog(); }catch(e){}
+};
+
+// ── INIT ──
+loadStudyData();
+_loadStudyExtended();
+setTimeout(()=>{
+  renderStudyTodayStrip();
+  renderStudyWeekChart();
+  _patchStudyGoalCard();
+  _renderAutoSkipToggle();
+  // Run auto-skip silently on load (if enabled)
+  if(studyAutoSkipEnabled) runAutoSkipCheck(false);
+  // Check every hour for overdue sessions
+  setInterval(_checkPlannedSessionsOverdue, 3600000);
+  _checkPlannedSessionsOverdue();
+}, 200);
 </script>
 <!-- ═══ OFFLINE / SERVICE WORKER ═══ -->
 <div id="offlineBanner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:white;padding:10px 20px;border-radius:24px;font-size:12px;font-family:'Outfit',sans-serif;z-index:999999;gap:8px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,0.3)">
