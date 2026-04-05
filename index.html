@@ -115,6 +115,13 @@ body.dark-mode .pink-btn { box-shadow:0 4px 16px rgba(224,120,152,0.25) !importa
   padding:6px 11px;border-radius:20px;border:1.5px solid #e0c040;background:#fffbe0;
   font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;color:#806820;transition:all 0.15s;
 }
+.brain-chip2 {
+  padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:white;
+  font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-mid);transition:all .15s;
+}
+.brain-chip2-active {
+  background:var(--pink-deep);color:white;border-color:var(--pink-deep);font-weight:700;
+}
 .shower-mood-chip.active {
   background:var(--pink-glow);border-color:var(--pink-mid);color:var(--pink-deep);font-weight:700;
 }
@@ -2048,27 +2055,189 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
 
   <!-- SUNDAY RESET -->
   <div id="growth-reset" class="growth-panel" style="display:none">
-    <div style="background:radial-gradient(ellipse at 20% 10%,#fff8fb,#fce0ee);border-radius:24px;padding:32px 36px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
-      <div>
-        <div style="font-family:'Playfair Display',serif;font-size:32px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Sunday Reset. 🔄</div>
-        <div style="font-size:14px;color:var(--text-mid);font-style:italic">Close the old week. Open the new one with intention.</div>
+
+    <!-- Header -->
+    <div style="background:radial-gradient(ellipse at 20% 10%,#fff8fb,#fce0ee);border-radius:24px;padding:28px 32px;margin-bottom:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:32px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Sunday Reset. ✦</div>
+      <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px">your space, your week, your self — closed and reopened with intention.</div>
+
+      <!-- Version picker — Strong week vs Rebuilding -->
+      <div id="resetVersionPicker" style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="font-size:12px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;align-self:center;margin-right:4px">This week was</div>
+        <button onclick="selectResetVersion('strong')" id="resetVStrong" class="ritual-tab" style="flex:1;min-width:120px">✦ Strong week</button>
+        <button onclick="selectResetVersion('rebuild')" id="resetVRebuild" class="ritual-tab" style="flex:1;min-width:120px">🌿 Rebuilding week</button>
       </div>
-      <div style="text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:42px;font-weight:900;color:var(--pink-deep)" id="resetProgressNum">0</div>
-        <div style="font-size:11px;color:var(--text-soft);font-weight:700;letter-spacing:1px">/ <span id="resetProgressTotal">0</span> steps done</div>
-        <div style="height:8px;width:140px;background:var(--pink-glow);border-radius:4px;margin:8px auto 0;overflow:hidden">
-          <div id="resetProgressBar" style="height:100%;background:linear-gradient(90deg,var(--pink-mid),var(--pink-deep));border-radius:4px;width:0%;transition:width 0.5s"></div>
+      <div id="resetVersionChosen" style="display:none;margin-top:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:13px;color:var(--text-mid)" id="resetVersionLabel"></div>
+          <button onclick="document.getElementById('resetVersionPicker').style.display='flex';document.getElementById('resetVersionChosen').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft);text-decoration:underline;font-family:'Outfit',sans-serif">change</button>
+        </div>
+        <!-- Progress -->
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+          <div style="flex:1;height:6px;background:var(--pink-glow);border-radius:3px;overflow:hidden">
+            <div id="resetProgressBar" style="height:100%;background:linear-gradient(90deg,var(--pink-mid),var(--pink-deep));border-radius:3px;width:0%;transition:width 0.5s"></div>
+          </div>
+          <div style="font-size:12px;color:var(--text-soft);white-space:nowrap"><span id="resetProgressNum">0</span> / <span id="resetProgressTotal">0</span> done</div>
         </div>
       </div>
     </div>
 
-    <div id="weeklyResetChecklist"></div>
+    <!-- Main content — hidden until version picked -->
+    <div id="resetMainContent" style="display:none">
 
-    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;align-items:center">
-      <button class="pink-btn" onclick="saveResetNotes()">💾 Save Notes</button>
-      <button class="pink-btn" onclick="resetWeeklyChecklist()">🔄 Start Fresh (New Week)</button>
-      <button class="pink-pill" style="font-size:12px" onclick="exportResetSummary()">⬇ Export Notes</button>
-      <span id="resetSaveIndicator" style="font-size:12px;color:var(--pink-deep);font-style:italic;opacity:0;transition:opacity 0.4s">Saved ✦</span>
+      <!-- PHASE 1: CLOSE -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--pink-glow);border:1.5px solid var(--pink-mid);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🪞</div>
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text)">Close the week</div>
+            <div style="font-size:12px;color:var(--text-mid);font-style:italic">morning · 5–10 mins before you start cleaning</div>
+          </div>
+        </div>
+
+        <!-- Data snapshot pulled from app -->
+        <div id="resetDataSnapshot" style="background:var(--pink-glow);border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:12px;color:var(--text-mid);line-height:1.8"></div>
+
+        <!-- Q1 -->
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" id="resetQ1Label"></div>
+          <textarea class="text-input" id="resetQ1" rows="3" style="font-size:13px" placeholder="" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <!-- Q2 -->
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" id="resetQ2Label"></div>
+          <textarea class="text-input" id="resetQ2" rows="2" style="font-size:13px" placeholder="" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <!-- Q3 -->
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" id="resetQ3Label"></div>
+          <textarea class="text-input" id="resetQ3" rows="2" style="font-size:13px" placeholder="" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <div class="reset-phase-check">
+          <button onclick="markResetPhase('close')" id="resetPhaseClose" class="pink-btn" style="width:100%">Close the week ✦</button>
+        </div>
+      </div>
+
+      <!-- PHASE 2: CLEAR MORNING -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:50%;background:#eef7ee;border:1.5px solid #a8d8a8;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧹</div>
+          <div style="flex:1">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text)">Clear — Morning</div>
+            <div style="font-size:12px;color:var(--text-mid);font-style:italic">your physical space</div>
+          </div>
+          <button onclick="openResetChecklistEditor('morning')" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;color:var(--text-soft);font-family:'Outfit',sans-serif">✎ Edit</button>
+        </div>
+        <div id="resetMorningChecklist" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+        <div class="reset-phase-check">
+          <button onclick="markResetPhase('clearMorning')" id="resetPhaseClearMorning" class="pink-btn" style="width:100%">Space cleared ✦</button>
+        </div>
+      </div>
+
+      <!-- PHASE 3: CLEAR DIGITAL -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f0f4ff;border:1.5px solid #a8b8e8;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📵</div>
+          <div style="flex:1">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text)">Clear — Digital</div>
+            <div style="font-size:12px;color:var(--text-mid);font-style:italic">your online space</div>
+          </div>
+          <button onclick="openResetChecklistEditor('digital')" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;color:var(--text-soft);font-family:'Outfit',sans-serif">✎ Edit</button>
+        </div>
+        <div id="resetDigitalChecklist" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+        <div class="reset-phase-check">
+          <button onclick="markResetPhase('clearDigital')" id="resetPhaseClearDigital" class="pink-btn" style="width:100%">Digital cleared ✦</button>
+        </div>
+      </div>
+
+      <!-- PHASE 4: UNDERSTAND -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f8f0ff;border:1.5px solid #c0a8e0;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔍</div>
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text)">Understand</div>
+            <div style="font-size:12px;color:var(--text-mid);font-style:italic">evening · one pattern question</div>
+          </div>
+        </div>
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">What do you want to understand better about how this week went?</div>
+          <div style="font-size:11px;color:var(--text-soft);font-style:italic;margin-bottom:10px">Curiosity, not correction. Not what to fix — what to understand.</div>
+          <textarea class="text-input" id="resetQUnderstand" rows="2" style="font-size:13px" placeholder="e.g. why did Tuesday feel so different from Wednesday…" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <div class="reset-phase-check">
+          <button onclick="markResetPhase('understand')" id="resetPhaseUnderstand" class="pink-btn" style="width:100%">Understood ✦</button>
+        </div>
+      </div>
+
+      <!-- PHASE 5: DECIDE -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:50%;background:#fff8e0;border:1.5px solid #e0c860;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">⚡</div>
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text)">Decide</div>
+            <div style="font-size:12px;color:var(--text-mid);font-style:italic">after gym · plan week, meals, non-negotiables</div>
+          </div>
+        </div>
+
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" id="resetDecideQ1Label"></div>
+          <textarea class="text-input" id="resetDecideQ1" rows="2" style="font-size:13px" placeholder="" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Meals this week</div>
+          <textarea class="text-input" id="resetMeals" rows="2" style="font-size:13px" placeholder="3 dinners, any meal prep…" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" id="resetDecideQ2Label"></div>
+          <textarea class="text-input" id="resetDecideQ2" rows="2" style="font-size:13px" placeholder="" oninput="scheduleResetSave()"></textarea>
+        </div>
+        <div class="reset-phase-check">
+          <button onclick="markResetPhase('decide')" id="resetPhaseDecide" class="pink-btn" style="width:100%">Decided ✦</button>
+        </div>
+      </div>
+
+      <!-- PHASE 6: OPEN -->
+      <div style="margin-bottom:24px">
+        <div style="background:linear-gradient(135deg,#1a0a14,#2a1020);border-radius:20px;padding:22px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🌱</div>
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fce8f4">Open the week</div>
+              <div style="font-size:12px;color:rgba(240,160,192,.6);font-style:italic">the last thing</div>
+            </div>
+          </div>
+          <div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:#fce8f4;margin-bottom:12px" id="resetOpenQ"></div>
+          <textarea id="resetQOpen" rows="3" placeholder="be honest. even two sentences." style="width:100%;border:1.5px solid rgba(240,160,192,.2);border-radius:12px;padding:12px 14px;font-family:'Outfit',sans-serif;font-size:13px;color:#fce8f4;background:rgba(255,255,255,.06);outline:none;resize:none;line-height:1.6;margin-bottom:12px;box-sizing:border-box" oninput="scheduleResetSave()"></textarea>
+          <div style="margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:rgba(240,160,192,.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">One word for this week</div>
+            <input id="resetWordOfWeek" class="text-input" placeholder="e.g. grounded · focused · tender · fierce" style="font-size:13px;background:rgba(255,255,255,.06);border-color:rgba(240,160,192,.2);color:#fce8f4" oninput="scheduleResetSave()">
+          </div>
+          <button onclick="markResetPhase('open')" id="resetPhaseOpen" style="width:100%;padding:12px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--pink-deep),#c060a0);color:white;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Open the week ✦</button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px">
+        <button class="pink-pill" style="font-size:12px" onclick="resetWeeklyChecklist()">🔄 Start fresh (new week)</button>
+        <button class="pink-pill" style="font-size:12px" onclick="exportResetSummary()">⬇ Export notes</button>
+        <span id="resetSaveIndicator" style="font-size:12px;color:var(--pink-deep);font-style:italic;opacity:0;transition:opacity 0.4s">Saved ✦</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Checklist editor modal -->
+  <div class="modal-overlay" id="resetChecklistEditorModal">
+    <div class="modal-box" style="max-width:460px">
+      <button class="modal-close" onclick="closeModal('resetChecklistEditorModal')">×</button>
+      <div class="modal-title" id="resetChecklistEditorTitle">Edit Checklist</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:14px">Your items — edit, remove, reorder. These save and reset every Sunday.</div>
+      <div id="resetChecklistEditorItems" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input class="text-input" id="resetChecklistEditorInput" placeholder="Add item…" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addResetChecklistItem()">
+        <button onclick="addResetChecklistItem()" class="pink-btn" style="width:auto;padding:10px 16px">＋</button>
+      </div>
+      <button onclick="saveResetChecklistEditor()" class="pink-btn" style="width:100%">Save ✦</button>
     </div>
   </div>
 
@@ -2112,61 +2281,171 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
   <!-- Platform tabs -->
   <div class="ritual-tabs" id="contentPlatformTabs" style="margin-bottom:24px">
     <button class="ritual-tab active" onclick="switchContentPlatform(this,'overview')">📊 Overview</button>
+    <button class="ritual-tab" onclick="switchContentPlatform(this,'calendar')">📅 Calendar</button>
+    <button class="ritual-tab" onclick="switchContentPlatform(this,'ideas')">💡 Ideas</button>
     <button class="ritual-tab" onclick="switchContentPlatform(this,'youtube')">▶️ YouTube</button>
-    <button class="ritual-tab" onclick="switchContentPlatform(this,'shorts')">⚡ YT Shorts</button>
+    <button class="ritual-tab" onclick="switchContentPlatform(this,'shorts')">⚡ Shorts</button>
     <button class="ritual-tab" onclick="switchContentPlatform(this,'tiktok')">🎵 TikTok</button>
     <button class="ritual-tab" onclick="switchContentPlatform(this,'instagram')">📸 Instagram</button>
   </div>
 
   <!-- OVERVIEW panel -->
   <div id="cpanel-overview" class="content-panel active">
-    <!-- Ideas list -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div class="section-label" style="margin-bottom:0">Content Ideas</div>
-      <div style="display:flex;gap:8px">
-        <button class="pink-pill" style="font-size:11px" onclick="suggestContentIdea()">✨ Suggest Idea</button>
-        <button class="pink-pill" style="font-size:11px" onclick="openContentIdeaModal()">＋ Add Idea</button>
+
+    <!-- Performance dashboard header -->
+    <div style="background:linear-gradient(135deg,#fff8fb,#fce8f4);border:1.5px solid var(--pink-mid);border-radius:20px;padding:20px 22px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:700;color:var(--text)">This week.</div>
+          <div style="font-size:12px;color:var(--text-mid);font-style:italic" id="overviewDateRange"></div>
+        </div>
+        <button onclick="openPostModal()" class="pink-btn" style="font-size:12px;padding:9px 16px">＋ Log post</button>
       </div>
-    </div>
-    <!-- AI suggestion card -->
-    <div id="ideaSuggestionCard" style="display:none;background:radial-gradient(ellipse at 20% 30%,#fff8fb,#fce0ee);border-radius:16px;padding:20px 24px;margin-bottom:16px;border:1.5px solid var(--pink-mid)">
-      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">✨ Suggested Idea</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:6px" id="suggestionText"></div>
-      <div style="font-size:12px;color:var(--text-mid);margin-bottom:14px" id="suggestionPlatform"></div>
-      <div style="display:flex;gap:8px">
-        <button class="pink-btn" onclick="saveSuggestion()">💾 Save this idea</button>
-        <button class="pink-pill" onclick="suggestContentIdea()">🔄 Another one</button>
-        <button class="pink-pill" style="color:#c04040" onclick="document.getElementById('ideaSuggestionCard').style.display='none'">✕ Dismiss</button>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:24px">
-      <div id="contentIdeasList"></div>
-      <button class="pink-pill" style="margin-top:10px;font-size:11px" onclick="openContentIdeaModal()">＋ New Idea</button>
+
+      <!-- Headline metrics -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px" id="overviewMetrics"></div>
+
+      <!-- Posting consistency per platform -->
+      <div id="overviewConsistency"></div>
     </div>
 
-    <!-- Stats charts -->
-    <div class="section-label">Performance Charts</div>
-    <div class="grid2" style="margin-bottom:24px">
-      <div class="card">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">Posts Per Platform</div>
-        <canvas id="platformPieChart" width="200" height="200" style="display:block;margin:0 auto"></canvas>
-        <div id="platformLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">Views Over Time</div>
-        <canvas id="viewsLineChart" width="300" height="200" style="width:100%;display:block"></canvas>
-      </div>
+    <!-- Best performers -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:18px 20px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">🏆 Top content — by engagement rate</div>
+      <div id="overviewBestPosts"></div>
+      <div id="overviewPillarInsight" style="margin-top:10px"></div>
     </div>
 
-    <!-- Weekly + Monthly stats -->
-    <div class="grid2" style="margin-bottom:24px">
-      <div class="card"><div class="section-label">This Week</div><div id="weeklyStats"></div></div>
-      <div class="card"><div class="section-label">This Month</div><div id="monthlyStats"></div></div>
+    <!-- Growth sparkline -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:18px 20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft)">Engagement trend</div>
+        <div style="font-size:11px;color:var(--text-soft);font-style:italic" id="overviewEngAvg"></div>
+      </div>
+      <div id="overviewSparkline"></div>
     </div>
 
-    <!-- Recent posts across all platforms -->
-    <div class="section-label">Recent Posts</div>
+    <!-- All posts list -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">Recent posts</div>
     <div id="allPostsList"></div>
+
+    <!-- Keep these for compatibility with other functions -->
+    <div id="weeklyStats" style="display:none"></div>
+    <div id="monthlyStats" style="display:none"></div>
+    <canvas id="platformPieChart" style="display:none"></canvas>
+    <canvas id="viewsLineChart" style="display:none"></canvas>
+    <div id="platformLegend" style="display:none"></div>
+  </div>
+
+  <!-- Ideas pipeline panel -->
+  <div id="cpanel-ideas" class="content-panel" style="display:none">
+
+    <!-- AI suggestion card (moved here from overview) -->
+    <div id="ideaSuggestionCard" style="display:none;background:radial-gradient(ellipse at 20% 30%,#fff8fb,#fce0ee);border-radius:16px;padding:18px 20px;margin-bottom:14px;border:1.5px solid var(--pink-mid)">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">✨ Suggested Idea</div>
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:6px" id="suggestionText"></div>
+      <div style="font-size:12px;color:var(--text-mid);margin-bottom:12px" id="suggestionPlatform"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="pink-btn" style="font-size:12px" onclick="saveSuggestion()">💾 Save idea</button>
+        <button class="pink-pill" style="font-size:11px" onclick="suggestContentIdea()">🔄 Another</button>
+        <button class="pink-pill" style="font-size:11px;color:#c04040" onclick="document.getElementById('ideaSuggestionCard').style.display='none'">✕</button>
+      </div>
+    </div>
+
+    <!-- Header + actions -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">Idea Pipeline</div>
+        <div style="font-size:12px;color:var(--text-mid);font-style:italic">move ideas forward, not just collect them</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="pink-pill" style="font-size:11px" onclick="suggestContentIdea()">✨ Suggest</button>
+        <button class="pink-btn" style="font-size:12px" onclick="openContentIdeaModal()">＋ New idea</button>
+      </div>
+    </div>
+
+    <!-- Pipeline stages - horizontal scroll on mobile -->
+    <div style="overflow-x:auto;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;min-width:650px">
+        <!-- Stage headers -->
+        <div style="background:#fff8e0;border:1.5px solid #e0c060;border-radius:14px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#806820;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💡 Idea</div>
+          <div id="pipeIdea" style="display:flex;flex-direction:column;gap:6px;min-height:60px"></div>
+          <button onclick="openContentIdeaModalStage('idea')" style="width:100%;margin-top:8px;padding:5px;border:1px dashed #e0c060;border-radius:8px;background:none;cursor:pointer;font-size:11px;color:#806820;font-family:'Outfit',sans-serif">＋ Add</button>
+        </div>
+        <div style="background:#f0f4ff;border:1.5px solid #a0b0e0;border-radius:14px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#4060a0;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📝 Scripting</div>
+          <div id="pipeScript" style="display:flex;flex-direction:column;gap:6px;min-height:60px"></div>
+        </div>
+        <div style="background:#f5eeff;border:1.5px solid #c090f0;border-radius:14px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#8030cc;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🎥 Filming</div>
+          <div id="pipeFilm" style="display:flex;flex-direction:column;gap:6px;min-height:60px"></div>
+        </div>
+        <div style="background:#fff4ee;border:1.5px solid #e0a070;border-radius:14px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#cc4400;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">✂️ Editing</div>
+          <div id="pipeEdit" style="display:flex;flex-direction:column;gap:6px;min-height:60px"></div>
+        </div>
+        <div style="background:#eef7ee;border:1.5px solid #a0d0a0;border-radius:14px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#2a6a2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">✅ Ready</div>
+          <div id="pipeReady" style="display:flex;flex-direction:column;gap:6px;min-height:60px"></div>
+          <button onclick="openContentScheduleFromIdea()" style="width:100%;margin-top:8px;padding:5px;border:1px dashed #a0d0a0;border-radius:8px;background:none;cursor:pointer;font-size:11px;color:#2a6a2a;font-family:'Outfit',sans-serif">📅 Schedule</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content pillars -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">Content pillars</div>
+      <div id="contentPillars"></div>
+      <div style="font-size:11px;color:var(--text-soft);font-style:italic;margin-top:10px">Tag posts with a pillar when logging to see which topics your audience loves most ✦</div>
+    </div>
+
+    <!-- Idea archive / flat list for reference -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">All ideas</div>
+    <div id="contentIdeasList"></div>
+  </div>
+
+  <!-- Content Calendar panel -->
+  <div id="cpanel-calendar" class="content-panel" style="display:none">
+
+    <!-- Header + view toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">Content Calendar</div>
+        <div style="font-size:12px;color:var(--text-mid);font-style:italic">what you're uploading, when, and where</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;background:var(--pink-glow);border-radius:20px;padding:3px">
+          <button onclick="setContentCalView('week')" id="ccViewWeek" class="ritual-tab active" style="padding:5px 14px;font-size:11px">Week</button>
+          <button onclick="setContentCalView('month')" id="ccViewMonth" class="ritual-tab" style="padding:5px 14px;font-size:11px">Month</button>
+        </div>
+        <button onclick="openContentScheduleModal(null)" class="pink-btn" style="white-space:nowrap">＋ Schedule</button>
+      </div>
+    </div>
+
+    <!-- Nav bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <button onclick="contentCalNav(-1)" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--text-mid)">‹</button>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text)" id="ccNavLabel"></div>
+      <button onclick="contentCalNav(1)" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--text-mid)">›</button>
+    </div>
+
+    <!-- Platform filter pills -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="ccPlatformFilters">
+      <button onclick="toggleCCFilter(this,'all')" class="pink-pill active" data-f="all" style="font-size:11px">All</button>
+      <button onclick="toggleCCFilter(this,'youtube')" class="pink-pill" data-f="youtube" style="font-size:11px;background:#fff0f0;border-color:#ff4444;color:#cc2222">▶️ YouTube</button>
+      <button onclick="toggleCCFilter(this,'shorts')" class="pink-pill" data-f="shorts" style="font-size:11px;background:#fff4ee;border-color:#ff6b00;color:#cc4400">⚡ Shorts</button>
+      <button onclick="toggleCCFilter(this,'tiktok')" class="pink-pill" data-f="tiktok" style="font-size:11px;background:#f5eeff;border-color:#b04aff;color:#8030cc">🎵 TikTok</button>
+      <button onclick="toggleCCFilter(this,'instagram')" class="pink-pill" data-f="instagram" style="font-size:11px;background:#ffeef8;border-color:#e040a0;color:#b02070">📸 Instagram</button>
+    </div>
+
+    <!-- Calendar grid -->
+    <div id="ccGrid" style="margin-bottom:24px"></div>
+
+    <!-- Upcoming list -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">Upcoming uploads</div>
+    <div id="ccUpcomingList"></div>
+
   </div>
 
   <!-- Per-platform panels (youtube / shorts / tiktok / instagram) -->
@@ -2174,6 +2453,7 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
   <div id="cpanel-shorts" class="content-panel" style="display:none"></div>
   <div id="cpanel-tiktok" class="content-panel" style="display:none"></div>
   <div id="cpanel-instagram" class="content-panel" style="display:none"></div>
+
 </div>
 
 <!-- Content Idea Modal -->
@@ -2194,29 +2474,105 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
 <!-- Log Post Modal -->
 <div class="modal-overlay" id="postModal">
   <div class="modal-box" style="max-width:500px"><button class="modal-close" onclick="closeModal('postModal')">×</button>
-    <div class="modal-title" id="postModalTitle">Log Post.</div>
+    <div class="modal-title" id="postModalTitle">Add analytics ✦</div>
     <input type="hidden" id="postEditIdx">
+    <input type="hidden" id="postCalItemId">
+
+    <!-- From-calendar banner -->
+    <div id="postFromCalBanner" style="display:none;background:var(--pink-glow);border:1.5px solid var(--pink-mid);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text-mid)">
+      📅 From your content calendar — platform, title and date are pre-filled.
+    </div>
+
     <div class="form-row"><label class="form-label">Platform</label>
-      <select class="form-select" id="postPlatform">
+      <select class="form-select" id="postPlatform" onchange="updatePostPlatformFields()">
         <option value="youtube">▶️ YouTube</option><option value="shorts">⚡ YT Shorts</option><option value="tiktok">🎵 TikTok</option><option value="instagram">📸 Instagram</option>
       </select>
     </div>
-    <div class="form-row"><label class="form-label">Title / description</label><input class="text-input" id="postTitle" placeholder="e.g. Day in my life as a dental student"></div>
+    <div class="form-row"><label class="form-label">Title</label><input class="text-input" id="postTitle" placeholder="e.g. Study with me — 6hr dental school day"></div>
     <div class="form-row"><label class="form-label">Date posted</label><input class="text-input" type="date" id="postDate"></div>
+
+    <!-- Core metrics — all platforms -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" class="form-row">
-      <div><label class="form-label">Views</label><input class="text-input" type="number" id="postViews" placeholder="0"></div>
-      <div><label class="form-label">Likes</label><input class="text-input" type="number" id="postLikes" placeholder="0"></div>
-      <div><label class="form-label">Comments</label><input class="text-input" type="number" id="postComments" placeholder="0"></div>
+      <div><label class="form-label">Views</label><input class="text-input" type="number" id="postViews" placeholder="0" oninput="updateEngagementRate()"></div>
+      <div><label class="form-label">Likes</label><input class="text-input" type="number" id="postLikes" placeholder="0" oninput="updateEngagementRate()"></div>
+      <div><label class="form-label">Comments</label><input class="text-input" type="number" id="postComments" placeholder="0" oninput="updateEngagementRate()"></div>
     </div>
-    <div class="form-row"><label class="form-label">How did it perform?</label>
+
+    <!-- Live engagement rate -->
+    <div id="postEngRate" style="display:none;background:var(--pink-glow);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:var(--pink-deep);font-weight:700;text-align:center"></div>
+
+    <!-- Platform-specific fields -->
+    <div id="postPlatformFields"></div>
+
+    <div class="form-row"><label class="form-label">What worked / notes</label><textarea class="text-input" rows="2" id="postNotes" placeholder="Hook landed, audio was off, thumbnail drove clicks…"></textarea></div>
+
+    <div class="form-row"><label class="form-label">Self-rate</label>
       <div class="star-rating" id="postStars" onclick="ratePost(event)"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div>
     </div>
-    <div class="form-row"><label class="form-label">Notes / what worked</label><textarea class="text-input" rows="2" id="postNotes" placeholder="Thumbnail did well, audio was off…"></textarea></div>
     <div style="display:flex;gap:10px"><button class="pink-btn" style="flex:1" onclick="savePost()">Save ✦</button><button class="pink-pill" id="postDeleteBtn" style="display:none;color:#c04040" onclick="deletePost()">🗑 Delete</button></div>
   </div>
 </div>
 
-<!-- Platform Page Modal (edit page info) -->
+<!-- Content Schedule Modal -->
+<div class="modal-overlay" id="contentScheduleModal">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="closeModal('contentScheduleModal')">×</button>
+    <div class="modal-title" id="contentScheduleTitle">Schedule Upload ✦</div>
+
+    <div class="form-row">
+      <label class="form-label">Upload date</label>
+      <input type="date" class="text-input" id="csDate">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Platform</label>
+      <div style="display:flex;gap:7px;flex-wrap:wrap" id="csPlatformChips">
+        <button onclick="setCsPlatform(this,'youtube')"  class="shower-mood-chip" data-p="youtube">▶️ YouTube</button>
+        <button onclick="setCsPlatform(this,'shorts')"   class="shower-mood-chip" data-p="shorts">⚡ Shorts</button>
+        <button onclick="setCsPlatform(this,'tiktok')"   class="shower-mood-chip" data-p="tiktok">🎵 TikTok</button>
+        <button onclick="setCsPlatform(this,'instagram')" class="shower-mood-chip" data-p="instagram">📸 Instagram</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Format</label>
+      <div style="display:flex;gap:7px;flex-wrap:wrap" id="csFormatChips">
+        <button onclick="setCsFormat(this,'long')"  class="shower-mood-chip" data-fmt="long">🎬 Long form</button>
+        <button onclick="setCsFormat(this,'short')" class="shower-mood-chip" data-fmt="short">⚡ Short form</button>
+        <button onclick="setCsFormat(this,'photo')" class="shower-mood-chip" data-fmt="photo">📸 Photo / carousel</button>
+        <button onclick="setCsFormat(this,'story')" class="shower-mood-chip" data-fmt="story">💫 Story / live</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Title / Idea</label>
+      <input class="text-input" id="csTitle" placeholder="e.g. Study with me vlog, GRWM, Anki tutorial…">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Concept / notes</label>
+      <textarea class="text-input" rows="2" id="csConcept" placeholder="What's the angle? Hook? B-roll needed?"></textarea>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Status</label>
+      <div style="display:flex;gap:7px;flex-wrap:wrap" id="csStatusChips">
+        <button onclick="setCsStatus(this,'idea')"     class="shower-mood-chip active" data-st="idea">💡 Idea</button>
+        <button onclick="setCsStatus(this,'filming')"  class="shower-mood-chip" data-st="filming">🎥 Filming</button>
+        <button onclick="setCsStatus(this,'editing')"  class="shower-mood-chip" data-st="editing">✂️ Editing</button>
+        <button onclick="setCsStatus(this,'ready')"    class="shower-mood-chip" data-st="ready">✅ Ready to post</button>
+        <button onclick="setCsStatus(this,'posted')"   class="shower-mood-chip" data-st="posted">🚀 Posted</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Add to main calendar?</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="csAddToCalendar" checked style="width:16px;height:16px;accent-color:var(--pink-deep)">
+        <span style="font-size:12px;color:var(--text-mid)">Shows as event on your main calendar</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="pink-btn" style="flex:1" onclick="saveContentSchedule()">Save ✦</button>
+      <button class="pink-pill" id="csDeleteBtn" style="display:none;color:#c04040" onclick="deleteContentSchedule()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="platformPageModal">
   <div class="modal-box"><button class="modal-close" onclick="closeModal('platformPageModal')">×</button>
     <div class="modal-title" id="platModalTitle">Edit Page Info.</div>
@@ -2885,9 +3241,9 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
 
     <!-- ── POST-COMPLETION INTRINSIC MOTIVATION QUESTIONS ── -->
     <div id="studyCompletionQs" style="display:none;background:linear-gradient(135deg,#fff8fb,#fce8f4);border:2px solid var(--pink-mid);border-radius:20px;padding:24px;margin-bottom:24px">
-      <div style="font-size:24px;text-align:center;margin-bottom:8px">🌟</div>
+      <div style="font-size:24px;text-align:center;margin-bottom:8px">✦</div>
       <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px">You did all three. That's a full day.</div>
-      <div style="font-size:13px;color:var(--text-mid);text-align:center;font-style:italic;margin-bottom:20px">Take a moment. Reflect on what just happened.</div>
+      <div style="font-size:13px;color:var(--text-mid);text-align:center;font-style:italic;margin-bottom:20px">Take a moment before you move on. What just happened is worth holding.</div>
       <div id="studyCompletionQsContent" style="display:flex;flex-direction:column;gap:14px"></div>
       <button class="pink-btn" style="width:100%;margin-top:16px" onclick="saveCompletionReflection()">Save Reflection ✦</button>
     </div>
@@ -2930,6 +3286,30 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
 
   </div>
 
+</div>
+
+<!-- ── COULDN'T DO IT MODAL ── -->
+<div class="modal-overlay" id="couldntDoItModal">
+  <div class="modal-box" style="max-width:420px">
+    <button class="modal-close" onclick="closeModal('couldntDoItModal')">×</button>
+    <div style="text-align:center;font-size:28px;margin-bottom:8px">💗</div>
+    <div class="modal-title" style="text-align:center">Literally couldn't do it.</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;text-align:center;margin-bottom:20px;line-height:1.6">That's real. Your streak stays — sometimes life doesn't allow it and that's different from giving up.</div>
+    <input type="hidden" id="couldntDoItSlot" value="">
+    <div class="form-row">
+      <label class="form-label">Why? <span style="font-weight:400;color:var(--text-soft)">(be honest with yourself)</span></label>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px" id="couldntDoItChips">
+        <button onclick="toggleCouldntChip(this)" class="brain-chip2">😴 Completely exhausted</button>
+        <button onclick="toggleCouldntChip(this)" class="brain-chip2">🤒 Unwell</button>
+        <button onclick="toggleCouldntChip(this)" class="brain-chip2">🚨 Emergency / unexpected</button>
+        <button onclick="toggleCouldntChip(this)" class="brain-chip2">🏥 Clinical placement ran over</button>
+        <button onclick="toggleCouldntChip(this)" class="brain-chip2">💔 Mental health day</button>
+        <button onclick="toggleCouldntChip(this)" class="brain-chip2">🌀 Life happened</button>
+      </div>
+      <input class="text-input" id="couldntDoItNote" placeholder="anything else…" style="font-size:13px">
+    </div>
+    <button class="pink-btn" style="width:100%" onclick="saveCouldntDoIt()">Save — streak protected ✦</button>
+  </div>
 </div>
 
 <!-- ── ROUTINE EDITOR MODAL ── -->
@@ -3053,11 +3433,6 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
     <input type="hidden" id="studyLogPlanId" value="">
     <input type="hidden" id="studyLogSlot" value="">
 
-    <div class="form-row">
-      <label class="form-label">Subject / Topic</label>
-      <input class="text-input" id="studyLogSubject" placeholder="What did you study?">
-    </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="form-row">
       <div><label class="form-label">Planned (mins)</label><input class="text-input" type="number" id="studyLogPlanned" placeholder="60"></div>
       <div><label class="form-label">Actual (mins)</label><input class="text-input" type="number" id="studyLogActual" placeholder="75"></div>
@@ -3077,8 +3452,11 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
     </div>
 
     <div class="form-row">
-      <label class="form-label">How did it go?</label>
-      <textarea class="text-input" rows="2" id="studyLogNote" placeholder="What clicked? What's still fuzzy? Any wins?"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+        <label class="form-label" style="margin-bottom:0">How did it go?</label>
+        <button onclick="closeModal('studyLogModal');switchMotivTab(document.querySelector('[onclick*=yourbrain]'),'yourbrain');initYourBrain();" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;cursor:pointer;color:var(--pink-deep);font-family:'Outfit',sans-serif;font-weight:600">🧠 Log in Your Brain</button>
+      </div>
+      <textarea class="text-input" rows="2" id="studyLogNote" placeholder="How did I slay?"></textarea>
     </div>
 
     <button class="pink-btn" style="width:100%" onclick="saveStudyLog()">Log It ✦</button>
@@ -3886,6 +4264,7 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
     <button class="ritual-tab" onclick="switchMotivTab(this,'quotes')">💬 Quotes</button>
     <button class="ritual-tab" onclick="switchMotivTab(this,'youtube')">▶️ YouTube</button>
     <button class="ritual-tab" onclick="switchMotivTab(this,'downloads')">📥 Downloads</button>
+    <button class="ritual-tab" onclick="switchMotivTab(this,'yourbrain')" style="background:linear-gradient(135deg,var(--pink-deep),#9060c0);color:white;border-color:var(--pink-deep)">🧠 Your Brain</button>
   </div>
 
   <!-- AFFIRMATIONS -->
@@ -4041,6 +4420,157 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
   </div>
 
   <!-- ══ DOWNLOADS PANEL ══ -->
+  <div id="motiv-yourbrain" class="motiv-panel" style="display:none">
+
+  <div style="margin-bottom:20px">
+    <div style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Your Brain.</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic">building the relationship. slowly.</div>
+  </div>
+
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
+    <button class="ritual-tab active" id="brain-tab-build"    onclick="switchBrainTab(this,'build')">🌱 Build</button>
+    <button class="ritual-tab"        id="brain-tab-rightnow" onclick="switchBrainTab(this,'rightnow')">⚡ Right Now</button>
+    <button class="ritual-tab"        id="brain-tab-rest"     onclick="switchBrainTab(this,'rest')">🎮 Rest</button>
+    <button class="ritual-tab"        id="brain-tab-yours"    onclick="switchBrainTab(this,'yours')">📊 Yours</button>
+  </div>
+
+  <!-- ══ BUILD ══ -->
+  <div id="brain-build" class="brain-panel">
+
+    <!-- Tonight — identity rehearsal -->
+    <div style="background:linear-gradient(135deg,#1a0a14,#2a1020);border-radius:20px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(240,120,160,.12),transparent);border-radius:50%"></div>
+      <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(180,100,220,.08),transparent);border-radius:50%"></div>
+
+      <div style="font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(240,160,192,.5);margin-bottom:10px">Tonight</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:700;color:#fce8f4;margin-bottom:4px">Before you sleep.</div>
+      <div style="font-size:12px;color:rgba(240,160,192,.6);margin-bottom:16px;font-style:italic">One question. Two minutes. Your brain rehearses the answer overnight.</div>
+
+      <div style="background:rgba(255,255,255,.06);border-left:3px solid rgba(240,120,160,.5);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:16px">
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:#fce8f4;line-height:1.7" id="tonightQuestion">Loading your question…</div>
+      </div>
+
+      <textarea id="tonightAnswer" rows="3" placeholder="write honestly. even two sentences." style="width:100%;border:1.5px solid rgba(240,160,192,.25);border-radius:12px;padding:12px 14px;font-family:'Outfit',sans-serif;font-size:13px;color:#fce8f4;background:rgba(255,255,255,.06);outline:none;resize:none;line-height:1.6;margin-bottom:12px;box-sizing:border-box" onfocus="this.style.borderColor='rgba(240,120,160,.5)'" onblur="this.style.borderColor='rgba(240,160,192,.25)'"></textarea>
+
+      <button onclick="saveTonightReflection()" style="width:100%;padding:12px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--pink-deep),#c060a0);color:white;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(200,80,140,.3)">Plant tonight's thought ✦</button>
+      <div id="tonightSaved" style="margin-top:10px"></div>
+
+      <div style="font-size:10px;color:rgba(240,160,192,.4);text-align:center;margin-top:12px;font-style:italic">the question matters more than the answer</div>
+    </div>
+
+    <!-- One Thing — study -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">One Thing — After Studying</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:4px">one moment of genuine enjoyment — even a second counts</div>
+      <div id="oneThingStudyQ" style="font-size:13px;color:var(--text-soft);font-style:italic;margin-bottom:12px;min-height:18px"></div>
+      <textarea class="text-input" id="oneThingStudy" rows="2" placeholder="e.g. 'that topic actually interested me' · 'one card and I wanted another' · 'felt absorbed for a few minutes'" style="font-size:13px;margin-bottom:10px"></textarea>
+      <button onclick="saveOneThing('study')" class="pink-btn">Save it ✦</button>
+    </div>
+
+    <!-- One Thing — morning -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">One Thing — After Your Morning</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:4px">one moment you genuinely enjoyed — however small</div>
+      <div id="oneThingMorningQ" style="font-size:13px;color:var(--text-soft);font-style:italic;margin-bottom:12px;min-height:18px"></div>
+      <textarea class="text-input" id="oneThingMorning" rows="2" placeholder="e.g. 'that coffee was actually perfect' · 'quiet before anyone needed anything' · 'felt like mine for a bit'" style="font-size:13px;margin-bottom:10px"></textarea>
+      <button onclick="saveOneThing('morning')" class="pink-btn">Save it ✦</button>
+    </div>
+
+    <!-- What Clicked -->
+    <div style="background:linear-gradient(135deg,#f0f8ff,#f8f0ff);border:1.5px solid #b0c0e8;border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">What Clicked</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:12px">the specific moment something made sense — not the session, the moment inside it</div>
+      <textarea class="text-input" id="whatClickedInput" rows="2" placeholder="e.g. 'understood why, not just that it does' · 'explained it to myself and it landed'" style="font-size:13px;margin-bottom:10px"></textarea>
+      <div style="font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">What made it click</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="clickChips">
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">🔗 Linked to something I knew</button>
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">🔊 Explained it out loud</button>
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">🖼 Visualised it</button>
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">❓ Asked a better question</button>
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">🔁 Came back after a break</button>
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">✍️ Wrote or drew it out</button>
+        <button onclick="toggleBrainChip2(this)" class="brain-chip2">😴 Slept on it</button>
+      </div>
+      <button onclick="saveWhatClicked()" class="pink-btn">Log this click ✦</button>
+      <div id="whatClickedResult" style="margin-top:10px"></div>
+    </div>
+
+    <!-- Open Questions -->
+    <div style="background:linear-gradient(135deg,#fff8f0,#fff4f8);border:1.5px solid #e0c8a0;border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">Open Questions</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:12px">something you don't understand yet but want to. log it before it disappears.</div>
+      <div id="curiosityList" style="margin-bottom:12px"></div>
+      <div style="display:flex;gap:8px">
+        <input class="text-input" id="curiosityInput" placeholder="something I want to understand…" style="flex:1;font-size:13px">
+        <button onclick="addCuriosity()" class="pink-btn" style="width:auto;padding:10px 16px;white-space:nowrap">Add ❓</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT NOW ══ -->
+  <div id="brain-rightnow" class="brain-panel" style="display:none">
+
+    <!-- Stress reframe — one button, no slider -->
+    <div style="background:linear-gradient(135deg,#fff8f0,#fff0e8);border:1.5px solid #e0c0a0;border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">Stress Reframe</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:16px">cortisol and adrenaline are identical in stress and excitement. the label is everything.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button onclick="logStressReframe('low')"    class="brain-chip2" style="flex:1">😌 A little</button>
+        <button onclick="logStressReframe('medium')" class="brain-chip2" style="flex:1">😤 Quite a lot</button>
+        <button onclick="logStressReframe('high')"   class="brain-chip2" style="flex:1">😰 A lot</button>
+        <button onclick="logStressReframe('peak')"   class="brain-chip2" style="flex:1">🤯 Overwhelmed</button>
+      </div>
+      <div id="stressReframeResult" style="min-height:20px"></div>
+    </div>
+
+    <!-- Friction log -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">What's the Block?</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:12px">can't start right now? tap what's in the way. one tap — no judgment.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px" id="frictionChips">
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="start_hard">😶 Starting feels too hard</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="no_where">🤷 Don't know where to begin</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="depleted">😴 Too depleted</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="phone">📱 Just came off my phone</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="environment">🏠 Wrong environment</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="not_curious">😐 Not curious about it</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="distracted">💭 Something else has my attention</button>
+        <button onclick="logFriction(this)" class="brain-chip2" data-val="needed_something">❓ Need something, not sure what</button>
+      </div>
+      <div id="frictionResult" style="min-height:20px"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ REST ══ -->
+  <div id="brain-rest" class="brain-panel" style="display:none">
+    <div style="background:linear-gradient(135deg,#fff8e0,#fff0f8);border:1.5px solid #e0c060;border-radius:20px;padding:20px 22px;margin-bottom:14px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px">Intentional Rest</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:4px">chosen rest doesn't create the same debt as compulsive use.</div>
+      <div style="font-size:12px;color:var(--text-mid);background:rgba(255,255,255,.6);border-radius:10px;padding:10px 12px;margin:12px 0;line-height:1.6">No guilt. No half-attention. Fully enjoy it. When the timer ends, you stop — that's the whole thing.</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button onclick="startContrastTimer(30)" class="pink-btn" style="flex:1">30 min ✦</button>
+        <button onclick="startContrastTimer(45)" class="pink-btn" style="flex:1">45 min ✦</button>
+        <button onclick="startContrastTimer(60)" class="pink-btn" style="flex:1">60 min ✦</button>
+      </div>
+      <div id="contrastTimerDisplay"></div>
+    </div>
+  </div>
+
+  <!-- ══ YOURS ══ -->
+  <div id="brain-yours" class="brain-panel" style="display:none">
+    <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:4px">Your patterns.</div>
+    <div style="font-size:13px;color:var(--text-mid);margin-bottom:20px;font-style:italic">what your own data actually shows.</div>
+    <div id="brainYoursContent"></div>
+  </div>
+
+</div><!-- end motiv-yourbrain -->
+
+
+
+
+
   <div id="motiv-downloads" class="motiv-panel" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
       <div>
@@ -4049,7 +4579,6 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
       </div>
       <button class="pink-btn" onclick="addDLSection()">＋ New Section</button>
     </div>
-
     <!-- Offline tip banner -->
     <div style="display:flex;align-items:flex-start;gap:10px;background:linear-gradient(135deg,#fff8fb,#fce8f4);border:1.5px solid var(--pink-mid);border-radius:14px;padding:12px 16px;margin-bottom:18px">
       <span style="font-size:18px;flex-shrink:0">☁️</span>
@@ -5484,10 +6013,6 @@ updateJourneyDayUI();
     try { renderWakeUpSection(); } catch(e){}
     try { renderHomeAgenda(); } catch(e){}
     try { renderHeroStatsStrip(); } catch(e){}
-    // Re-render study so catch-up day clears and energy slots restore on new day
-    try { renderStudySessions(); } catch(e){}
-    try { renderStudyTodayStrip(); } catch(e){}
-    try { renderEnergyLegend(); } catch(e){}
     // Update agenda title for new day
     const d = new Date();
     const agT = document.getElementById('agendaTitle');
@@ -9372,6 +9897,40 @@ function renderWeekMealGrid(){
     col.innerHTML=`<div class="meal-day-header">${SHORT_DAYS[d.getDay()]}<br><span style="font-size:16px;font-weight:700;color:var(--text)">${d.getDate()}</span></div>`;
     MEAL_SLOTS.forEach(slot=>{
       const meal=mealPlan[key][slot];
+
+      // For Snack slot, also pull in dietExtras snacks for this day
+      if(slot==='S'){
+        const extSnacks=dietExtras.filter(e=>e.date===key&&e.type==='snack');
+        const hasExtras=extSnacks.length>0;
+        const hasMealSnack=!!meal;
+
+        if(!hasMealSnack && !hasExtras){
+          // Nothing — show add button
+          const s=document.createElement('div');
+          s.className='meal-add-btn';
+          s.textContent='＋ Snack';
+          s.onclick=()=>openDietLogMeal(key,slot,null);
+          col.appendChild(s);
+        } else {
+          // Show meal plan snack if exists
+          if(hasMealSnack){
+            const s=document.createElement('div');
+            s.className='meal-slot';
+            s.innerHTML=`<div class="meal-slot-label">SNACK</div><div style="font-size:12px;font-weight:600">${DIET_TYPE_ICON[meal.type]||''}${meal.name}</div><div style="font-size:10px;color:var(--text-soft)">${meal.cals}kcal ${'★'.repeat(meal.rating||0)}</div>`;
+            s.onclick=()=>openDietLogMeal(key,slot,meal);
+            col.appendChild(s);
+          }
+          // Show each dietExtras snack separately
+          extSnacks.forEach(e=>{
+            const s=document.createElement('div');
+            s.className='meal-slot';
+            s.innerHTML=`<div class="meal-slot-label">SNACK</div><div style="font-size:12px;font-weight:600">🍎 ${e.name}</div><div style="font-size:10px;color:var(--text-soft)">${e.cals?e.cals+'kcal':''}</div>`;
+            col.appendChild(s);
+          });
+        }
+        return;
+      }
+
       const s=document.createElement('div');
       if(meal){
         s.className='meal-slot';
@@ -11311,123 +11870,360 @@ let platformPages = {
 
 function switchContentPlatform(btn, key){
   document.querySelectorAll('#contentPlatformTabs .ritual-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.content-panel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.content-panel').forEach(p=>{ p.style.display='none'; p.classList.remove('active'); });
   btn.classList.add('active');
-  const panel = document.getElementById('cpanel-'+key);
-  panel.style.display='block';
+  const panel=document.getElementById('cpanel-'+key);
+  if(panel){ panel.style.display='block'; panel.classList.add('active'); }
   if(key==='overview') renderContentOverview();
+  else if(key==='ideas') renderContentIdeas();
+  else if(key==='calendar') renderContentCalendar();
   else renderPlatformPanel(key);
 }
 
+// ── Overview dashboard ──
 function renderContentOverview(){
-  renderContentIdeas();
+  _renderOverviewMetrics();
+  _renderOverviewConsistency();
+  _renderOverviewBestPosts();
+  _renderOverviewSparkline();
   renderAllPosts();
-  renderContentStats();
-  setTimeout(drawContentCharts,50);
 }
+
+function _renderOverviewMetrics(){
+  // Date range label
+  const today=new Date(), weekStart=new Date(today); weekStart.setDate(today.getDate()-6);
+  const rng=document.getElementById('overviewDateRange');
+  if(rng) rng.textContent=weekStart.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+today.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+
+  const days7=[...Array(7)].map((_,i)=>{ const d=new Date(today); d.setDate(today.getDate()-i); return d.toISOString().slice(0,10); });
+  const weekPosts=contentPosts.filter(p=>days7.includes(p.date));
+  const totalViews=weekPosts.reduce((a,p)=>a+(p.views||0),0);
+  const avgEng=weekPosts.length ? (weekPosts.reduce((a,p)=>a+(p.engRate||0),0)/weekPosts.length).toFixed(1) : null;
+
+  // Scheduled this week from calendar
+  const scheduled=contentCalendar.filter(e=>days7.includes(e.date)&&e.status!=='posted').length;
+
+  const el=document.getElementById('overviewMetrics'); if(!el) return;
+  const engCol=avgEng===null?'var(--text-soft)':parseFloat(avgEng)>=10?'#3d7a3d':parseFloat(avgEng)>=5?'var(--pink-deep)':'#a07820';
+  el.innerHTML=[
+    {v:avgEng!==null?avgEng+'%':'—', lbl:'Avg engagement', sub:avgEng!==null?(parseFloat(avgEng)>=10?'🔥 Excellent':parseFloat(avgEng)>=5?'✦ Good':'needs hooks'):'no data', col:engCol},
+    {v:weekPosts.length, lbl:'Posts this week', sub:totalViews?totalViews.toLocaleString()+' views':'', col:'var(--text)'},
+    {v:scheduled||'—', lbl:'Scheduled', sub:'still to post', col:'var(--text-soft)'},
+  ].map(m=>`<div style="text-align:center;background:rgba(255,255,255,.7);border-radius:12px;padding:10px 6px">
+    <div style="font-size:22px;font-weight:900;color:${m.col};font-family:'Outfit',sans-serif">${m.v}</div>
+    <div style="font-size:9px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.8px">${m.lbl}</div>
+    ${m.sub?`<div style="font-size:9px;color:${m.col};margin-top:2px">${m.sub}</div>`:''}
+  </div>`).join('');
+}
+
+function _renderOverviewConsistency(){
+  const el=document.getElementById('overviewConsistency'); if(!el) return;
+  const today=new Date();
+  // Last 8 weeks
+  const weeks=[...Array(8)].map((_,i)=>{
+    const end=new Date(today); end.setDate(today.getDate()-i*7);
+    const start=new Date(end); start.setDate(end.getDate()-6);
+    return {start:start.toISOString().slice(0,10), end:end.toISOString().slice(0,10)};
+  }).reverse();
+
+  const platforms=['youtube','tiktok','instagram'];
+  const hasAny=platforms.some(p=>contentPosts.some(post=>post.platform===p));
+  if(!hasAny){ el.innerHTML=''; return; }
+
+  el.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Posting consistency — last 8 weeks</div>`
+    +platforms.filter(p=>platformPages[p]?.name||contentPosts.some(post=>post.platform===p)).map(p=>{
+      const meta=PLATFORM_META[p]||{};
+      const dots=weeks.map(w=>{
+        const posted=contentPosts.some(post=>post.platform===p&&post.date>=w.start&&post.date<=w.end);
+        return `<div style="width:18px;height:18px;border-radius:5px;background:${posted?'#6ab88a':'var(--border)'}"></div>`;
+      }).join('');
+      const count=weeks.filter(w=>contentPosts.some(post=>post.platform===p&&post.date>=w.start&&post.date<=w.end)).length;
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-size:11px;min-width:76px;color:var(--text)">${meta.emoji} ${meta.label}</span>
+        <div style="display:flex;gap:3px">${dots}</div>
+        <span style="font-size:10px;font-weight:700;color:${count>=6?'#3d7a3d':count>=4?'var(--pink-deep)':'var(--text-soft)'}">${count}/8</span>
+      </div>`;
+    }).join('');
+}
+
+function _renderOverviewBestPosts(){
+  const el=document.getElementById('overviewBestPosts'); if(!el) return;
+  const ins=document.getElementById('overviewPillarInsight');
+
+  const ranked=[...contentPosts].filter(p=>p.engRate>0).sort((a,b)=>b.engRate-a.engRate).slice(0,3);
+  if(!ranked.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">Log posts with views and likes to see your top performers ✦</div>';
+    if(ins) ins.innerHTML=''; return;
+  }
+
+  el.innerHTML=ranked.map((p,i)=>{
+    const meta=PLATFORM_META[p.platform]||{};
+    const engCol=p.engRate>=10?'#3d7a3d':p.engRate>=5?'var(--pink-deep)':'#a07820';
+    const engBg=p.engRate>=10?'#eef7ee':p.engRate>=5?'var(--pink-glow)':'#fff8e0';
+    return `<div onclick="openEditPost(contentPosts.indexOf(p))" style="background:${engBg};border-left:3px solid ${engCol};border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+        <span style="font-size:10px;background:${meta.light||'var(--pink-glow)'};color:${meta.color||'var(--pink-deep)'};border-radius:20px;padding:2px 8px;font-weight:700">${meta.emoji} ${meta.label}</span>
+        <span style="font-size:11px;font-weight:700;color:${engCol}">${p.engRate}% engagement</span>
+        ${i===0?'<span style="font-size:9px;font-weight:700;color:#3d7a3d">🏆 Your best</span>':''}
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--text)">${p.title}</div>
+      <div style="font-size:10px;color:var(--text-soft);margin-top:2px">👁 ${(p.views||0).toLocaleString()} · ❤️ ${(p.likes||0).toLocaleString()} · 💬 ${(p.comments||0).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+
+  // Insight if platform is clear winner
+  if(ins && ranked.length>=2){
+    const topPlat=ranked[0].platform;
+    const topPlatPosts=ranked.filter(p=>p.platform===topPlat);
+    if(topPlatPosts.length>=2){
+      const meta=PLATFORM_META[topPlat]||{};
+      ins.innerHTML=`<div style="background:linear-gradient(135deg,#fff0f8,#f8f0ff);border:1px solid var(--pink-mid);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text-mid);line-height:1.6">🧠 Your top performers are ${meta.emoji} ${meta.label} content. Your specific angle is your differentiator — lean in.</div>`;
+    } else ins.innerHTML='';
+  }
+}
+
+function _renderOverviewSparkline(){
+  const el=document.getElementById('overviewSparkline'); if(!el) return;
+  const avgEl=document.getElementById('overviewEngAvg');
+  const sorted=[...contentPosts].filter(p=>p.engRate>0).sort((a,b)=>a.date.localeCompare(b.date)).slice(-8);
+  if(sorted.length<2){
+    el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">Log engagement data on a few posts to see your trend ✦</div>';
+    if(avgEl) avgEl.textContent=''; return;
+  }
+  const maxE=Math.max(...sorted.map(p=>p.engRate),1);
+  const overallAvg=(sorted.reduce((a,p)=>a+p.engRate,0)/sorted.length).toFixed(1);
+  if(avgEl) avgEl.textContent=`Overall avg: ${overallAvg}%`;
+
+  el.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:56px;margin-bottom:8px">
+    ${sorted.map(p=>{
+      const h=Math.max(Math.round((p.engRate/maxE)*52),4);
+      const col=p.engRate>=10?'#6ab88a':p.engRate>=5?'var(--pink-deep)':'#e0c060';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="font-size:8px;color:${col};font-weight:700">${p.engRate}%</div>
+        <div style="width:100%;height:${h}px;background:${col};border-radius:3px 3px 0 0" title="${p.title}: ${p.engRate}% engagement"></div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-soft)">
+    <span>${sorted[0].date.slice(5)}</span>
+    <span style="color:var(--pink-deep);font-weight:700">${sorted[sorted.length-1].date.slice(5)} (latest)</span>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px;font-size:10px;color:var(--text-soft)">
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#6ab88a;margin-right:3px"></span>≥10% great</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--pink-deep);margin-right:3px"></span>≥5% good</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#e0c060;margin-right:3px"></span>growing</span>
+  </div>`;
+}
+
+// ── Ideas pipeline ──
+const PIPE_STAGES=['idea','script','film','edit','ready'];
+const PIPE_STAGE_MAP={idea:'pipeIdea',script:'pipeScript',film:'pipeFilm',edit:'pipeEdit',ready:'pipeReady'};
 
 function renderContentIdeas(){
-  const el=document.getElementById('contentIdeasList'); if(!el)return;
-  if(!contentIdeas.length){el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No ideas yet — add one! 💡</div>';return;}
-  el.innerHTML=contentIdeas.map((idea,i)=>{
+  // Pipeline view
+  PIPE_STAGES.forEach(stage=>{
+    const el=document.getElementById(PIPE_STAGE_MAP[stage]); if(!el) return;
+    const items=contentIdeas.filter(x=>(!x.stage&&stage==='idea')||x.stage===stage);
+    el.innerHTML=items.length?items.map((idea,_)=>{
+      const globalIdx=contentIdeas.indexOf(idea);
+      const meta=PLATFORM_META[idea.platform]||{emoji:'🌐',color:'var(--pink-deep)',light:'var(--pink-glow)'};
+      return `<div style="background:white;border-radius:8px;padding:8px 10px;border:1.5px solid var(--border);cursor:pointer" onclick="openIdeaCard(${globalIdx})">
+        <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:4px">${idea.text}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:9px;background:${meta.light};color:${meta.color};border-radius:20px;padding:1px 6px;font-weight:700">${meta.emoji}</span>
+          <div style="display:flex;gap:4px">
+            ${stage!=='ready'?`<button onclick="event.stopPropagation();advanceIdea(${globalIdx})" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text-soft)" title="Move forward">→</button>`:''}
+            <button onclick="event.stopPropagation();contentIdeas.splice(${globalIdx},1);renderContentIdeas()" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text-soft)">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join(''):'';
+  });
+
+  // Flat list
+  const listEl=document.getElementById('contentIdeasList'); if(!listEl) return;
+  if(!contentIdeas.length){
+    listEl.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic">No ideas yet ✦</div>';
+    return;
+  }
+  listEl.innerHTML=contentIdeas.map((idea,i)=>{
     const pm=PLATFORM_META[idea.platform]||{emoji:'🌐',label:'Any',light:'var(--pink-glow)',color:'var(--pink-deep)'};
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${idea.done?'var(--pink-glow)':'var(--white)'};border:1.5px solid var(--border);border-radius:12px;margin-bottom:7px;${idea.done?'opacity:0.55':''}">
-      <div onclick="contentIdeas[${i}].done=!contentIdeas[${i}].done;renderContentIdeas()" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--pink-mid);display:flex;align-items:center;justify-content:center;cursor:pointer;background:${idea.done?'var(--pink)':'white'};flex-shrink:0;font-size:11px;color:white">${idea.done?'✓':''}</div>
+    const stageLabel={idea:'💡',script:'📝',film:'🎥',edit:'✂️',ready:'✅'}[idea.stage||'idea']||'💡';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border:1.5px solid var(--border);border-radius:12px;margin-bottom:7px">
+      <span style="font-size:14px">${stageLabel}</span>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:var(--text);${idea.done?'text-decoration:line-through':''}">${idea.text}</div>
-        ${idea.notes?`<div style="font-size:12px;color:var(--text-soft);margin-top:2px">${idea.notes}</div>`:''}
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${idea.text}</div>
+        ${idea.notes?`<div style="font-size:11px;color:var(--text-soft);margin-top:2px">${idea.notes}</div>`:''}
       </div>
-      <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:${pm.light};color:${pm.color}">${pm.emoji} ${pm.label}</span>
-      <button onclick="contentIdeas.splice(${i},1);renderContentIdeas()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${pm.light};color:${pm.color}">${pm.emoji}</span>
+      <button onclick="contentIdeas.splice(${i},1);renderContentIdeas();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+    </div>`;
+  }).join('');
+
+  // Content pillars
+  _renderContentPillars();
+}
+
+function advanceIdea(i){
+  const idea=contentIdeas[i]; if(!idea) return;
+  const order=['idea','script','film','edit','ready'];
+  const cur=order.indexOf(idea.stage||'idea');
+  if(cur<order.length-1) idea.stage=order[cur+1];
+  renderContentIdeas(); scheduleSave();
+}
+
+function openIdeaCard(i){
+  const idea=contentIdeas[i]; if(!idea) return;
+  // Simple: open schedule modal pre-filled if ready, otherwise just advance
+  if(idea.stage==='ready'){
+    // Pre-fill content schedule modal
+    openContentScheduleModal(null);
+    setTimeout(()=>{
+      document.getElementById('csTitle').value=idea.text||'';
+      const btn=document.querySelector(`#csPlatformChips [data-p="${idea.platform}"]`);
+      if(btn){ setCsPlatform(btn,idea.platform); }
+    },50);
+  } else {
+    advanceIdea(i);
+    showToast('Moved forward ✦');
+  }
+}
+
+function openContentIdeaModalStage(stage){
+  openContentIdeaModal();
+  window._ideaPresetStage=stage;
+}
+
+function openContentScheduleFromIdea(){
+  openContentScheduleModal(null);
+}
+
+function _renderContentPillars(){
+  const el=document.getElementById('contentPillars'); if(!el) return;
+  // Group posts by pillar (use notes keywords as a proxy — or just platform for now)
+  // Real pillars would need a tag field on posts — show platform breakdown as proxy
+  const byPlat={};
+  contentPosts.filter(p=>p.engRate>0).forEach(p=>{
+    if(!byPlat[p.platform]) byPlat[p.platform]={count:0,totalEng:0};
+    byPlat[p.platform].count++;
+    byPlat[p.platform].totalEng+=p.engRate;
+  });
+  const ranked=Object.entries(byPlat).map(([p,d])=>({platform:p,avg:Math.round(d.totalEng/d.count*10)/10,count:d.count})).sort((a,b)=>b.avg-a.avg);
+  if(!ranked.length){ el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">Add engagement data to posts to see pillar performance ✦</div>'; return; }
+  const maxAvg=Math.max(...ranked.map(r=>r.avg),1);
+  el.innerHTML=ranked.map(r=>{
+    const meta=PLATFORM_META[r.platform]||{};
+    const pct=Math.round(r.avg/maxAvg*100);
+    const col=r.avg>=10?'#3d7a3d':r.avg>=5?'var(--pink-deep)':'#a07820';
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="font-size:12px;min-width:90px;color:var(--text)">${meta.emoji} ${meta.label}</div>
+      <div style="flex:1;height:8px;background:var(--pink-glow);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${col};border-radius:4px"></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${col};min-width:50px;text-align:right">${r.avg}% avg</div>
     </div>`;
   }).join('');
 }
 
+// ── All posts list ──
 function renderAllPosts(){
-  const el=document.getElementById('allPostsList'); if(!el)return;
-  const recent=contentPosts.slice(0,10);
-  if(!recent.length){el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">No posts logged yet ✦</div>';return;}
+  const el=document.getElementById('allPostsList'); if(!el) return;
+  const recent=contentPosts.slice(0,12);
+  if(!recent.length){ el.innerHTML='<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">No posts logged yet ✦</div>'; return; }
   el.innerHTML=recent.map((p,i)=>{
     const pm=PLATFORM_META[p.platform]||{emoji:'🌐',label:'',light:'var(--pink-glow)',color:'var(--pink-deep)'};
-    return `<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;display:flex;gap:14px;align-items:flex-start">
+    const engCol=p.engRate>=10?'#3d7a3d':p.engRate>=5?'var(--pink-deep)':'var(--text-soft)';
+    return `<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;cursor:pointer" onclick="openEditPost(${i})">
       <div style="width:36px;height:36px;border-radius:10px;background:${pm.light};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${pm.emoji}</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px">${p.title}</div>
-        <div style="font-size:12px;color:var(--text-soft)">${p.date} · 👁 ${p.views||0} · ❤️ ${p.likes||0} · 💬 ${p.comments||0} · ${'★'.repeat(p.rating||0)}</div>
-        ${p.notes?`<div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-top:3px">${p.notes}</div>`:''}
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">${p.title}</div>
+        <div style="font-size:11px;color:var(--text-soft)">${p.date} · 👁 ${(p.views||0).toLocaleString()} · ❤️ ${(p.likes||0).toLocaleString()} · 💬 ${(p.comments||0).toLocaleString()}</div>
+        ${p.engRate?`<div style="font-size:11px;font-weight:700;color:${engCol};margin-top:2px">${p.engRate}% engagement</div>`:''}
+        ${p.notes?`<div style="font-size:11px;color:var(--text-mid);font-style:italic;margin-top:2px">${p.notes}</div>`:''}
       </div>
-      <button onclick="openEditPost(${i})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">✎</button>
-      <button onclick="contentPosts.splice(${i},1);renderAllPosts();renderContentStats()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft);padding:3px">🗑</button>
+      <div style="font-size:12px;color:var(--text-soft);flex-shrink:0">✎</div>
     </div>`;
   }).join('');
 }
 
-function renderContentStats(){
-  const weekEl=document.getElementById('weeklyStats'), monEl=document.getElementById('monthlyStats');
-  if(!weekEl||!monEl)return;
-  const today=new Date();
-  const weekStart=new Date(today); weekStart.setDate(today.getDate()-today.getDay());
-  const weekPosts=contentPosts.filter(p=>new Date(p.date)>=weekStart);
-  const monPosts=contentPosts.filter(p=>{const d=new Date(p.date);return d.getMonth()===today.getMonth()&&d.getFullYear()===today.getFullYear();});
+// ── Stub out old functions to avoid errors ──
+function renderContentStats(){ renderContentOverview(); }
+function drawContentCharts(){}
+function drawPlatformPie(){}
+function drawViewsLine(){}
 
-  function statsHTML(posts){
-    if(!posts.length)return '<div style="font-size:13px;color:var(--text-soft);font-style:italic">No posts yet</div>';
-    const byPlat={};
-    posts.forEach(p=>{if(!byPlat[p.platform])byPlat[p.platform]=0;byPlat[p.platform]++;});
-    const totalViews=posts.reduce((a,p)=>a+(p.views||0),0);
-    const totalLikes=posts.reduce((a,p)=>a+(p.likes||0),0);
-    return `<div style="font-size:24px;font-family:'Playfair Display',serif;font-weight:700;color:var(--text);margin-bottom:4px">${posts.length} <span style="font-size:13px;font-family:'Outfit',sans-serif;color:var(--text-soft)">posts</span></div>
-      <div style="font-size:13px;color:var(--text-mid);margin-bottom:10px">👁 ${totalViews.toLocaleString()} views · ❤️ ${totalLikes.toLocaleString()} likes</div>
-      ${Object.entries(byPlat).map(([k,c])=>{const pm=PLATFORM_META[k];return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:13px"><span>${pm?.emoji||'🌐'}</span><span style="color:var(--text)">${pm?.label||k}</span><span style="margin-left:auto;font-weight:700;color:var(--pink-deep)">${c}</span></div>`;}).join('')}`;
-  }
-  weekEl.innerHTML=statsHTML(weekPosts);
-  monEl.innerHTML=statsHTML(monPosts);
-}
-
+// ── Platform panels — platform-specific metrics ──
 function renderPlatformPanel(key){
   const panel=document.getElementById('cpanel-'+key); if(!panel)return;
-  const pm=PLATFORM_META[key];
-  const page=platformPages[key];
+  const pm=PLATFORM_META[key]||{};
+  const page=platformPages[key]||{};
   const posts=contentPosts.filter(p=>p.platform===key);
+  const withEng=posts.filter(p=>p.engRate>0);
+
+  // Platform-specific metric labels
+  const specificMetrics={
+    youtube:  [{key:'ctr',lbl:'Click-through rate',fmt:v=>v+'%'},{key:'retention',lbl:'Avg retention',fmt:v=>v+'%'}],
+    shorts:   [{key:'completion',lbl:'Avg completion',fmt:v=>v+'%'}],
+    tiktok:   [{key:'shares',lbl:'Avg shares',fmt:v=>v.toLocaleString()},{key:'completion',lbl:'Completion',fmt:v=>v+'%'}],
+    instagram:[{key:'saves',lbl:'Avg saves',fmt:v=>v.toLocaleString()},{key:'reach',lbl:'Avg reach',fmt:v=>v.toLocaleString()}],
+  }[key]||[];
+
+  // Compute platform-specific averages
+  const specAvgs=specificMetrics.map(m=>{
+    const vals=posts.map(p=>p[m.key]).filter(v=>v!=null&&v>0);
+    const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+    return {...m, avg};
+  });
+
+  const avgEng=withEng.length?(withEng.reduce((a,p)=>a+p.engRate,0)/withEng.length).toFixed(1):null;
+  const totalViews=posts.reduce((a,p)=>a+(p.views||0),0);
 
   panel.innerHTML=`
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:20px">
-      <div class="card" style="flex:1">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-          <div style="font-size:32px">${pm.emoji}</div>
-          <div>
-            <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">${page.name||pm.label}</div>
-            ${page.about?`<div style="font-size:13px;color:var(--text-mid);font-style:italic">${page.about}</div>`:'<div style="font-size:13px;color:var(--text-soft);font-style:italic">No description yet</div>'}
-          </div>
+    <!-- Page info card -->
+    <div style="background:${pm.light||'var(--pink-glow)'};border:1.5px solid ${pm.color||'var(--pink-deep)'}40;border-radius:20px;padding:18px 20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="font-size:32px">${pm.emoji||'✦'}</div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:700;color:var(--text)">${page.name||pm.label}</div>
+          ${page.about?`<div style="font-size:12px;color:var(--text-mid);font-style:italic">${page.about}</div>`:'<div style="font-size:12px;color:var(--text-soft);font-style:italic">tap Edit to add your page info</div>'}
         </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap">
-          <div style="background:var(--pink-glow);border-radius:12px;padding:10px 16px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--text)">${(page.followers||0).toLocaleString()}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;letter-spacing:1px;text-transform:uppercase">followers</div></div>
-          <div style="background:var(--pink-glow);border-radius:12px;padding:10px 16px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--text)">${posts.length}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;letter-spacing:1px;text-transform:uppercase">posts logged</div></div>
-          ${page.schedule?`<div style="background:var(--pink-glow);border-radius:12px;padding:10px 16px"><div style="font-size:12px;font-weight:600;color:var(--text)">${page.schedule}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;letter-spacing:1px;text-transform:uppercase">posting schedule</div></div>`:''}
-        </div>
-        <button class="pink-pill" style="margin-top:14px;font-size:11px" onclick="openPlatformPageModal('${key}')">✎ Edit Page Info</button>
+        <button style="margin-left:auto;background:none;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;color:var(--text-soft);font-family:'Outfit',sans-serif" onclick="openPlatformPageModal('${key}')">✎ Edit</button>
       </div>
+      <!-- Key stats -->
+      <div style="display:grid;grid-template-columns:repeat(${2+specAvgs.length},1fr);gap:8px">
+        <div style="background:rgba(255,255,255,.7);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;color:var(--text)">${(page.followers||0).toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase">Followers</div>
+        </div>
+        <div style="background:rgba(255,255,255,.7);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;color:${avgEng?pm.color||'var(--pink-deep)':'var(--text-soft)'}">${avgEng?avgEng+'%':'—'}</div>
+          <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase">Avg engagement</div>
+        </div>
+        ${specAvgs.map(m=>`<div style="background:rgba(255,255,255,.7);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;color:${pm.color||'var(--pink-deep)'}">${m.avg!=null?m.fmt(m.avg):'—'}</div>
+          <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase">${m.lbl}</div>
+        </div>`).join('')}
+      </div>
+      ${page.schedule?`<div style="font-size:11px;color:var(--text-mid);margin-top:10px">📅 ${page.schedule}</div>`:''}
     </div>
 
+    <!-- Top posts for this platform -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div class="section-label" style="margin-bottom:0">Posts on ${pm.label}</div>
-      <button class="pink-btn" onclick="openPostModal('${key}')">＋ Log Post</button>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft)">Posts on ${pm.label}</div>
+      <button class="pink-btn" style="font-size:11px;padding:7px 14px" onclick="openPostModal('${key}')">＋ Log post</button>
     </div>
-    ${posts.length?posts.map((p,gi)=>{
+    ${posts.length?[...posts].sort((a,b)=>b.engRate-a.engRate).map(p=>{
       const realIdx=contentPosts.indexOf(p);
-      return `<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div style="font-size:14px;font-weight:700;color:var(--text)">${p.title}</div>
-          <div style="display:flex;gap:6px">
-            <button onclick="openEditPost(${realIdx})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">✎</button>
-            <button onclick="contentPosts.splice(${realIdx},1);renderPlatformPanel('${key}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
-          </div>
+      const engCol=p.engRate>=10?'#3d7a3d':p.engRate>=5?'var(--pink-deep)':'var(--text-soft)';
+      return `<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:8px;cursor:pointer" onclick="openEditPost(${realIdx})">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${p.title}</div>
+          ${p.engRate?`<span style="font-size:11px;font-weight:700;color:${engCol}">${p.engRate}%</span>`:''}
         </div>
-        <div style="font-size:12px;color:var(--text-soft);margin-bottom:4px">${p.date} · ${'★'.repeat(p.rating||0)}</div>
-        <div style="display:flex;gap:16px;font-size:13px;color:var(--text-mid)"><span>👁 ${(p.views||0).toLocaleString()}</span><span>❤️ ${(p.likes||0).toLocaleString()}</span><span>💬 ${(p.comments||0).toLocaleString()}</span></div>
-        ${p.notes?`<div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-top:6px">${p.notes}</div>`:''}
+        <div style="font-size:11px;color:var(--text-soft);margin-bottom:4px">${p.date} · 👁 ${(p.views||0).toLocaleString()} · ❤️ ${(p.likes||0).toLocaleString()} · 💬 ${(p.comments||0).toLocaleString()}${p.saves?` · 🔖 ${p.saves}`:''}</div>
+        ${p.notes?`<div style="font-size:11px;color:var(--text-mid);font-style:italic">${p.notes}</div>`:''}
       </div>`;
-    }).join(''):'<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">No posts logged yet for '+pm.label+' ✦</div>'}
+    }).join(''):`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">No posts logged yet for ${pm.label} ✦</div>`}
   `;
 }
 
@@ -11438,24 +12234,39 @@ function openContentIdeaModal(){
 }
 function saveContentIdea(){
   const text=document.getElementById('ideaText').value.trim(); if(!text)return;
-  contentIdeas.unshift({text,platform:document.getElementById('ideaPlatform').value,notes:document.getElementById('ideaNotes').value.trim(),done:false});
-  closeModal('contentIdeaModal'); renderContentIdeas(); scheduleSave();
+  const stage=window._ideaPresetStage||'idea';
+  window._ideaPresetStage=null;
+  contentIdeas.unshift({text,platform:document.getElementById('ideaPlatform').value,notes:document.getElementById('ideaNotes').value.trim(),done:false,stage});
+  closeModal('contentIdeaModal');
+  renderContentIdeas();
+  scheduleSave();
 }
 
 function openPostModal(platform){
   postEditIdx=-1; postRating=0; updateStars('postStars',0);
-  document.getElementById('postModalTitle').textContent='Log Post.';
+  document.getElementById('postModalTitle').textContent='Log Post ✦';
   document.getElementById('postDeleteBtn').style.display='none';
-  document.getElementById('postTitle').value=''; document.getElementById('postViews').value=''; document.getElementById('postLikes').value=''; document.getElementById('postComments').value=''; document.getElementById('postNotes').value='';
+  document.getElementById('postCalItemId').value='';
+  document.getElementById('postFromCalBanner').style.display='none';
+  document.getElementById('postTitle').value='';
+  document.getElementById('postViews').value='';
+  document.getElementById('postLikes').value='';
+  document.getElementById('postComments').value='';
+  document.getElementById('postNotes').value='';
+  document.getElementById('postEngRate').style.display='none';
   document.getElementById('postDate').value=isoDate(now);
   if(platform) document.getElementById('postPlatform').value=platform;
+  updatePostPlatformFields();
   openModal('postModal');
 }
 function openEditPost(i){
+  if(i<0||i>=contentPosts.length) return;
   postEditIdx=i; const p=contentPosts[i];
   postRating=p.rating||0; updateStars('postStars',postRating);
-  document.getElementById('postModalTitle').textContent='Edit Post.';
+  document.getElementById('postModalTitle').textContent='Edit analytics ✦';
   document.getElementById('postDeleteBtn').style.display='inline-flex';
+  document.getElementById('postCalItemId').value=p.calItemId||'';
+  document.getElementById('postFromCalBanner').style.display=p.calItemId?'block':'none';
   document.getElementById('postPlatform').value=p.platform;
   document.getElementById('postTitle').value=p.title;
   document.getElementById('postDate').value=p.date;
@@ -11463,16 +12274,55 @@ function openEditPost(i){
   document.getElementById('postLikes').value=p.likes||'';
   document.getElementById('postComments').value=p.comments||'';
   document.getElementById('postNotes').value=p.notes||'';
+  updatePostPlatformFields();
+  updateEngagementRate();
   openModal('postModal');
 }
 function savePost(){
   const title=document.getElementById('postTitle').value.trim(); if(!title)return;
-  const post={platform:document.getElementById('postPlatform').value,title,date:document.getElementById('postDate').value,views:parseInt(document.getElementById('postViews').value)||0,likes:parseInt(document.getElementById('postLikes').value)||0,comments:parseInt(document.getElementById('postComments').value)||0,notes:document.getElementById('postNotes').value.trim(),rating:postRating};
-  if(postEditIdx>=0)contentPosts[postEditIdx]=post; else { contentPosts.unshift(post); awardXP(6,'Post logged 📱'); checkAchievement('content_first_post'); if(contentPosts.length>=10)checkAchievement('content_10posts'); if(contentPosts.length>=25)checkAchievement('content_25posts'); if(contentPosts.length>=50)checkAchievement('content_50posts'); if(post.views>=1000)checkAchievement('content_1k_views'); if(post.views>=10000)checkAchievement('content_10k_views'); if(post.rating===5)checkAchievement('content_5star_post'); }
+  const plat=document.getElementById('postPlatform').value;
+  const calItemId=document.getElementById('postCalItemId').value||null;
+  const post={
+    platform:plat, title, date:document.getElementById('postDate').value,
+    views:parseInt(document.getElementById('postViews').value)||0,
+    likes:parseInt(document.getElementById('postLikes').value)||0,
+    comments:parseInt(document.getElementById('postComments').value)||0,
+    notes:document.getElementById('postNotes').value.trim(),
+    rating:postRating, calItemId,
+    engRate:0,
+    // Platform-specific
+    ctr:parseFloat(document.getElementById('postCTR')?.value)||null,
+    retention:parseInt(document.getElementById('postRetention')?.value)||null,
+    shares:parseInt(document.getElementById('postShares')?.value)||null,
+    completion:parseInt(document.getElementById('postCompletion')?.value)||null,
+    saves:parseInt(document.getElementById('postSaves')?.value)||null,
+    reach:parseInt(document.getElementById('postReach')?.value)||null,
+  };
+  // Calculate engagement rate
+  if(post.views) post.engRate=Math.round((post.likes+post.comments)/post.views*1000)/10;
+
+  // Check if this is linked to a calendar item — update by calItemId not array index
+  const existingByCalItem = calItemId ? contentPosts.findIndex(p=>p.calItemId===calItemId) : -1;
+  const editIdx = existingByCalItem>=0 ? existingByCalItem : (postEditIdx>=0?postEditIdx:-1);
+
+  if(editIdx>=0){ contentPosts[editIdx]=post; }
+  else {
+    contentPosts.unshift(post);
+    awardXP(6,'Analytics logged 📊');
+    checkAchievement('content_first_post');
+    if(contentPosts.length>=10) checkAchievement('content_10posts');
+    if(contentPosts.length>=25) checkAchievement('content_25posts');
+    if(contentPosts.length>=50) checkAchievement('content_50posts');
+    if(post.views>=1000) checkAchievement('content_1k_views');
+    if(post.views>=10000) checkAchievement('content_10k_views');
+    if(post.rating===5) checkAchievement('content_5star_post');
+  }
   closeModal('postModal');
   renderContentOverview(); scheduleSave();
   const activePlatBtn=document.querySelector('#contentPlatformTabs .ritual-tab.active');
-  if(activePlatBtn){const key=activePlatBtn.getAttribute('onclick').match(/'([^']+)'\)$/)?.[1]; if(key&&key!=='overview')renderPlatformPanel(key);}
+  if(activePlatBtn){ const key=activePlatBtn.getAttribute('onclick').match(/'([^']+)'\)$/)?.[1]; if(key&&key!=='overview'&&key!=='calendar')renderPlatformPanel(key); }
+  renderContentCalendar();
+  showToast(post.engRate>0?`${post.engRate}% engagement ✦`:'Analytics saved ✦');
 }
 function deletePost(){
   if(postEditIdx>=0)contentPosts.splice(postEditIdx,1);
@@ -11494,6 +12344,407 @@ function savePlatformPage(){
   const key=document.getElementById('platModalKey').value;
   platformPages[key]={name:document.getElementById('platName').value.trim(),about:document.getElementById('platAbout').value.trim(),followers:parseInt(document.getElementById('platFollowers').value)||0,schedule:document.getElementById('platSchedule').value.trim()};
   closeModal('platformPageModal'); renderPlatformPanel(key);
+}
+
+// ═══════════════════ CONTENT CALENDAR ═══════════════════
+let contentCalendar = []; // [{id,date,platform,format,title,concept,status,calEventId}]
+let _ccView    = 'week';
+let _ccOffset  = 0;       // week offset (week view) or month offset (month view)
+let _ccFilter  = 'all';
+let _ccEditId  = null;
+let _csPlatform= null, _csFormat=null, _csStatus='idea';
+
+const CC_STATUS = {
+  idea:    {label:'Idea',          emoji:'💡', col:'#a07820', bg:'#fff8e0', border:'#e0c060'},
+  filming: {label:'Filming',       emoji:'🎥', col:'#4060a0', bg:'#f0f4ff', border:'#a0b0e0'},
+  editing: {label:'Editing',       emoji:'✂️', col:'#7040a0', bg:'#f8f0ff', border:'#c0a0e0'},
+  ready:   {label:'Ready to post', emoji:'✅', col:'#2a6a2a', bg:'#eef7ee', border:'#a0d0a0'},
+  posted:  {label:'Posted',        emoji:'🚀', col:'var(--text-soft)', bg:'var(--border)', border:'var(--border)'},
+};
+const CC_FORMAT = {
+  long:  {label:'Long form',       emoji:'🎬'},
+  short: {label:'Short form',      emoji:'⚡'},
+  photo: {label:'Photo/Carousel',  emoji:'📸'},
+  story: {label:'Story/Live',      emoji:'💫'},
+};
+
+function setContentCalView(v){
+  _ccView=v; _ccOffset=0;
+  ['ccViewWeek','ccViewMonth'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  document.getElementById(v==='week'?'ccViewWeek':'ccViewMonth')?.classList.add('active');
+  renderContentCalendar();
+}
+
+function contentCalNav(dir){ _ccOffset+=dir; renderContentCalendar(); }
+
+function toggleCCFilter(btn,f){
+  _ccFilter=f;
+  document.querySelectorAll('#ccPlatformFilters button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderContentCalendar();
+}
+
+function _ccFiltered(){
+  return _ccFilter==='all' ? contentCalendar : contentCalendar.filter(e=>e.platform===_ccFilter);
+}
+
+function renderContentCalendar(){
+  _renderCCNav();
+  if(_ccView==='week') _renderCCWeek();
+  else _renderCCMonth();
+  _renderCCUpcoming();
+}
+
+function _renderCCNav(){
+  const el=document.getElementById('ccNavLabel'); if(!el) return;
+  const today=new Date();
+  if(_ccView==='week'){
+    const d=new Date(today); d.setDate(today.getDate()-today.getDay()+1+_ccOffset*7);
+    const end=new Date(d); end.setDate(d.getDate()+6);
+    el.textContent=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+end.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  } else {
+    const d=new Date(today.getFullYear(), today.getMonth()+_ccOffset, 1);
+    el.textContent=d.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  }
+}
+
+function _renderCCWeek(){
+  const el=document.getElementById('ccGrid'); if(!el) return;
+  const today=new Date();
+  const monday=new Date(today); monday.setDate(today.getDate()-today.getDay()+1+_ccOffset*7);
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d; });
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const filtered=_ccFiltered();
+
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+    ${days.map((d,i)=>{
+      const ds=d.toISOString().slice(0,10);
+      const isToday=ds===new Date().toISOString().slice(0,10);
+      const dayItems=filtered.filter(e=>e.date===ds);
+      // Also show logged posts for this day
+      const loggedPosts=contentPosts.filter(p=>p.date===ds);
+      return `<div style="min-height:100px;background:${isToday?'var(--pink-glow)':'white'};border:1.5px solid ${isToday?'var(--pink-deep)':'var(--border)'};border-radius:12px;padding:8px">
+        <div style="font-size:10px;font-weight:700;color:${isToday?'var(--pink-deep)':'var(--text-soft)'};margin-bottom:6px">${dayNames[i]}<br><span style="font-size:14px;color:${isToday?'var(--pink-deep)':'var(--text)'}">${d.getDate()}</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${dayItems.map(e=>`
+            <div onclick="openContentScheduleModal('${e.id}')" style="background:${PLATFORM_META[e.platform]?.light||'var(--pink-glow)'};border-left:3px solid ${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'};border-radius:6px;padding:4px 6px;cursor:pointer;transition:opacity .15s" title="${e.title}">
+              <div style="font-size:9px;font-weight:700;color:${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'}">
+                ${PLATFORM_META[e.platform]?.emoji||'✦'} ${CC_FORMAT[e.format]?.emoji||''}
+                <span style="float:right">${CC_STATUS[e.status]?.emoji||''}</span>
+              </div>
+              <div style="font-size:10px;color:var(--text);font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%">${e.title}</div>
+            </div>`).join('')}
+          ${loggedPosts.map(p=>{
+            const calItem=contentCalendar.find(c=>c.calItemId===p.calItemId||c.title===p.title&&c.date===ds);
+            const calId=calItem?.id||'';
+            return `<div onclick="${calId?`openPostAnalytics('${calId}')`:`openEditPost(contentPosts.indexOf(contentPosts.find(x=>x.title==='${p.title.replace(/'/g,"\\'")}')))`}" style="background:#e8f8e8;border-left:3px solid #6ab88a;border-radius:6px;padding:4px 6px;cursor:pointer;" title="${p.title} — tap to edit analytics">
+              <div style="font-size:9px;font-weight:700;color:#3d7a3d">${PLATFORM_META[p.platform]?.emoji||''} 🚀 ${p.engRate?p.engRate+'% eng':''}</div>
+              <div style="font-size:10px;color:#2a5a2a;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.title}</div>
+            </div>`;
+          }).join('')}
+          <div onclick="openContentScheduleModal(null,'${ds}')" style="font-size:11px;color:var(--text-soft);cursor:pointer;text-align:center;padding:3px;border:1px dashed var(--border);border-radius:6px;margin-top:2px">＋</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function _renderCCMonth(){
+  const el=document.getElementById('ccGrid'); if(!el) return;
+  const today=new Date();
+  const ref=new Date(today.getFullYear(), today.getMonth()+_ccOffset, 1);
+  const year=ref.getFullYear(), month=ref.getMonth();
+  const firstDay=new Date(year,month,1).getDay(); // 0=Sun
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const startOffset=(firstDay+6)%7; // make Mon=0
+  const todayStr=today.toISOString().slice(0,10);
+  const filtered=_ccFiltered();
+
+  let cells='';
+  // Day name headers
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{ cells+=`<div style="font-size:10px;font-weight:700;color:var(--text-soft);text-align:center;padding-bottom:6px">${d}</div>`; });
+  // Empty cells before first day
+  for(let i=0;i<startOffset;i++) cells+=`<div></div>`;
+  // Day cells
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===todayStr;
+    const dayItems=filtered.filter(e=>e.date===ds);
+    const posted=contentPosts.filter(p=>p.date===ds).length;
+    cells+=`<div onclick="openContentScheduleModal(null,'${ds}')" style="min-height:72px;background:${isToday?'var(--pink-glow)':'white'};border:1.5px solid ${isToday?'var(--pink-deep)':'var(--border)'};border-radius:10px;padding:6px;cursor:pointer;transition:background .15s">
+      <div style="font-size:11px;font-weight:700;color:${isToday?'var(--pink-deep)':'var(--text)'};margin-bottom:4px">${d}</div>
+      ${dayItems.slice(0,3).map(e=>`<div style="font-size:9px;background:${PLATFORM_META[e.platform]?.light||'var(--pink-glow)'};border-radius:4px;padding:2px 5px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:${PLATFORM_META[e.platform]?.color||'var(--text)'}">
+        ${PLATFORM_META[e.platform]?.emoji||''} ${CC_STATUS[e.status]?.emoji||''} ${e.title}
+      </div>`).join('')}
+      ${dayItems.length>3?`<div style="font-size:8px;color:var(--text-soft)">+${dayItems.length-3} more</div>`:''}
+      ${posted?`<div style="font-size:9px;color:#3d7a3d;font-weight:700">🚀 ${posted} posted</div>`:''}
+    </div>`;
+  }
+
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">${cells}</div>`;
+}
+
+function _renderCCUpcoming(){
+  const el=document.getElementById('ccUpcomingList'); if(!el) return;
+  const todayStr=new Date().toISOString().slice(0,10);
+  const upcoming=_ccFiltered()
+    .filter(e=>e.date>=todayStr && e.status!=='posted')
+    .sort((a,b)=>a.date>b.date?1:-1)
+    .slice(0,10);
+
+  if(!upcoming.length){
+    el.innerHTML=`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:12px 0">Nothing scheduled yet — tap ＋ Schedule to add ✦</div>`;
+    return;
+  }
+  el.innerHTML=upcoming.map(e=>{
+    const meta=PLATFORM_META[e.platform]||{};
+    const status=CC_STATUS[e.status]||CC_STATUS.idea;
+    const fmt=CC_FORMAT[e.format]||{emoji:'',label:''};
+    const daysUntil=Math.ceil((new Date(e.date+' 12:00')-new Date())/(1000*60*60*24));
+    const dueLbl=daysUntil===0?'Today':daysUntil===1?'Tomorrow':`In ${daysUntil} days`;
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div onclick="openContentScheduleModal('${e.id}')" style="width:42px;height:42px;border-radius:12px;background:${meta.light||'var(--pink-glow)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer">${meta.emoji||'✦'}</div>
+      <div style="flex:1;cursor:pointer" onclick="openContentScheduleModal('${e.id}')">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">${e.title}</span>
+          <span style="background:${status.bg};color:${status.col};border:1px solid ${status.border};border-radius:20px;font-size:10px;font-weight:700;padding:2px 8px">${status.emoji} ${status.label}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-soft)">${meta.label||''} · ${fmt.emoji} ${fmt.label} · ${new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div>
+        ${e.concept?`<div style="font-size:11px;color:var(--text-mid);font-style:italic;margin-top:3px">${e.concept}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        <div style="font-size:11px;font-weight:700;color:${daysUntil<=3?'var(--pink-deep)':'var(--text-soft)'};white-space:nowrap">${dueLbl}</div>
+        <button onclick="markContentPosted('${e.id}')" style="width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:white;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0" title="Mark as posted" onmouseover="this.style.borderColor='var(--pink-deep)';this.style.background='var(--pink-glow)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='white'">🚀</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function markContentPosted(id){
+  const e=contentCalendar.find(x=>x.id===id); if(!e) return;
+  e.status='posted';
+  if(e.calEventId!=null && calEvents[e.calEventId]) calEvents[e.calEventId].done=true;
+  scheduleSave();
+  awardXP(10,'Posted! 🚀');
+  renderContentCalendar();
+  try{ buildCalendar(); }catch(err){}
+  _showPostedCelebration(e);
+  // After celebration dismisses, open analytics modal pre-filled from calendar item
+  setTimeout(()=>openPostFromCalendar(id), 300);
+}
+
+function openPostFromCalendar(calItemId){
+  const e=contentCalendar.find(x=>x.id===calItemId); if(!e) return;
+  // Check if a post already exists for this calendar item
+  const existing=contentPosts.findIndex(p=>p.calItemId===calItemId);
+  postEditIdx=existing; postRating=existing>=0?(contentPosts[existing].rating||0):0;
+  updateStars('postStars',postRating);
+  document.getElementById('postModalTitle').textContent='Add analytics ✦';
+  document.getElementById('postDeleteBtn').style.display=existing>=0?'inline-flex':'none';
+  document.getElementById('postCalItemId').value=calItemId;
+  document.getElementById('postFromCalBanner').style.display='block';
+  // Pre-fill from calendar item
+  document.getElementById('postPlatform').value=e.platform;
+  document.getElementById('postTitle').value=e.title;
+  document.getElementById('postDate').value=e.date;
+  // Fill existing analytics if updating
+  if(existing>=0){
+    const p=contentPosts[existing];
+    document.getElementById('postViews').value=p.views||'';
+    document.getElementById('postLikes').value=p.likes||'';
+    document.getElementById('postComments').value=p.comments||'';
+    document.getElementById('postNotes').value=p.notes||'';
+  } else {
+    document.getElementById('postViews').value='';
+    document.getElementById('postLikes').value='';
+    document.getElementById('postComments').value='';
+    document.getElementById('postNotes').value='';
+  }
+  updatePostPlatformFields();
+  updateEngagementRate();
+  openModal('postModal');
+}
+
+function openPostAnalytics(calItemId){
+  // Tap on a posted block in the calendar — opens analytics for that item
+  openPostFromCalendar(calItemId);
+}
+
+// Platform-specific analytics fields
+function updatePostPlatformFields(){
+  const plat=document.getElementById('postPlatform')?.value||'';
+  const el=document.getElementById('postPlatformFields'); if(!el) return;
+  const fields={
+    youtube:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" class="form-row">
+      <div><label class="form-label" style="font-size:11px">Click-through rate (%)</label><input class="text-input" type="number" id="postCTR" placeholder="e.g. 4.2" step="0.1"></div>
+      <div><label class="form-label" style="font-size:11px">Avg retention (%)</label><input class="text-input" type="number" id="postRetention" placeholder="e.g. 62" step="1"></div>
+    </div>`,
+    shorts:`<div class="form-row"><label class="form-label" style="font-size:11px">Avg completion (%)</label><input class="text-input" type="number" id="postCompletion" placeholder="e.g. 78" style="max-width:140px" step="1"></div>`,
+    tiktok:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" class="form-row">
+      <div><label class="form-label" style="font-size:11px">Shares</label><input class="text-input" type="number" id="postShares" placeholder="0"></div>
+      <div><label class="form-label" style="font-size:11px">Completion (%)</label><input class="text-input" type="number" id="postCompletion" placeholder="e.g. 78" step="1"></div>
+    </div>`,
+    instagram:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" class="form-row">
+      <div><label class="form-label" style="font-size:11px">Saves</label><input class="text-input" type="number" id="postSaves" placeholder="0"></div>
+      <div><label class="form-label" style="font-size:11px">Reach</label><input class="text-input" type="number" id="postReach" placeholder="0"></div>
+    </div>`,
+  };
+  el.innerHTML=fields[plat]||'';
+  // Restore platform-specific values if editing
+  if(postEditIdx>=0){
+    const p=contentPosts[postEditIdx];
+    if(plat==='youtube'){ if(document.getElementById('postCTR')) document.getElementById('postCTR').value=p.ctr||''; if(document.getElementById('postRetention')) document.getElementById('postRetention').value=p.retention||''; }
+    if(plat==='tiktok'||plat==='shorts'){ if(document.getElementById('postCompletion')) document.getElementById('postCompletion').value=p.completion||''; if(document.getElementById('postShares')) document.getElementById('postShares').value=p.shares||''; }
+    if(plat==='instagram'){ if(document.getElementById('postSaves')) document.getElementById('postSaves').value=p.saves||''; if(document.getElementById('postReach')) document.getElementById('postReach').value=p.reach||''; }
+  }
+}
+
+function updateEngagementRate(){
+  const views=parseInt(document.getElementById('postViews')?.value)||0;
+  const likes=parseInt(document.getElementById('postLikes')?.value)||0;
+  const comments=parseInt(document.getElementById('postComments')?.value)||0;
+  const el=document.getElementById('postEngRate'); if(!el) return;
+  if(!views){ el.style.display='none'; return; }
+  const rate=((likes+comments)/views*100).toFixed(1);
+  const col=parseFloat(rate)>=10?'#3d7a3d':parseFloat(rate)>=5?'var(--pink-deep)':'#a07820';
+  const label=parseFloat(rate)>=10?'🔥 Excellent engagement':parseFloat(rate)>=5?'✦ Good engagement':'needs more hooks';
+  el.style.display='block';
+  el.style.color=col;
+  el.style.background=parseFloat(rate)>=10?'#eef7ee':parseFloat(rate)>=5?'var(--pink-glow)':'#fff8e0';
+  el.textContent=`${rate}% engagement rate — ${label}`;
+}
+
+function _showPostedCelebration(e){
+  const meta=PLATFORM_META[e.platform]||{};
+  const msgs=[
+    'You made something and put it out. That\'s it. That\'s the whole thing.',
+    'She films. She edits. She posts. She is that girl.',
+    'Most people don\'t post. You did.',
+    'One more piece of your story told.',
+    'Content out. That girl energy: confirmed.',
+    'You showed up for your creative self today.',
+  ];
+  const msg=msgs[Math.floor(Math.random()*msgs.length)];
+
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(60,20,40,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .25s ease';
+  overlay.innerHTML=`
+    <div style="background:linear-gradient(135deg,#1a0a14,#2a1020);border-radius:28px;padding:36px 32px;max-width:360px;width:100%;text-align:center;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.5)">
+      <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:40px">🚀</div>
+      <div style="font-size:14px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(240,160,192,.5);margin-bottom:12px;margin-top:8px">${meta.emoji||'✦'} ${meta.label||'Posted'}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:28px;font-style:italic;font-weight:700;color:#fce8f4;margin-bottom:8px;line-height:1.2">${e.title}</div>
+      <div style="height:1px;background:rgba(240,160,192,.15);margin:16px 0"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:#fce8f4;margin-bottom:6px">I am that girl. ✦</div>
+      <div style="font-size:13px;color:rgba(240,160,192,.7);line-height:1.6;margin-bottom:24px">${msg}</div>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--pink-deep),#c060a0);color:white;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(200,80,140,.4)">Keep going ✦</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+// ── Modal ──
+function openContentScheduleModal(id, prefillDate){
+  _ccEditId=id||null;
+  _csPlatform=null; _csFormat=null; _csStatus='idea';
+
+  // Reset chips
+  document.querySelectorAll('#csPlatformChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#csFormatChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#csStatusChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#csStatusChips [data-st="idea"]')?.classList.add('active');
+
+  const title=document.getElementById('contentScheduleTitle');
+  const delBtn=document.getElementById('csDeleteBtn');
+
+  if(id){
+    const e=contentCalendar.find(x=>x.id===id); if(!e) return;
+    title.textContent='Edit Scheduled Upload';
+    if(delBtn) delBtn.style.display='inline-flex';
+    document.getElementById('csDate').value=e.date;
+    document.getElementById('csTitle').value=e.title;
+    document.getElementById('csConcept').value=e.concept||'';
+    document.getElementById('csAddToCalendar').checked=!!e.calEventId;
+    _csPlatform=e.platform; _csFormat=e.format; _csStatus=e.status||'idea';
+    // Activate chips
+    document.querySelector(`#csPlatformChips [data-p="${e.platform}"]`)?.classList.add('active');
+    document.querySelector(`#csFormatChips [data-fmt="${e.format}"]`)?.classList.add('active');
+    document.querySelector(`#csStatusChips [data-st="${e.status||'idea'}"]`)?.classList.remove('active');
+    document.querySelectorAll('#csStatusChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+    document.querySelector(`#csStatusChips [data-st="${e.status||'idea'}"]`)?.classList.add('active');
+  } else {
+    title.textContent='Schedule Upload ✦';
+    if(delBtn) delBtn.style.display='none';
+    document.getElementById('csDate').value=prefillDate||new Date().toISOString().slice(0,10);
+    document.getElementById('csTitle').value='';
+    document.getElementById('csConcept').value='';
+    document.getElementById('csAddToCalendar').checked=true;
+  }
+  openModal('contentScheduleModal');
+}
+
+function setCsPlatform(btn, p){
+  document.querySelectorAll('#csPlatformChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); _csPlatform=p;
+}
+function setCsFormat(btn, f){
+  document.querySelectorAll('#csFormatChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); _csFormat=f;
+}
+function setCsStatus(btn, s){
+  document.querySelectorAll('#csStatusChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); _csStatus=s;
+}
+
+function saveContentSchedule(){
+  const date=document.getElementById('csDate').value;
+  const title=document.getElementById('csTitle').value.trim();
+  if(!date){ showToast('Pick a date ✦'); return; }
+  if(!title){ showToast('Add a title or idea ✦'); return; }
+  if(!_csPlatform){ showToast('Pick a platform ✦'); return; }
+
+  const addToCal=document.getElementById('csAddToCalendar').checked;
+  const existing=_ccEditId?contentCalendar.find(x=>x.id===_ccEditId):null;
+
+  const entry={
+    id:existing?.id||_genId(),
+    date, platform:_csPlatform,
+    format:_csFormat||'long',
+    title,
+    concept:document.getElementById('csConcept').value.trim(),
+    status:_csStatus||'idea',
+    calEventId:existing?.calEventId||null,
+    createdAt:existing?.createdAt||new Date().toISOString(),
+  };
+
+  // Sync to main calendar
+  if(addToCal){
+    const meta=PLATFORM_META[_csPlatform]||{};
+    const calEntry={title:`${meta.emoji||'✦'} ${title}`,date,cat:'Content',color:meta.color||'var(--pink-deep)',done:entry.status==='posted',time:''};
+    if(entry.calEventId!=null){
+      const idx=calEvents.findIndex((_,i)=>i===entry.calEventId);
+      if(idx>=0) calEvents[idx]=calEntry; else { calEvents.push(calEntry); entry.calEventId=calEvents.length-1; }
+    } else { calEvents.push(calEntry); entry.calEventId=calEvents.length-1; }
+    try{ buildCalendar(); }catch(e){}
+  }
+
+  if(existing){ const idx=contentCalendar.findIndex(x=>x.id===_ccEditId); contentCalendar[idx]=entry; }
+  else { contentCalendar.unshift(entry); awardXP(3,'Content scheduled 📅'); }
+
+  closeModal('contentScheduleModal');
+  scheduleSave();
+  renderContentCalendar();
+  showToast('Scheduled ✦');
+}
+
+function deleteContentSchedule(){
+  if(!_ccEditId) return;
+  const e=contentCalendar.find(x=>x.id===_ccEditId);
+  if(e?.calEventId!=null) calEvents.splice(e.calEventId,1);
+  contentCalendar=contentCalendar.filter(x=>x.id!==_ccEditId);
+  closeModal('contentScheduleModal');
+  scheduleSave();
+  renderContentCalendar();
+  try{ buildCalendar(); }catch(e){}
 }
 
 // ═══════════════════ PRODUCTIVITY ═══════════════════
@@ -14498,126 +15749,289 @@ function exportMonthlyResetSummary(){
 // ══════════════════════════════════════════════
 // DETAILED WEEKLY RESET
 // ══════════════════════════════════════════════
-const RESET_STEPS = [
-  {
-    section:'🔍 Review', emoji:'🔍',
-    title:'Reflect on last week',
-    desc:'What went well? What drained you? Where did you lose time or energy?',
-    hasNote:true, notePlaceholder:'My honest thoughts about this week…'
-  },
-  {
-    section:'💰 Finance', emoji:'💰',
-    title:'Check your finances',
-    desc:'Open the Finance tab. Did you stay in budget? Any impulse purchases to learn from?',
-    hasNote:true, notePlaceholder:'What I spent, what I noticed…'
-  },
-  {
-    section:'📚 Academic', emoji:'📚',
-    title:'Review academic progress',
-    desc:'Check your grades, upcoming deadlines, and countdowns. Are you on track?',
-    hasNote:true, notePlaceholder:'What needs attention this week academically…'
-  },
-  {
-    section:'🗓 Planning', emoji:'🗓',
-    title:'Plan the week ahead',
-    desc:'Block your study sessions, gym time, and rest. Non-negotiables go in first.',
-    hasNote:false
-  },
-  {
-    section:'🍽 Body', emoji:'🍽',
-    title:'Meal prep intention',
-    desc:'What will you eat this week? Plan 3 dinners to avoid decision fatigue.',
-    hasNote:true, notePlaceholder:'Meals I want to make this week…'
-  },
-  {
-    section:'🏋️ Movement', emoji:'🏋️',
-    title:'Set your gym schedule',
-    desc:'Which days will you train? Make it a decision now, not in the moment.',
-    hasNote:false
-  },
-  {
-    section:'✨ Space', emoji:'✨',
-    title:'Clear your physical space',
-    desc:'Tidy your desk, room, and bag. Clear space = clear mind.',
-    hasNote:false
-  },
-  {
-    section:'📵 Digital', emoji:'📵',
-    title:'Digital detox',
-    desc:'Archive old chats. Clear your camera roll. Delete apps you regret having.',
-    hasNote:false
-  },
-  {
-    section:'🧘 Wellness', emoji:'🧘',
-    title:'Wellness check-in',
-    desc:'How is your body? Sleep, energy, stress? Any patterns from the illness log?',
-    hasNote:true, notePlaceholder:'How my body has been this week…'
-  },
-  {
-    section:'💅 Self-care', emoji:'💅',
-    title:'Skincare & self-care reset',
-    desc:'Restock anything empty. Set your pamper intention for the week.',
-    hasNote:false
-  },
-  {
-    section:'🎯 Intentions', emoji:'🎯',
-    title:'Set your 3 weekly intentions',
-    desc:'Not a to-do list — 3 qualities or feelings you want to embody this week.',
-    hasNote:true, notePlaceholder:'This week I want to feel / be…'
-  },
-  {
-    section:'✍️ Journal', emoji:'✍️',
-    title:'Free journal: What do I want this week to feel like?',
-    desc:'One paragraph. Just vibes, no pressure.',
-    hasNote:true, notePlaceholder:'This week I want it to feel like…'
-  },
-  {
-    section:'💫 Affirmation', emoji:'💫',
-    title:'Write your affirmation for the week',
-    desc:'One bold sentence. Pin it somewhere you\'ll see it.',
-    hasNote:true, notePlaceholder:'This week I am…'
-  },
-];
-let resetDone = new Set();
-let resetNotes = {};
-let monthlyResetDone = new Set();
+// ══════════════════════════════════════════════
+// SUNDAY RESET — full rebuild
+// ══════════════════════════════════════════════
+
+// Data
+let srVersion       = null;
+let srPhasesDone    = new Set();
+let srNotes         = {};
+let srWeekStarted   = null;
+let monthlyResetDone  = new Set();
 let monthlyResetNotes = {};
+let srMorningItems  = [       // User's editable morning checklist
+  {text:'Bathroom clean', done:false},
+  {text:'Vacuum floor', done:false},
+  {text:'Laundry', done:false},
+  {text:'Clean headphones, iPad, nails, desk, bag, empty pockets', done:false},
+  {text:'Spray room w bug spray before grocery shopping', done:false},
+];
+let srDigitalItems  = [       // User's editable digital checklist
+  {text:'Clear camera roll / screenshots', done:false},
+  {text:'Archive WhatsApp chats', done:false},
+  {text:'Clear downloads folder', done:false},
+  {text:'Delete apps you regret having', done:false},
+  {text:'Clear email inbox', done:false},
+  {text:'Tidy notes app', done:false},
+];
+let _srSaveTimer = null;
+let _srEditorType = null; // 'morning' | 'digital'
+let _srEditorItems = [];  // working copy while editing
+
+// Question sets per version
+const SR_QUESTIONS = {
+  strong: {
+    q1: 'What made this week work?',
+    q1p: 'not what you achieved — what conditions produced it',
+    q2: 'One moment that felt genuinely like you.',
+    q2p: 'specific and real',
+    q3: 'What do you want more of next week?',
+    q3p: '',
+    decideQ1: 'What are your three non-negotiables this week?',
+    decideQ1p: 'the things that have to happen for the week to count',
+    decideQ2: 'What do you want to protect this week?',
+    decideQ2p: 'a morning, rest time, creative space — name it specifically',
+    open: 'Who showed up this week — and is she who you want to bring into next week?',
+  },
+  rebuild: {
+    q1: 'What actually happened this week — be honest, no edits.',
+    q1p: 'no performance, just what was real',
+    q2: 'One moment that was okay, even in a hard week.',
+    q2p: 'even tiny',
+    q3: 'What cost more energy than it was worth?',
+    q3p: 'not what went wrong — what drained you disproportionately',
+    decideQ1: 'One non-negotiable to anchor next week.',
+    decideQ1p: 'just one. the thing that will make the week feel like yours',
+    decideQ2: 'One thing you\'re choosing to let go of.',
+    decideQ2p: 'a standard, a worry, a task that isn\'t actually important',
+    open: 'Who do you want to be this week — not what you want to do, who you want to be?',
+  }
+};
+
+const TOTAL_PHASES = 6; // close, clearMorning, clearDigital, understand, decide, open
+
 function renderWeeklyReset(){
-  const el = document.getElementById('weeklyResetChecklist'); if(!el) return;
-  const done = resetDone.size, total = RESET_STEPS.length;
-  document.getElementById('resetProgressNum').textContent = done;
-  document.getElementById('resetProgressTotal').textContent = total;
-  const pct = Math.round((done/total)*100);
-  document.getElementById('resetProgressBar').style.width = pct+'%';
+  // Wire version picker
+  const sp = document.getElementById('resetVersionPicker');
+  const sc = document.getElementById('resetVersionChosen');
+  const mc = document.getElementById('resetMainContent');
+  if(!srVersion){
+    if(sp) sp.style.display='flex';
+    if(sc) sc.style.display='none';
+    if(mc) mc.style.display='none';
+    // Reset button states
+    ['resetVStrong','resetVRebuild'].forEach(id=>{ const b=document.getElementById(id); if(b) b.classList.remove('active'); });
+    return;
+  }
+  if(sp) sp.style.display='none';
+  if(sc) sc.style.display='block';
+  if(mc) mc.style.display='block';
 
-  el.innerHTML = RESET_STEPS.map((s,i) => `
-    <div class="reset-step${resetDone.has(i)?' done':''}" id="rstep-${i}" style="margin-bottom:12px">
-      <div class="reset-step-num">${s.emoji||i+1}</div>
-      <div class="reset-step-body" style="flex:1">
-        <div class="reset-step-title">${s.title}</div>
-        <div class="reset-step-desc">${s.desc}</div>
-        ${s.hasNote?`<textarea class="text-input" style="margin-top:10px;font-size:13px;min-height:60px" placeholder="${s.notePlaceholder||''}" onchange="resetNotes[${i}]=this.value;saveResetNotes()">${resetNotes[i]||''}</textarea>`:''}
-      </div>
-      <div class="reset-step-check" onclick="toggleResetStep(${i})">${resetDone.has(i)?'✓':''}</div>
+  const vLabel = document.getElementById('resetVersionLabel');
+  if(vLabel) vLabel.textContent = srVersion==='strong' ? '✦ Strong week selected' : '🌿 Rebuilding week selected';
+
+  // Progress
+  const done = srPhasesDone.size;
+  const pct  = Math.round((done/TOTAL_PHASES)*100);
+  const pn=document.getElementById('resetProgressNum'), pt=document.getElementById('resetProgressTotal'), pb=document.getElementById('resetProgressBar');
+  if(pn) pn.textContent=done; if(pt) pt.textContent=TOTAL_PHASES; if(pb) pb.style.width=pct+'%';
+
+  // Data snapshot
+  _renderResetSnapshot();
+
+  // Questions
+  const qs = SR_QUESTIONS[srVersion];
+  _setResetQ('resetQ1Label','resetQ1', qs.q1, qs.q1p, srNotes.q1||'');
+  _setResetQ('resetQ2Label','resetQ2', qs.q2, qs.q2p, srNotes.q2||'');
+  _setResetQ('resetQ3Label','resetQ3', qs.q3, qs.q3p, srNotes.q3||'');
+  _setResetQ('resetDecideQ1Label','resetDecideQ1', qs.decideQ1, qs.decideQ1p, srNotes.decideQ1||'');
+  _setResetQ('resetDecideQ2Label','resetDecideQ2', qs.decideQ2, qs.decideQ2p, srNotes.decideQ2||'');
+  const openQ=document.getElementById('resetOpenQ'); if(openQ) openQ.textContent=qs.open;
+  ['resetQUnderstand','resetMeals','resetQOpen','resetWordOfWeek'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && !el.value) el.value = srNotes[id.replace('resetQ','').replace('resetW','w').toLowerCase()]||'';
+  });
+  // Restore from saved notes
+  const ta = (id,key)=>{ const el=document.getElementById(id); if(el) el.value=srNotes[key]||''; };
+  ta('resetQ1','q1'); ta('resetQ2','q2'); ta('resetQ3','q3');
+  ta('resetQUnderstand','understand'); ta('resetMeals','meals');
+  ta('resetDecideQ1','decideQ1'); ta('resetDecideQ2','decideQ2');
+  ta('resetQOpen','open'); ta('resetWordOfWeek','word');
+
+  // Phase button states
+  ['close','clearMorning','clearDigital','understand','decide','open'].forEach(phase=>{
+    const btn=document.getElementById('resetPhase'+phase.charAt(0).toUpperCase()+phase.slice(1));
+    if(btn){
+      const done=srPhasesDone.has(phase);
+      btn.textContent=done?'✓ Done':btn.textContent.replace('✓ Done',btn.dataset.label||btn.textContent);
+      btn.style.opacity=done?'0.6':'1';
+      if(!btn.dataset.label) btn.dataset.label=btn.textContent;
+    }
+  });
+
+  // Render checklists
+  _renderResetChecklist('resetMorningChecklist', srMorningItems);
+  _renderResetChecklist('resetDigitalChecklist', srDigitalItems);
+
+  // Complete check
+  if(srPhasesDone.size===TOTAL_PHASES){
+    try{ checkAchievement('fin_weekly_reset'); awardXP(30,'Sunday Reset complete ✦'); }catch(e){}
+    showToast('Sunday Reset complete ✦ Week opened.');
+  }
+}
+
+function _setResetQ(labelId, inputId, q, sub, val){
+  const lbl=document.getElementById(labelId);
+  if(lbl) lbl.innerHTML=q+(sub?`<span style="font-weight:400;color:var(--text-soft);font-size:11px;display:block;margin-top:2px;font-style:italic">${sub}</span>`:'');
+  const el=document.getElementById(inputId); if(el) el.value=val;
+}
+
+function _renderResetChecklist(elId, items){
+  const el=document.getElementById(elId); if(!el) return;
+  el.innerHTML=items.map((item,i)=>`
+    <div onclick="_toggleResetItem('${elId}',${i})" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:${item.done?'#eef7ee':'white'};border:1.5px solid ${item.done?'#a8d8a8':'var(--border)'};cursor:pointer;transition:all .15s;user-select:none">
+      <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${item.done?'#6ab88a':'var(--border)'};background:${item.done?'#6ab88a':'white'};display:flex;align-items:center;justify-content:center;font-size:11px;color:white;flex-shrink:0;transition:all .2s">${item.done?'✓':''}</div>
+      <span style="font-size:13px;color:${item.done?'var(--text-soft)':'var(--text)'};${item.done?'text-decoration:line-through;':''};flex:1">${item.text}</span>
     </div>`).join('');
+}
 
-  if(done===total){ checkAchievement('fin_weekly_reset'); if(!resetDone._xpAwarded){ resetDone._xpAwarded=true; awardXP(20,'Sunday Reset complete!'); } }
+function _toggleResetItem(elId, idx){
+  const arr = elId.includes('Morning') ? srMorningItems : srDigitalItems;
+  arr[idx].done = !arr[idx].done;
+  _renderResetChecklist(elId, arr);
+  scheduleResetSave();
 }
-function toggleResetStep(i){ if(resetDone.has(i)) resetDone.delete(i); else resetDone.add(i); renderWeeklyReset(); }
-function resetWeeklyChecklist(){ if(!confirm('Start a fresh week? Notes will be cleared.')) return; resetDone.clear(); resetNotes={}; renderWeeklyReset(); }
-function saveResetNotes(){
+
+function _renderResetSnapshot(){
+  const el=document.getElementById('resetDataSnapshot'); if(!el) return;
+  const today=_todayStr();
+  // Pull last 7 days
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(); d.setDate(d.getDate()-i); return d.toISOString().slice(0,10); });
+  const studyDays = days.filter(d=>_getDayStudyStatus&&(_getDayStudyStatus(d)==='all3'||_getDayStudyStatus(d)==='exempt')).length;
+  const gymDays   = typeof gymLogs!=='undefined'?gymLogs.filter(g=>days.includes(g.date)).length:null;
+  const sleepAvg  = (()=>{ if(typeof sleepLog==='undefined') return null; const wk=sleepLog.filter(s=>days.includes(s.date)); return wk.length?Math.round(wk.reduce((a,s)=>a+(s.hours||0),0)/wk.length*10)/10:null; })();
+  const phoneAvg  = (()=>{ if(typeof phoneLog==='undefined') return null; const wk=phoneLog.filter(p=>days.includes(p.date)); return wk.length?(wk.reduce((a,p)=>a+(p.hours||0),0)/wk.length).toFixed(1):null; })();
+  const spendTotal= (()=>{ if(typeof spendLog==='undefined') return null; return spendLog.filter(s=>days.includes(s.date)).reduce((a,s)=>a+(s.amount||0),0).toFixed(0); })();
+  const streak    = typeof _computeAll3Streak==='function'?_computeAll3Streak():null;
+
+  const stats = [
+    studyDays!==null ? `📚 ${studyDays}/7 full study days` : null,
+    streak!==null    ? `🔥 ${streak} day streak` : null,
+    gymDays!==null   ? `🏋️ ${gymDays} gym sessions` : null,
+    sleepAvg!==null  ? `😴 ${sleepAvg}h sleep avg` : null,
+    phoneAvg!==null  ? `📱 ${phoneAvg}h phone avg/day` : null,
+    spendTotal!==null? `💰 £${spendTotal} spent` : null,
+  ].filter(Boolean);
+
+  el.innerHTML = stats.length
+    ? `<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">This week at a glance</div><div style="display:flex;flex-wrap:wrap;gap:8px">${stats.map(s=>`<span style="background:white;border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text)">${s}</span>`).join('')}</div>`
+    : `<div style="font-size:12px;color:var(--text-soft);font-style:italic">Log data through the week and it'll appear here as a snapshot ✦</div>`;
+}
+
+function selectResetVersion(v){
+  srVersion=v;
+  ['resetVStrong','resetVRebuild'].forEach(id=>{ const b=document.getElementById(id); if(b) b.classList.toggle('active',id.includes(v==='strong'?'Strong':'Rebuild')); });
+  scheduleResetSave();
+  renderWeeklyReset();
+}
+
+function markResetPhase(phase){
+  srPhasesDone.add(phase);
+  scheduleResetSave();
+  // Collect note values
+  _collectResetNotes();
+  renderWeeklyReset();
+  showToast('Phase done ✦');
+}
+
+function _collectResetNotes(){
+  const get=id=>{ const el=document.getElementById(id); return el?el.value.trim():''; };
+  srNotes.q1=get('resetQ1'); srNotes.q2=get('resetQ2'); srNotes.q3=get('resetQ3');
+  srNotes.understand=get('resetQUnderstand'); srNotes.meals=get('resetMeals');
+  srNotes.decideQ1=get('resetDecideQ1'); srNotes.decideQ2=get('resetDecideQ2');
+  srNotes.open=get('resetQOpen'); srNotes.word=get('resetWordOfWeek');
+}
+
+function scheduleResetSave(){
+  _collectResetNotes();
+  if(_srSaveTimer) clearTimeout(_srSaveTimer);
+  _srSaveTimer=setTimeout(()=>{ scheduleSave(); const ind=document.getElementById('resetSaveIndicator'); if(ind){ind.style.opacity='1';setTimeout(()=>ind.style.opacity='0',1800);} },800);
+}
+
+function resetWeeklyChecklist(){
+  if(!confirm('Start fresh? This week\'s notes will be cleared.')) return;
+  srVersion=null; srPhasesDone.clear(); srNotes={};
+  srMorningItems.forEach(i=>i.done=false);
+  srDigitalItems.forEach(i=>i.done=false);
   scheduleSave();
-  const ind=document.getElementById('resetSaveIndicator'); if(!ind)return;
-  ind.style.opacity='1'; setTimeout(()=>{ind.style.opacity='0';},1800);
+  renderWeeklyReset();
 }
+
+function saveResetNotes(){ scheduleResetSave(); }
+
 function exportResetSummary(){
-  const lines = RESET_STEPS.map((s,i)=>`${resetDone.has(i)?'✓':'○'} ${s.title}${resetNotes[i]?'\n   Notes: '+resetNotes[i]:''}`).join('\n\n');
-  const blob = new Blob([`Sunday Reset — ${new Date().toLocaleDateString()}\n${'═'.repeat(40)}\n\n${lines}`],{type:'text/plain'});
+  _collectResetNotes();
+  const qs=SR_QUESTIONS[srVersion||'strong'];
+  const lines=[
+    `Sunday Reset — ${new Date().toLocaleDateString('en-GB')}`,
+    `Version: ${srVersion==='strong'?'Strong week':'Rebuilding week'}`,
+    `${'═'.repeat(40)}`,
+    '', `🪞 CLOSE`, `${qs.q1}`, srNotes.q1||'—',
+    '', `${qs.q2}`, srNotes.q2||'—',
+    '', `${qs.q3}`, srNotes.q3||'—',
+    '', `🔍 UNDERSTAND`, srNotes.understand||'—',
+    '', `⚡ DECIDE`, `${qs.decideQ1}`, srNotes.decideQ1||'—',
+    `Meals: ${srNotes.meals||'—'}`,
+    `${qs.decideQ2}`, srNotes.decideQ2||'—',
+    '', `🌱 OPEN`, `${qs.open}`, srNotes.open||'—',
+    `Word of the week: ${srNotes.word||'—'}`,
+    '', `🧹 Morning clear: ${srMorningItems.filter(i=>i.done).length}/${srMorningItems.length} done`,
+    `📵 Digital clear: ${srDigitalItems.filter(i=>i.done).length}/${srDigitalItems.length} done`,
+  ].join('\n');
+  const blob=new Blob([lines],{type:'text/plain'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='sunday-reset.txt'; a.click();
 }
 
+// Checklist editor
+function openResetChecklistEditor(type){
+  _srEditorType=type;
+  const items=type==='morning'?srMorningItems:srDigitalItems;
+  _srEditorItems=items.map(i=>({...i}));
+  const title=document.getElementById('resetChecklistEditorTitle');
+  if(title) title.textContent=type==='morning'?'Morning Checklist':'Digital Checklist';
+  document.getElementById('resetChecklistEditorInput').value='';
+  _renderResetEditorItems();
+  openModal('resetChecklistEditorModal');
+}
+
+function _renderResetEditorItems(){
+  const el=document.getElementById('resetChecklistEditorItems'); if(!el) return;
+  el.innerHTML=_srEditorItems.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--pink-glow);border-radius:10px">
+      <span style="flex:1;font-size:13px;color:var(--text)">${item.text}</span>
+      <button onclick="_srEditorItems.splice(${i},1);_renderResetEditorItems()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-soft)">🗑</button>
+    </div>`).join('');
+}
+
+function addResetChecklistItem(){
+  const el=document.getElementById('resetChecklistEditorInput');
+  const text=el.value.trim(); if(!text) return;
+  _srEditorItems.push({text,done:false});
+  el.value='';
+  _renderResetEditorItems();
+}
+
+function saveResetChecklistEditor(){
+  if(_srEditorType==='morning') srMorningItems.splice(0,srMorningItems.length,..._srEditorItems.map(i=>({...i,done:false})));
+  else srDigitalItems.splice(0,srDigitalItems.length,..._srEditorItems.map(i=>({...i,done:false})));
+  closeModal('resetChecklistEditorModal');
+  renderWeeklyReset();
+  scheduleSave();
+}
+
 // ══════════════════════════════════════════════
-// IDENTITY STATEMENTS
+// MONTHLY RESET
 // ══════════════════════════════════════════════
 let identityStatements = [], featuredIdentityIdx = -1;
 
@@ -16756,8 +18170,369 @@ function switchMotivTab(btn, panel){
   if(panel==='quotes') renderQuotes();
   if(panel==='youtube') renderYTSections();
   if(panel==='downloads') renderDLSections();
+  if(panel==='yourbrain') initYourBrain();
 }
 
+// ══════════════════════════════════════════════
+// YOUR BRAIN — Build the relationship
+// ══════════════════════════════════════════════
+
+let brainLog      = [];
+let brainSessions = [];
+let morningAnchor = '';
+let curiosities   = [];
+let _contrastInterval = null;
+
+// ── Tonight questions — identity rehearsal, never tasks or rewards ──
+const TONIGHT_QUESTIONS = [
+  'The version of you who loves her mornings — what does she feel like in the first 10 minutes?',
+  'When did a morning last feel genuinely yours? What was different about it?',
+  'What would it mean to wake up tomorrow and feel like the day already belongs to you before anything demands it?',
+  'If your morning had no obligations in it at all — what would it feel like to be in it?',
+  'Who is the person who wakes up early because she wants to — not to be productive, just because that time is hers?',
+  'Describe the felt sense of a morning where you were fully yourself before the world started.',
+  'What does the morning version of you feel like that the rest-of-the-day version doesn\'t always get to?',
+  'If you woke up tomorrow and the whole morning was yours — no pressure, no catch-up — what would you do in it?',
+  'Think of a morning that felt genuinely good. What made it feel like yours?',
+  'What does "the day belongs to me" actually feel like from the inside — not the plan, the feeling?',
+];
+
+// ── One Thing questions ──
+const ONE_THING_STUDY = [
+  'One moment you actually enjoyed in that session?',
+  'One second that pulled you in — even briefly?',
+  'One thing that felt genuinely satisfying?',
+  'One moment where you wanted to keep going?',
+  'Something that felt good — even for a few seconds?',
+];
+const ONE_THING_MORNING = [
+  'One moment this morning that felt genuinely good?',
+  'One thing you actually enjoyed about this morning?',
+  'One second that felt like it was yours and you liked it?',
+  'One moment that made you glad you were up?',
+  'Something this morning that felt good — even briefly?',
+];
+
+// ── Stress reframes — one honest sentence ──
+const STRESS_ONE = {
+  low:    { col:'#3d7a3d', bg:'#eef7ee', bdr:'#a8d8a8',
+            line:'Low activation — clean baseline. Your brain is clear right now. This is a good window to start.' },
+  medium: { col:'#a07820', bg:'#fff8e0', bdr:'#e8d070',
+            line:'That feeling is your nervous system preparing you, not warning you. Name it excitement and it becomes that.' },
+  high:   { col:'#b05020', bg:'#fff4ec', bdr:'#e8b070',
+            line:'4 counts in, 6 counts out — do it 4 times first. After that, the cortisol is working for you.' },
+  peak:   { col:'#9040a0', bg:'#f8f0ff', bdr:'#c8a0e8',
+            line:'Don\'t push through this one. Move your body for 5 minutes — physiology before cognition, always.' },
+};
+
+// ── Friction responses — specific and actionable ──
+const FRICTION_LABELS = {
+  start_hard: 'Starting feels too hard',
+  no_where:   'Don\'t know where to begin',
+  depleted:   'Too depleted',
+  phone:      'Just came off my phone',
+  environment:'Wrong environment',
+  not_curious:'Not curious about it',
+  distracted: 'Something else has my attention',
+  needed_something: 'Need something, not sure what',
+};
+const FRICTION_RESPONSES = {
+  start_hard: 'Set a 5-minute timer. Just 5. The start is neurologically hardest — always. Once you\'re past it, the decision resets.',
+  no_where:   'Pick the smallest possible entry point — one card, one paragraph, one line. Size doesn\'t matter right now. Momentum does.',
+  depleted:   'If you\'re genuinely depleted, 20 minutes of non-stimulating rest will do more than forcing it. Lie down, no phone.',
+  phone:      'Your dopamine baseline is suppressed after high stimulation. 20 minutes without inputs will begin to restore it. Worth the wait.',
+  environment:'Change one thing about where you are. Different seat, different room, different light. The brain responds to context shifts.',
+  not_curious:'Find the question behind the topic — not "learn X" but "why does X work the way it does?" Curiosity opens engagement.',
+  distracted: 'Write the other thing down somewhere. Once it\'s externalised, your brain releases it. Then start.',
+  needed_something: 'Sometimes the block is physical — water, food, movement. Deal with that first. 5 minutes.',
+};
+
+// ── Tonight reflection ──
+let _currentTonightQ = null;
+
+function renderTonightQuestion(){
+  const today = isoDate(now);
+  // Use same question for the whole week (day of week determines which)
+  const dayOfWeek = new Date().getDay();
+  const weekIdx = Math.floor(TONIGHT_QUESTIONS.length * (new Date().getDate() % TONIGHT_QUESTIONS.length) / TONIGHT_QUESTIONS.length);
+  const idx = (dayOfWeek + Math.floor(now.getDate() / 7)) % TONIGHT_QUESTIONS.length;
+  _currentTonightQ = TONIGHT_QUESTIONS[idx];
+  const el = document.getElementById('tonightQuestion');
+  if(el) el.textContent = _currentTonightQ;
+
+  // Check if already answered today
+  const answered = brainLog.find(l=>l.type==='tonight'&&l.date===today);
+  const savedEl = document.getElementById('tonightSaved');
+  if(savedEl && answered){
+    savedEl.innerHTML = '<div style="background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;font-size:12px;color:rgba(240,160,192,.7);font-style:italic">✦ Written tonight.</div>';
+    const ta = document.getElementById('tonightAnswer');
+    if(ta && !ta.value) ta.value = answered.data?.answer || '';
+  }
+}
+
+function saveTonightReflection(){
+  const answer = document.getElementById('tonightAnswer')?.value?.trim();
+  if(!answer){ showToast('Write even one sentence ✦'); return; }
+  const today = isoDate(now);
+  // Replace today\'s entry if exists
+  const idx = brainLog.findIndex(l=>l.type==='tonight'&&l.date===today);
+  const entry = {date:today,type:'tonight',data:{question:_currentTonightQ,answer},ts:Date.now()};
+  if(idx>=0) brainLog[idx]=entry; else brainLog.unshift(entry);
+  scheduleSave();
+  awardXP(3,'Tonight planted ✦');
+  const saved = document.getElementById('tonightSaved');
+  if(saved) saved.innerHTML = '<div style="background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;font-size:12px;color:rgba(240,160,192,.7);font-style:italic">✦ Written. Your brain works on it overnight.</div>';
+  showToast('Saved ✦');
+}
+
+// ── One Thing ──
+function saveOneThing(type){
+  const id = type==='study'?'oneThingStudy':'oneThingMorning';
+  const text = document.getElementById(id)?.value?.trim();
+  if(!text){ showToast('Write even a word ✦'); return; }
+  brainLog.unshift({date:isoDate(now),type:'one_thing_'+type,data:{text},ts:Date.now()});
+  document.getElementById(id).value = '';
+  awardXP(2,'One thing noticed ✦');
+  scheduleSave();
+  showToast('Saved ✦');
+}
+
+function renderOneThingQs(){
+  const sq = document.getElementById('oneThingStudyQ');
+  const mq = document.getElementById('oneThingMorningQ');
+  if(sq) sq.textContent = ONE_THING_STUDY[Math.floor(Math.random()*ONE_THING_STUDY.length)];
+  if(mq) mq.textContent = ONE_THING_MORNING[Math.floor(Math.random()*ONE_THING_MORNING.length)];
+}
+
+// ── What Clicked ──
+function toggleBrainChip2(btn){
+  btn.classList.toggle('brain-chip2-active');
+  btn.style.background = btn.classList.contains('brain-chip2-active') ? 'var(--pink-deep)' : '';
+  btn.style.color      = btn.classList.contains('brain-chip2-active') ? 'white' : '';
+  btn.style.borderColor= btn.classList.contains('brain-chip2-active') ? 'var(--pink-deep)' : '';
+  btn.style.fontWeight = btn.classList.contains('brain-chip2-active') ? '700' : '';
+}
+
+function saveWhatClicked(){
+  const text = document.getElementById('whatClickedInput')?.value?.trim();
+  if(!text){ showToast('Describe the moment ✦'); return; }
+  const how = Array.from(document.querySelectorAll('#clickChips .brain-chip2-active')).map(b=>b.textContent.trim());
+  brainLog.unshift({date:isoDate(now),type:'what_clicked',data:{text,how},ts:Date.now()});
+  document.getElementById('whatClickedInput').value = '';
+  document.querySelectorAll('#clickChips .brain-chip2-active').forEach(b=>{
+    b.classList.remove('brain-chip2-active');
+    b.style.background=b.style.color=b.style.borderColor=b.style.fontWeight='';
+  });
+  const el = document.getElementById('whatClickedResult');
+  if(el){
+    el.innerHTML = '<div style="background:linear-gradient(135deg,#f0f8ff,#f8f0ff);border:1.5px solid #b0c0e8;border-radius:12px;padding:10px 14px;font-size:12px;color:#4060a0;font-style:italic">Logged ✦</div>';
+    setTimeout(()=>{ el.innerHTML=''; }, 2500);
+  }
+  awardXP(3,'Something clicked ✦');
+  scheduleSave();
+}
+
+// ── Curiosity ──
+function addCuriosity(){
+  const el = document.getElementById('curiosityInput');
+  const text = el?.value?.trim();
+  if(!text) return;
+  curiosities.unshift({text,date:isoDate(now),resolved:false});
+  el.value = '';
+  renderCuriosities();
+  scheduleSave();
+  awardXP(1,'Question logged ✦');
+}
+
+function renderCuriosities(){
+  const el = document.getElementById('curiosityList'); if(!el) return;
+  if(!curiosities.length){
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-soft);font-style:italic">No open questions yet ✦</div>';
+    return;
+  }
+  el.innerHTML = curiosities.slice(0,5).map((c,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:rgba(255,255,255,.7);border-radius:10px;margin-bottom:6px">
+      <span style="font-size:13px;flex-shrink:0;margin-top:1px">${c.resolved?'✓':'❓'}</span>
+      <div style="flex:1;font-size:12px;color:${c.resolved?'var(--text-soft)':'var(--text)'};line-height:1.5;${c.resolved?'text-decoration:line-through;':''}">${c.text}</div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button onclick="curiosities[${i}].resolved=!curiosities[${i}].resolved;renderCuriosities();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft)">✓</button>
+        <button onclick="curiosities.splice(${i},1);renderCuriosities();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft)">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Stress reframe ──
+function updateStressPreview(val){ /* removed — no slider */ }
+
+function logStressReframe(tier){
+  const r = STRESS_ONE[tier];
+  const el = document.getElementById('stressReframeResult');
+  if(el) el.innerHTML = `<div style="background:${r.bg};border:1.5px solid ${r.bdr};border-radius:12px;padding:12px 14px;font-size:13px;color:${r.col};font-style:italic;line-height:1.7">${r.line}</div>`;
+  brainLog.unshift({date:isoDate(now),type:'stress',data:{tier},ts:Date.now()});
+  scheduleSave();
+  awardXP(1,'Reframed ✦');
+}
+
+// ── Friction ──
+function logFriction(btn){
+  const val = btn.dataset.val;
+  brainLog.unshift({date:isoDate(now),type:'friction',data:{val,label:FRICTION_LABELS[val]},ts:Date.now()});
+  scheduleSave();
+  const el = document.getElementById('frictionResult');
+  if(el){
+    el.innerHTML = `<div style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text-mid);line-height:1.6;font-style:italic">${FRICTION_RESPONSES[val]||'Logged ✦'}</div>`;
+    setTimeout(()=>{ el.innerHTML=''; }, 6000);
+  }
+  awardXP(1,'Block identified ✦');
+}
+
+// ── Contrast timer ──
+function startContrastTimer(dur){
+  dur = parseInt(dur)||45;
+  if(_contrastInterval) clearInterval(_contrastInterval);
+  const end = Date.now()+(dur*60000);
+  brainLog.unshift({date:isoDate(now),type:'contrast',data:{plannedMins:dur},ts:Date.now()});
+  awardXP(2,'Intentional rest ✦');
+  scheduleSave();
+  function tick(){
+    const rem = Math.max(0,end-Date.now());
+    const m=Math.floor(rem/60000), s=Math.floor((rem%60000)/1000);
+    const el=document.getElementById('contrastTimerDisplay'); if(!el) return;
+    if(rem===0){
+      clearInterval(_contrastInterval);
+      el.innerHTML='<div style="background:#eef7ee;border:1.5px solid #a8d8a8;border-radius:12px;padding:10px 14px;font-size:12px;color:#2a6a2a;font-style:italic">Done. You chose it, committed, stopped on your terms. Now start.</div>';
+    } else {
+      el.innerHTML=`<div style="background:rgba(255,255,255,.7);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between"><div style="font-size:11px;color:var(--text-soft);font-style:italic">fully commit — no guilt</div><div style="font-size:22px;font-weight:900;color:var(--pink-deep);font-family:'Outfit',sans-serif">${m}:${String(s).padStart(2,'0')}</div></div>`;
+    }
+  }
+  tick();
+  _contrastInterval = setInterval(tick,1000);
+}
+
+// ── Yours ──
+function renderBrainYours(){
+  const el = document.getElementById('brainYoursContent'); if(!el) return;
+  const oneThings = brainLog.filter(l=>l.type==='one_thing_study'||l.type==='one_thing_morning');
+  const clicks    = brainLog.filter(l=>l.type==='what_clicked');
+  const tonights  = brainLog.filter(l=>l.type==='tonight');
+  const frictions = brainLog.filter(l=>l.type==='friction');
+
+  // 30-day mirror — one things from last 30 days, in order, just your words
+  const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate()-30);
+  const thirtyAgoStr  = isoDate(thirtyDaysAgo);
+  const mirror30 = oneThings.filter(l=>l.date>=thirtyAgoStr).sort((a,b)=>a.date>b.date?1:-1);
+
+  // Friction breakdown
+  const fricCounts = {};
+  frictions.forEach(f=>{ const v=f.data?.val||'other'; fricCounts[v]=(fricCounts[v]||0)+1; });
+  const topFric = Object.entries(fricCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  // Click methods
+  const howCounts = {};
+  clicks.forEach(c=>{ (c.data?.how||[]).forEach(h=>{ howCounts[h]=(howCounts[h]||0)+1; }); });
+  const topHow = Object.entries(howCounts).sort((a,b)=>b[1]-a[1]).slice(0,2);
+
+  el.innerHTML = `
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px">
+      ${[['✦','One Things',oneThings.length+''],['💡','Clicks',clicks.length+''],['🌙','Tonights',tonights.length+'']].map(([e,l,v])=>`
+        <div style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:14px;padding:10px;text-align:center">
+          <div style="font-size:18px;margin-bottom:3px">${e}</div>
+          <div style="font-size:18px;font-weight:800;color:var(--pink-deep);font-family:'Outfit',sans-serif">${v}</div>
+          <div style="font-size:10px;color:var(--text-soft)">${l}</div>
+        </div>`).join('')}
+    </div>
+
+    ${mirror30.length ? `
+    <!-- 30-Day Mirror — the main event -->
+    <div style="margin-bottom:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px">30-day mirror</div>
+      <div style="font-size:12px;color:var(--text-mid);font-style:italic;margin-bottom:16px;line-height:1.6">your own words, in order, about moments you genuinely enjoyed. just read — no rating, no analysis. the pattern becomes visible on its own.</div>
+
+      <!-- Study moments -->
+      ${mirror30.filter(t=>t.type==='one_thing_study').length ? `
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">📚 Studying</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+        ${mirror30.filter(t=>t.type==='one_thing_study').map(t=>`
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="font-size:10px;color:var(--text-soft);white-space:nowrap;margin-top:3px;min-width:44px">${t.date.slice(5)}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.6;font-style:italic;flex:1;padding:8px 12px;background:white;border-radius:10px;border-left:3px solid var(--pink-mid)">"${t.data?.text||''}"</div>
+          </div>`).join('')}
+      </div>` : ''}
+
+      <!-- Morning moments -->
+      ${mirror30.filter(t=>t.type==='one_thing_morning').length ? `
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">🌅 Mornings</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+        ${mirror30.filter(t=>t.type==='one_thing_morning').map(t=>`
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="font-size:10px;color:var(--text-soft);white-space:nowrap;margin-top:3px;min-width:44px">${t.date.slice(5)}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.6;font-style:italic;flex:1;padding:8px 12px;background:white;border-radius:10px;border-left:3px solid #a0d8b8">"${t.data?.text||''}"</div>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>` : `
+    <div style="background:linear-gradient(135deg,#fff8fb,#fce8f4);border:1.5px solid var(--pink-mid);border-radius:16px;padding:20px;text-align:center;margin-bottom:24px">
+      <div style="font-size:18px;margin-bottom:8px">✦</div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:var(--text);margin-bottom:6px">Your mirror will appear here</div>
+      <div style="font-size:12px;color:var(--text-mid);line-height:1.6">After 30 days of One Thing entries, this shows all your enjoyment moments in order — your own words, unfiltered. The pattern becomes visible on its own.</div>
+    </div>`}
+
+    ${topFric.length ? `
+    <!-- What blocks you -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">What actually blocks you</div>
+      ${topFric.map(([val,count])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+        <div style="font-size:12px;color:var(--text);flex:1">${FRICTION_LABELS[val]||val}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--pink-deep)">${count}×</div>
+      </div>`).join('')}
+      ${topFric[0]?`<div style="background:var(--pink-glow);border-radius:10px;padding:8px 12px;font-size:11px;color:var(--text-mid);font-style:italic;margin-top:6px">"${FRICTION_LABELS[topFric[0][0]]||topFric[0][0]}" is your most common block. Specific enough to plan around.</div>`:''}
+    </div>` : ''}
+
+    ${topHow.length ? `
+    <!-- How things click -->
+    <div style="background:linear-gradient(135deg,#f0f8ff,#f8f0ff);border:1.5px solid #b0c0e8;border-radius:16px;padding:16px 18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#4060a0;margin-bottom:10px">How things click for you</div>
+      ${topHow.map(([how,count])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="font-size:12px;color:var(--text);flex:1">${how}</div>
+        <div style="font-size:11px;font-weight:700;color:#4060a0">${count}×</div>
+      </div>`).join('')}
+    </div>` : ''}
+
+    ${tonights.length ? `
+    <!-- Tonight reflections -->
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">Tonight reflections</div>
+      ${tonights.slice(0,5).map(t=>`
+        <div style="background:linear-gradient(135deg,#1a0a14,#2a1020);border-radius:14px;padding:14px 16px;margin-bottom:8px">
+          <div style="font-size:10px;color:rgba(240,160,192,.5);margin-bottom:6px;font-weight:600">${t.date}</div>
+          <div style="font-size:11px;color:rgba(240,160,192,.4);font-style:italic;margin-bottom:6px">"${t.data?.question||''}"</div>
+          <div style="font-size:13px;color:#fce8f4;line-height:1.6">${t.data?.answer||''}</div>
+        </div>`).join('')}
+    </div>` : ''}
+  `;
+}
+
+// ── Init ──
+function initYourBrain(){
+  switchBrainTab(document.getElementById('brain-tab-build'),'build');
+  renderTonightQuestion();
+  renderOneThingQs();
+  renderCuriosities();
+  updateStressPreview(5);
+}
+
+function switchBrainTab(btn, tab){
+  document.querySelectorAll('[id^="brain-tab-"]').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.brain-panel').forEach(p=>p.style.display='none');
+  const panel = document.getElementById('brain-'+tab);
+  if(panel) panel.style.display='block';
+  if(tab==='yours') renderBrainYours();
+}
+
+// ══════════════════════════════════════════════
+// YOUTUBE PLAYER SYSTEM
+// YOUTUBE PLAYER SYSTEM
 // ══════════════════════════════════════════════
 // YOUTUBE PLAYER SYSTEM
 // ══════════════════════════════════════════════
@@ -18141,23 +19916,159 @@ function _computeStudyRoutineStreak(){
 }
 
 // Streak of all-3-slots-complete days
+// ── "Couldn't do it" — streak-protected exempt ──
+function openCouldntDoIt(slot){
+  document.getElementById('couldntDoItSlot').value = slot;
+  document.getElementById('couldntDoItNote').value = '';
+  document.querySelectorAll('#couldntDoItChips .brain-chip2').forEach(b=>{
+    b.classList.remove('brain-chip2-active');
+    b.style.background=b.style.color=b.style.borderColor=b.style.fontWeight='';
+  });
+  openModal('couldntDoItModal');
+}
+
+function toggleCouldntChip(btn){
+  btn.classList.toggle('brain-chip2-active');
+  btn.style.background = btn.classList.contains('brain-chip2-active') ? 'var(--pink-deep)' : '';
+  btn.style.color      = btn.classList.contains('brain-chip2-active') ? 'white' : '';
+  btn.style.borderColor= btn.classList.contains('brain-chip2-active') ? 'var(--pink-deep)' : '';
+  btn.style.fontWeight = btn.classList.contains('brain-chip2-active') ? '700' : '';
+}
+
+function saveCouldntDoIt(){
+  const slot    = document.getElementById('couldntDoItSlot').value;
+  const note    = document.getElementById('couldntDoItNote').value.trim();
+  const reasons = Array.from(document.querySelectorAll('#couldntDoItChips .brain-chip2-active')).map(b=>b.textContent.trim());
+  const today   = _todayStr();
+
+  // Store exempt entry — one per slot per day
+  const existing = studyGenuineExempt.findIndex(e=>e.date===today&&e.slot===slot);
+  const entry = {date:today, slot, reasons, note, createdAt:new Date().toISOString()};
+  if(existing>=0) studyGenuineExempt[existing]=entry;
+  else studyGenuineExempt.push(entry);
+
+  saveStudyData();
+  closeModal('couldntDoItModal');
+
+  // Tick legendary challenge tracking — this counts as showing up
+  try{ checkAchievement('study_full_day'); }catch(e){}
+  try{ addXP(5,'Showed up — couldn\'t do it but logged it 💗'); }catch(e){}
+
+  renderStudySessions();
+  renderStudyTodayStrip();
+  renderStudyWeekChart();
+  showToast('Logged 💗 Streak protected — this one doesn\'t break it.');
+}
+
+function _isExemptDay(date){
+  // A day is exempt (counts as full) if both Medium and Low are either done or exempt
+  const slots = ['Medium Energy','Low Energy'];
+  return slots.every(sl=>{
+    const tasks = (studyRoutines[sl]||{}).tasks||[];
+    const allDone = tasks.length>0 && tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot===sl&&c.taskId===t.id));
+    const exempt  = studyGenuineExempt.some(e=>e.date===date&&e.slot===sl);
+    return allDone || exempt;
+  });
+}
+
+function _getDayStudyStatus(date){
+  // Returns: 'all3' | 'exempt' | 'partial' | 'none'
+  const slots = ['High Energy','Medium Energy','Low Energy'];
+  const highDone = (()=>{
+    const tasks=(studyRoutines['High Energy']||{}).tasks||[];
+    return tasks.length>0&&tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot==='High Energy'&&c.taskId===t.id));
+  })();
+  const medDone = (()=>{
+    const tasks=(studyRoutines['Medium Energy']||{}).tasks||[];
+    return tasks.length>0&&tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot==='Medium Energy'&&c.taskId===t.id));
+  })();
+  const lowDone = (()=>{
+    const tasks=(studyRoutines['Low Energy']||{}).tasks||[];
+    return tasks.length>0&&tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot==='Low Energy'&&c.taskId===t.id));
+  })();
+  if(highDone && medDone && lowDone) return 'all3';
+  const medExempt = studyGenuineExempt.some(e=>e.date===date&&e.slot==='Medium Energy');
+  const lowExempt = studyGenuineExempt.some(e=>e.date===date&&e.slot==='Low Energy');
+  if(highDone && (medDone||medExempt) && (lowDone||lowExempt)) return 'exempt';
+  const anyDone = studyTaskChecks.some(c=>c.date===date) || studyGenuineExempt.some(e=>e.date===date);
+  if(anyDone) return 'partial';
+  return 'none';
+}
+
 function _computeAll3Streak(){
   const slots=['High Energy','Medium Energy','Low Energy'];
   const hasAllTasks=slots.every(sl=>(typeof studyRoutines!=='undefined')&&(studyRoutines[sl]||{}).tasks?.length>0);
   if(!hasAllTasks) return 0;
-
   const today=(typeof _todayStr!=='undefined')?_todayStr():new Date().toISOString().slice(0,10);
-  let streak=0, cursor=new Date(today+'T12:00:00');
+  let streak=0; const cursor=new Date(today+'T12:00:00');
   for(let i=0;i<365;i++){
     const ds=cursor.toISOString().slice(0,10);
-    const allDone=slots.every(sl=>{
-      const tasks=(studyRoutines[sl]||{}).tasks||[];
-      return tasks.length>0&&tasks.every(t=>(typeof studyTaskChecks!=='undefined')&&studyTaskChecks.some(c=>c.date===ds&&c.slot===sl&&c.taskId===t.id));
-    });
-    if(allDone){ streak++; cursor.setDate(cursor.getDate()-1); }
+    const status=_getDayStudyStatus(ds);
+    if(status==='all3'||status==='exempt'){ streak++; cursor.setDate(cursor.getDate()-1); }
     else break;
   }
   return streak;
+}
+
+function _checkStudyStreak(){ return _computeAll3Streak(); }
+
+// Rebuild renderStudyWeekChart with coloured circles
+function renderStudyWeekChart(){
+  const chartEl=document.getElementById('studyWeekChart');
+  const labelEl=document.getElementById('studyWeekLabels');
+  const totalEl=document.getElementById('studyWeekTotal');
+  const statsEl=document.getElementById('studyWeekStats');
+  if(!chartEl) return;
+  const days=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+  const today=_todayStr();
+  const totalMins=days.reduce((s,date)=>s+studyLogs.filter(l=>l.date===date).reduce((a,l)=>a+(l.actual||0),0),0);
+  const streak=_computeAll3Streak();
+  if(totalEl) totalEl.textContent=_fmtMins(totalMins)+' logged this week';
+
+  // Circle colours:
+  // all3 or exempt → light pink (#fde8f2) with pink-deep border
+  // partial (1-2 slots) → dark pink (#e07898) solid
+  // skipped/nothing → red (#e08080) solid
+  // today with nothing yet → empty circle (dashed border)
+  chartEl.innerHTML=days.map((date,i)=>{
+    const status=_getDayStudyStatus(date);
+    const isToday=date===today;
+    const mins=studyLogs.filter(l=>l.date===date).reduce((a,l)=>a+(l.actual||0),0);
+
+    let bg, border, label;
+    if(status==='all3'){       bg='#fce8f4'; border='2px solid var(--pink-deep)'; label='✦'; }
+    else if(status==='exempt'){ bg='#fce8f4'; border='2px solid var(--pink-deep)'; label='💗'; }
+    else if(status==='partial'){ bg='var(--pink-deep)'; border='2px solid var(--pink-deep)'; label=''; }
+    else if(isToday){          bg='transparent'; border='2px dashed var(--border)'; label=''; }
+    else {
+      // Past day with nothing — red if they had tasks set, grey if no routines
+      const hadTasks=['High Energy','Medium Energy','Low Energy'].some(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
+      bg=hadTasks?'#f4a0a0':'var(--border)'; border=hadTasks?'2px solid #d06060':'2px solid var(--border)'; label='';
+    }
+
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-size:8px;color:var(--text-soft);height:12px;display:flex;align-items:center">${mins>0?_fmtMins(mins):''}</div>
+      <div style="width:36px;height:36px;border-radius:50%;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.3s;${isToday?'box-shadow:0 0 0 3px rgba(224,120,152,.2);':''}">${label}</div>
+    </div>`;
+  }).join('');
+
+  const dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  if(labelEl) labelEl.innerHTML=dayLabels.map((l,i)=>{
+    const isToday=days[i]===today;
+    return `<div style="flex:1;text-align:center;font-size:9px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--pink-deep)':'var(--text-soft)'}">${l}</div>`;
+  }).join('');
+
+  if(statsEl){
+    statsEl.innerHTML=`
+      <div style="background:var(--pink-glow);border-radius:12px;padding:8px 12px;font-size:12px;color:var(--text)">🔥 <strong>${streak}</strong> day streak</div>
+      <div style="background:var(--pink-glow);border-radius:12px;padding:8px 12px;font-size:12px;color:var(--text)">⏱ <strong>${_fmtMins(Math.round(totalMins/7))}</strong> avg/day</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--text-soft);align-items:center">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fce8f4;border:1.5px solid var(--pink-deep);margin-right:3px"></span>all 3 ✦</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--pink-deep);margin-right:3px;border-radius:50%"></span>partial</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f4a0a0;margin-right:3px"></span>missed</span>
+      </div>`;
+  }
 }
 
 // Pre-study ritual streak (how many consecutive days all rituals were ticked)
@@ -21717,8 +23628,10 @@ function collectAllData(){
     gymSchedule, gymOverrides, gymLogs, weightLogs,
     mealPlan, savedMeals, dietImpulses, dietExtras, dietFeelingsLog,
     medLogs, hobbies, hobbyLogs,
-    milestones, resetDone: [...resetDone], resetNotes, monthlyResetDone: [...monthlyResetDone], monthlyResetNotes,
-    contentIdeas, contentPosts, platformPages,
+    milestones, resetDone: [...srPhasesDone], resetNotes: srNotes,
+    srVersion, srMorningItems, srDigitalItems,
+    monthlyResetDone: [...monthlyResetDone], monthlyResetNotes,
+    contentIdeas, contentPosts, contentCalendar, platformPages,
     notes, masterTodos, quickTodos, lectures, grades, countdowns, projects, spendCategories,
     urges, hrmDailyLog, viceTiers, hrmResetLog,
     unlockedAchievements: [...unlockedAchievements], claimedPrizes, playerLevel, totalXP, avatarChoice,
@@ -21742,6 +23655,7 @@ function collectAllData(){
     studyCompletionLog,
     ritualTimeLogs,
     ytSections,
+    brainLog, brainSessions, morningAnchor, curiosities,
   };
 }
 
@@ -21778,13 +23692,17 @@ function restoreAllData(d){
     if(d.hobbies) hobbies.splice(0,hobbies.length,...d.hobbies);
     if(d.hobbyLogs) hobbyLogs.splice(0,hobbyLogs.length,...d.hobbyLogs);
     if(d.milestones) milestones.splice(0,milestones.length,...d.milestones);
-    if(d.resetDone){ resetDone.clear(); d.resetDone.forEach(x=>resetDone.add(x)); }
-    if(d.resetNotes) Object.assign(resetNotes, d.resetNotes);
+    if(d.resetDone){ srPhasesDone.clear(); d.resetDone.forEach(x=>srPhasesDone.add(x)); }
+    if(d.resetNotes) Object.assign(srNotes, d.resetNotes);
+    if(d.srVersion) srVersion=d.srVersion;
+    if(d.srMorningItems) srMorningItems.splice(0,srMorningItems.length,...d.srMorningItems);
+    if(d.srDigitalItems) srDigitalItems.splice(0,srDigitalItems.length,...d.srDigitalItems);
     if(d.monthlyResetDone){ monthlyResetDone.clear(); d.monthlyResetDone.forEach(x=>monthlyResetDone.add(x)); }
     if(d.monthlyResetNotes) Object.assign(monthlyResetNotes, d.monthlyResetNotes);
     if(d.contentIdeas) contentIdeas.splice(0,contentIdeas.length,...d.contentIdeas);
     if(d.contentPosts) contentPosts.splice(0,contentPosts.length,...d.contentPosts);
     if(d.platformPages) Object.assign(platformPages, d.platformPages);
+    if(d.contentCalendar) contentCalendar.splice(0,contentCalendar.length,...d.contentCalendar);
     if(d.notes) notes.splice(0,notes.length,...d.notes);
     if(d.masterTodos) masterTodos.splice(0,masterTodos.length,...d.masterTodos);
     if(d.quickTodos) quickTodos.splice(0,quickTodos.length,...d.quickTodos);
@@ -21856,6 +23774,10 @@ function restoreAllData(d){
     if(d.studyCompletionLog) Object.assign(studyCompletionLog, d.studyCompletionLog);
     if(d.ritualTimeLogs) ritualTimeLogs.splice(0, ritualTimeLogs.length, ...d.ritualTimeLogs);
     if(d.ytSections) ytSections.splice(0, ytSections.length, ...d.ytSections);
+    if(d.brainLog) brainLog.splice(0, brainLog.length, ...d.brainLog);
+    if(d.brainSessions) brainSessions.splice(0, brainSessions.length, ...d.brainSessions);
+    if(d.morningAnchor !== undefined) morningAnchor = d.morningAnchor || '';
+    if(d.curiosities) curiosities.splice(0, curiosities.length, ...d.curiosities);
     if(d.badges && d.badges.length){
       d.badges.forEach(saved=>{
         const idx = badges.findIndex(b=>b.id===saved.id);
@@ -23048,6 +24970,7 @@ document.querySelectorAll('button').forEach(b=>{
 let studyPlans       = [];
 let studyLogs        = [];
 let studySkips       = [];
+let studyGenuineExempt = []; // [{date, slot, reasons, note}] — "couldn't do it" days that preserve streak
 let studyRituals     = [];
 let studyMotivations = [];
 let studyCurrentView = 'today';
@@ -23105,9 +25028,8 @@ const ROUTINE_TASK_SUGGESTIONS = {
 };
 
 // ── Util ──
-function _localDateStr(d){ const dt=d||new Date(); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
-function _todayStr(){ return _localDateStr(); }
-function _weekStart(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return _localDateStr(d); }
+function _todayStr(){ return new Date().toISOString().slice(0,10); }
+function _weekStart(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
 function _fmtMins(m){ if(!m||m<1) return '0 mins'; if(m<60) return m+' mins'; const h=Math.floor(m/60),r=m%60; return h+'h'+(r?' '+r+'m':''); }
 function _fmtSecs(s){ const m=Math.floor(s/60),sec=s%60; return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); }
 function _genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -23147,6 +25069,7 @@ function saveStudyData(){
     localStorage.setItem('tgh_studyPlans',    JSON.stringify(studyPlans));
     localStorage.setItem('tgh_studyLogs',     JSON.stringify(studyLogs));
     localStorage.setItem('tgh_studySkips',    JSON.stringify(studySkips));
+    localStorage.setItem('tgh_studyGenuineExempt', JSON.stringify(studyGenuineExempt));
     localStorage.setItem('tgh_studyRituals',  JSON.stringify(studyRituals));
     localStorage.setItem('tgh_studyMotivs',   JSON.stringify(studyMotivations));
     localStorage.setItem('tgh_studyRoutines', JSON.stringify(studyRoutines));
@@ -23159,6 +25082,7 @@ function loadStudyData(){
   try { studyPlans       = JSON.parse(localStorage.getItem('tgh_studyPlans')    ||'[]'); } catch(e){ studyPlans=[]; }
   try { studyLogs        = JSON.parse(localStorage.getItem('tgh_studyLogs')     ||'[]'); } catch(e){ studyLogs=[]; }
   try { studySkips       = JSON.parse(localStorage.getItem('tgh_studySkips')    ||'[]'); } catch(e){ studySkips=[]; }
+  try { studyGenuineExempt = JSON.parse(localStorage.getItem('tgh_studyGenuineExempt')||'[]'); } catch(e){ studyGenuineExempt=[]; }
   try { studyRituals     = JSON.parse(localStorage.getItem('tgh_studyRituals')  ||'[]'); } catch(e){ studyRituals=[]; }
   try { studyMotivations = JSON.parse(localStorage.getItem('tgh_studyMotivs')   ||'[]'); } catch(e){ studyMotivations=[]; }
   try { studyTaskChecks  = JSON.parse(localStorage.getItem('tgh_studyTaskChecks')||'[]'); } catch(e){ studyTaskChecks=[]; }
@@ -23241,12 +25165,25 @@ function _toggleTaskCheck(slot, taskId){
     studyTaskChecks.push({date:today,slot,taskId,checkedAt:new Date().toISOString()});
     // XP for ticking a task
     try{ addXP(5,'Study task: tick'); }catch(e){}
-    // Celebrate if all tasks in this slot are done
+    // Check if all tasks in this slot are now done
     const tasks=(studyRoutines[slot]||{}).tasks||[];
     const allDone=tasks.length>0&&tasks.every(t=>_isTaskChecked(slot,t.id));
     if(allDone){
       showToast(slot+' done ✦ '+{'High Energy':'🔥 Peak session complete!','Medium Energy':'⚡ Solid session!','Low Energy':'🌙 Showed up anyway — that counts!'}[slot]||'✓');
       try{ addXP(15,slot+' session complete'); }catch(e){}
+
+      // Auto-stop timer if it's running for this slot, then open log
+      if(_studyTimerInterval && _studyTimerSlot===slot){
+        clearInterval(_studyTimerInterval);
+        _studyTimerInterval=null;
+        const banner=document.getElementById('studyTimerBanner');
+        if(banner) banner.style.display='none';
+        const actualMins=Math.max(1,Math.round(_studyTimerSecs/60));
+        const timerSlot=slot;
+        _studyTimerSlot=null;
+        // Small delay so the toast shows first
+        setTimeout(()=>openStudyLogModal(null,timerSlot,actualMins), 600);
+      }
     }
   }
   saveStudyData();
@@ -23291,8 +25228,11 @@ function renderStudySessions(){
   const slots=_getEnergySlots();
   const currentSlot=_currentEnergySlot();
 
-  // Show routines + any extra one-off plans for today
-  const energySlots=['High Energy','Medium Energy','Low Energy'];
+  // Order slots so current slot is always first
+  const baseSlots = ['High Energy','Medium Energy','Low Energy'];
+  const energySlots = currentSlot
+    ? [currentSlot, ...baseSlots.filter(s=>s!==currentSlot)]
+    : baseSlots;
   const extraPlans=studyPlans.filter(p=>p.date===today);
 
   const hasRoutines=energySlots.some(s=>studyRoutines[s]?.tasks?.length>0);
@@ -23368,6 +25308,7 @@ function renderStudySessions(){
             <button onclick="startStudyTimer('${slot}')" class="study-action-btn start" style="font-size:10px;padding:6px 12px">▶ Start Timer</button>
             <button onclick="openStudyLogModal(null,'${slot}')" class="study-action-btn primary" style="font-size:10px;padding:6px 12px">✓ Log Session</button>
             <button onclick="openStudySkipModal(null,'${slot}')" class="study-action-btn danger" style="font-size:10px;padding:6px 12px">✕ Skip</button>
+            ${slot!=='High Energy'?`<button onclick="openCouldntDoIt('${slot}')" style="padding:5px 10px;border-radius:14px;border:1.5px solid var(--pink-mid);background:var(--pink-glow);font-size:9px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:var(--pink-deep);white-space:nowrap">💗 couldn't do it</button>`:''}
           `:`
             <button onclick="openStudyLogModal(null,'${slot}')" class="study-action-btn" style="font-size:10px;padding:6px 12px">📝 Log it</button>
           `}
@@ -23566,6 +25507,25 @@ function startStudyTimer(slot){
   banner?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+function _playDing(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // Two-note chime: high then slightly lower
+    const notes=[1046.5, 880];
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type='sine'; osc.frequency.value=freq;
+      const t=ctx.currentTime+i*0.18;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.35,t+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.7);
+      osc.start(t); osc.stop(t+0.7);
+    });
+  } catch(e){}
+}
+
 function _updateTimerDisplay(){
   const disp=document.getElementById('studyTimerDisplay');
   const prog=document.getElementById('studyTimerProgress');
@@ -23577,6 +25537,10 @@ function _updateTimerDisplay(){
       disp.textContent=_fmtSecs(remaining);
       disp.title='Elapsed: '+_fmtSecs(_studyTimerSecs);
     } else {
+      // Just hit zero — play ding once
+      if(_studyTimerPlanned>0 && _studyTimerSecs===_studyTimerPlanned){
+        _playDing();
+      }
       // Elapsed mode (over target)
       disp.textContent='+'+_fmtSecs(_studyTimerSecs-_studyTimerPlanned);
       disp.title='Over target by '+_fmtSecs(_studyTimerSecs-_studyTimerPlanned);
@@ -23652,7 +25616,6 @@ function studyTimerAbandon(){
 function openStudyLogModal(planId, slot, prefillMins){
   document.getElementById('studyLogPlanId').value=planId||'';
   document.getElementById('studyLogSlot').value=slot||'';
-  document.getElementById('studyLogSubject').value='';
   document.getElementById('studyLogPlanned').value=slot&&studyRoutines[slot]?studyRoutines[slot].duration||'':'';
   document.getElementById('studyLogActual').value=prefillMins||'';
   document.getElementById('studyLogNote').value='';
@@ -23660,7 +25623,6 @@ function openStudyLogModal(planId, slot, prefillMins){
   if(paceMsg) paceMsg.style.display='none';
   document.querySelectorAll('#studyFocusStars .shower-mood-chip').forEach(b=>b.classList.remove('active'));
   window._studyLogFocus=3;
-  // Update modal title
   const title=document.querySelector('#studyLogModal .modal-title');
   if(title) title.textContent=slot?`Log ${slot} Session. ✦`:'Log Session. ✦';
   openModal('studyLogModal');
@@ -23675,7 +25637,7 @@ function setStudyFocus(btn,val){
 function saveStudyLog(){
   const planId =document.getElementById('studyLogPlanId').value;
   const slot   =document.getElementById('studyLogSlot')?.value||'';
-  const subject=document.getElementById('studyLogSubject').value.trim()||slot||'Study session';
+  const subject=slot||'Study session';
   const planned=parseInt(document.getElementById('studyLogPlanned').value)||0;
   const actual =parseInt(document.getElementById('studyLogActual').value)||0;
   const note   =document.getElementById('studyLogNote').value.trim();
@@ -23693,8 +25655,34 @@ function saveStudyLog(){
   renderStudyTodayStrip();
   renderStudyWeekChart();
   renderStudySkipLog();
-  const xp=Math.min(80,Math.round(actual/60*40)+(focus>=4?10:0));
-  try{ addXP(xp,'Study: '+subject); showToast('Logged! +'+xp+' XP ✦'); }catch(e){ showToast('Session logged ✦'); }
+
+  // XP: base from time + focus bonus
+  let xp = Math.min(80, Math.round(actual/60*40) + (focus>=4?10:0));
+  let toastMsg = 'Session logged ✦ +'+xp+' XP';
+
+  // Bonus: completed within correct energy slot (logged during that slot)
+  const curSlot = _currentEnergySlot();
+  if(slot && curSlot === slot){
+    xp += 15;
+    toastMsg = 'In your '+slot+' window ✦ +'+xp+' XP';
+  }
+
+  // Check if all 3 slots now have at least one log today
+  const today = _todayStr();
+  const allSlots = ['High Energy','Medium Energy','Low Energy'];
+  const logsToday = studyLogs.filter(l=>l.date===today);
+  const slotsLogged = allSlots.filter(s=>logsToday.some(l=>l.slot===s));
+  if(slotsLogged.length===3){
+    xp += 50;
+    // Show celebratory toast after brief delay
+    setTimeout(()=>{
+      showToast('All 3 slots done. You are that girl. ✦ +50 XP bonus');
+    }, 900);
+    toastMsg = 'Session logged ✦ +'+xp+' XP total';
+  }
+
+  try{ addXP(xp,'Study: '+subject); } catch(e){}
+  showToast(toastMsg);
   _checkStudyStreak();
 }
 
@@ -23949,7 +25937,7 @@ function renderStudyTodayStrip(){
     const dots=[];
     for(let i=6;i>=0;i--){
       const d=new Date(); d.setDate(d.getDate()-i);
-      const ds=_localDateStr(d);
+      const ds=d.toISOString().slice(0,10);
       const hasTicks=studyTaskChecks.some(c=>c.date===ds);
       const hasLog=studyLogs.some(l=>l.date===ds);
       const hasCatchup=(typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds);
@@ -24000,7 +25988,7 @@ function renderStudyWeekChart(){
   const statsEl=document.getElementById('studyWeekStats');
   if(!chartEl) return;
   const days=[];
-  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(_localDateStr(d)); }
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
   const today=_todayStr();
   // Count both logged mins and ticked task count
   const dayMins=days.map(date=>studyLogs.filter(l=>l.date===date).reduce((s,l)=>s+(l.actual||0),0));
@@ -24213,7 +26201,7 @@ function renderStudyRituals(){
 // ══════════════════════════════════════════
 function openStandaloneCatchupModal(forDate){
   _scuTodos=[]; _scuMoodVal='';
-  const yesterday=(()=>{const d=new Date();d.setDate(d.getDate()-1);return _localDateStr(d)})();
+  const yesterday=(()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10)})();
   const fromDateEl=document.getElementById('scuFromDate');
   if(fromDateEl) fromDateEl.value=forDate||yesterday;
   const todoInpEl=document.getElementById('scuTodoInput');
@@ -24281,27 +26269,8 @@ function saveStandaloneCatchup(){
   showToast('Catch-up day started 🌅 Your routines are resting today.');
 }
 
-// Check if today is a catch-up day — always uses local date to avoid UTC/BST mismatch
-// Respects _ended flag so "End catch-up" restores energy slots immediately
-function _isCatchupDay(date) {
-  var key = date || _todayStr();
-  if (!studyCatchupDays || !studyCatchupDays[key]) return false;
-  if (studyCatchupDays[key]._ended) return false; // user explicitly ended it
-  return true;
-}
-
-// End a catch-up day early — restores normal energy slots right away
-function endCatchupDay() {
-  var today = _todayStr();
-  if (!studyCatchupDays || !studyCatchupDays[today]) return;
-  studyCatchupDays[today]._ended = true;
-  studyCatchupDays[today]._endedAt = new Date().toISOString();
-  _saveStudyExtra2();
-  renderStudySessions();
-  renderStudyTodayStrip();
-  try { renderEnergyLegend(); } catch(e) {}
-  showToast('✦ Catch-up wrapped — your energy slots are back. You showed up.');
-}
+// Check if today is a catch-up day
+function _isCatchupDay(date){ return !!(studyCatchupDays&&studyCatchupDays[date||_todayStr()]); }
 
 // ══════════════════════════════════════════
 // CATCH-UP DAY: todo tick management
@@ -24364,10 +26333,6 @@ window.renderStudySessions = function(){
         </div>
       </div>
       ${todos.length>0?`<div style="height:4px;background:rgba(255,255,255,0.5);border-radius:2px;overflow:hidden;margin-top:12px"><div style="height:100%;width:${todos.length>0?Math.round(doneCount/todos.length*100):0}%;background:#e0a030;border-radius:2px;transition:width 0.4s"></div></div>`:''}
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(240,192,96,0.35);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div style="font-size:11px;color:#a07010;font-style:italic">All done, or want your energy slots back?</div>
-        <button onclick="endCatchupDay()" style="background:white;border:1.5px solid #f0c060;color:#a07010;font-size:11px;font-weight:700;padding:6px 16px;border-radius:20px;cursor:pointer;font-family:'Outfit',sans-serif">&#10003; End catch-up &amp; restore energy slots</button>
-      </div>
     </div>
 
     <!-- Custom todo list -->
@@ -24460,10 +26425,10 @@ window._toggleTaskCheck = function(slot, taskId){
 // POST-COMPLETION INTRINSIC MOTIVATION Qs
 // ══════════════════════════════════════════
 const COMPLETION_QUESTIONS = [
-  { id:'q1', q:'What did you learn today that surprised you?', placeholder:'Even one small thing counts…' },
-  { id:'q2', q:'How did it feel to complete all three sessions?', placeholder:'Be honest — proud, relieved, surprised?' },
-  { id:'q3', q:'What would make tomorrow\'s sessions even better?', placeholder:'Earlier start? Better environment? Different order?' },
-  { id:'q4', q:'One reason today\'s study will matter to your future patients:', placeholder:'Connect what you learned to the patient you\'ll one day treat…' },
+  { id:'q1', q:'How does it feel to be that girl?', placeholder:'She was focused. She didn\'t negotiate with herself. She just did it.' },
+  { id:'q2', q:'One moment from today that felt genuinely good.', placeholder:'That one concept that actually made sense.' },
+  { id:'q3', q:'What does today prove about you?', placeholder:'That I can do a full day even when it\'s hard. That I show up.' },
+  { id:'q4', q:'One thing you understand now that you didn\'t this morning.', placeholder:'Doesn\'t have to be big.' },
 ];
 
 function _checkAllSlotsComplete(){
@@ -24515,7 +26480,7 @@ function saveCompletionReflection(){
 // ══════════════════════════════════════════
 function _checkYesterdayIncomplete(){
   const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
-  const yd=_localDateStr(yesterday);
+  const yd=yesterday.toISOString().slice(0,10);
 
   // Already reflected on this day?
   if(studyIncompleteReflections.some(r=>r.date===yd)) return;
@@ -24772,7 +26737,7 @@ function _renderStudyStats30Day(){
   const slots=['High Energy','Medium Energy','Low Energy'];
   const today=_todayStr();
   const days=[];
-  for(let i=29;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(_localDateStr(d)); }
+  for(let i=29;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
   el.innerHTML=days.map(date=>{
     const tickedSlots=slots.filter(sl=>studyTaskChecks.some(c=>c.date===date&&c.slot===sl));
     const hasCatchup=_isCatchupDay(date)||((typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===date));
@@ -25205,7 +27170,7 @@ function runAutoSkipCheck(showToastOnNone){
   for(let i=1; i<=30; i++){
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const ds = _localDateStr(d);
+    const ds = d.toISOString().slice(0,10);
 
     // Already accounted for by other means?
     const hasSkip          = studySkips.some(s=>s.date===ds);
@@ -25267,7 +27232,7 @@ function _autoSkipAllUnaccounted(){
   let count = 0;
   for(let i=1; i<=30; i++){
     const d = new Date(); d.setDate(d.getDate()-i);
-    const ds = _localDateStr(d);
+    const ds = d.toISOString().slice(0,10);
     const hasSkip          = studySkips.some(s=>s.date===ds);
     const hasUnplannedSkip = (typeof studyUnplannedSkips!=='undefined')&&studyUnplannedSkips.some(s=>s.date===ds);
     const hasCatchup       = _isCatchupDay(ds)||((typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds));
