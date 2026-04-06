@@ -2524,12 +2524,12 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
       <input type="date" class="text-input" id="csDate">
     </div>
     <div class="form-row">
-      <label class="form-label">Platform</label>
+      <label class="form-label">Platform <span style="font-weight:400;color:var(--text-soft);font-size:11px">— select multiple</span></label>
       <div style="display:flex;gap:7px;flex-wrap:wrap" id="csPlatformChips">
-        <button onclick="setCsPlatform(this,'youtube')"  class="shower-mood-chip" data-p="youtube">▶️ YouTube</button>
-        <button onclick="setCsPlatform(this,'shorts')"   class="shower-mood-chip" data-p="shorts">⚡ Shorts</button>
-        <button onclick="setCsPlatform(this,'tiktok')"   class="shower-mood-chip" data-p="tiktok">🎵 TikTok</button>
-        <button onclick="setCsPlatform(this,'instagram')" class="shower-mood-chip" data-p="instagram">📸 Instagram</button>
+        <button onclick="toggleCsPlatform(this,'youtube')"  class="shower-mood-chip" data-p="youtube">▶️ YouTube</button>
+        <button onclick="toggleCsPlatform(this,'shorts')"   class="shower-mood-chip" data-p="shorts">⚡ Shorts</button>
+        <button onclick="toggleCsPlatform(this,'tiktok')"   class="shower-mood-chip" data-p="tiktok">🎵 TikTok</button>
+        <button onclick="toggleCsPlatform(this,'instagram')" class="shower-mood-chip" data-p="instagram">📸 Instagram</button>
       </div>
     </div>
     <div class="form-row">
@@ -3254,8 +3254,8 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
         <div class="section-label" style="margin-bottom:0">Weekly Study Map</div>
         <div style="font-size:12px;color:var(--text-mid)" id="studyWeekTotal"></div>
       </div>
-      <div style="display:flex;gap:8px;align-items:flex-end;height:80px" id="studyWeekChart"></div>
-      <div style="display:flex;gap:8px;margin-top:6px" id="studyWeekLabels"></div>
+      <div style="display:flex;gap:6px;align-items:center;justify-content:space-between" id="studyWeekChart"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;justify-content:space-between" id="studyWeekLabels"></div>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap" id="studyWeekStats"></div>
     </div>
 
@@ -12352,7 +12352,16 @@ let _ccView    = 'week';
 let _ccOffset  = 0;       // week offset (week view) or month offset (month view)
 let _ccFilter  = 'all';
 let _ccEditId  = null;
-let _csPlatform= null, _csFormat=null, _csStatus='idea';
+let _ccPlatforms = []; // multi-select array
+let _csFormat=null, _csStatus='idea';
+
+function toggleCsPlatform(btn, p){
+  const idx=_ccPlatforms.indexOf(p);
+  if(idx>=0){ _ccPlatforms.splice(idx,1); btn.classList.remove('active'); }
+  else { _ccPlatforms.push(p); btn.classList.add('active'); }
+}
+// Keep setCsPlatform for backward compat (single select fallback)
+function setCsPlatform(btn, p){ toggleCsPlatform(btn,p); }
 
 const CC_STATUS = {
   idea:    {label:'Idea',          emoji:'💡', col:'#a07820', bg:'#fff8e0', border:'#e0c060'},
@@ -12416,36 +12425,44 @@ function _renderCCWeek(){
   const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const filtered=_ccFiltered();
 
-  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+  el.innerHTML=`
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px">
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:5px;min-width:700px;padding:2px">
     ${days.map((d,i)=>{
       const ds=d.toISOString().slice(0,10);
       const isToday=ds===new Date().toISOString().slice(0,10);
       const dayItems=filtered.filter(e=>e.date===ds);
-      // Also show logged posts for this day
       const loggedPosts=contentPosts.filter(p=>p.date===ds);
-      return `<div style="min-height:100px;background:${isToday?'var(--pink-glow)':'white'};border:1.5px solid ${isToday?'var(--pink-deep)':'var(--border)'};border-radius:12px;padding:8px">
-        <div style="font-size:10px;font-weight:700;color:${isToday?'var(--pink-deep)':'var(--text-soft)'};margin-bottom:6px">${dayNames[i]}<br><span style="font-size:14px;color:${isToday?'var(--pink-deep)':'var(--text)'}">${d.getDate()}</span></div>
-        <div style="display:flex;flex-direction:column;gap:4px">
+      const totalItems=dayItems.length+loggedPosts.length;
+      return `<div style="background:${isToday?'var(--pink-glow)':'white'};border:1.5px solid ${isToday?'var(--pink-deep)':'var(--border)'};border-radius:12px;display:flex;flex-direction:column;height:150px;box-sizing:border-box;overflow:hidden">
+        <div style="padding:6px 7px 4px;border-bottom:1px solid ${isToday?'rgba(224,120,152,.15)':'var(--border)'};flex-shrink:0;display:flex;align-items:baseline;gap:4px">
+          <span style="font-size:9px;font-weight:700;color:${isToday?'var(--pink-deep)':'var(--text-soft)'};text-transform:uppercase;letter-spacing:.3px">${dayNames[i]}</span>
+          <span style="font-size:14px;color:${isToday?'var(--pink-deep)':'var(--text)'};font-weight:700;line-height:1">${d.getDate()}</span>
+          ${totalItems>3?`<span style="margin-left:auto;font-size:8px;background:var(--pink-deep);color:white;border-radius:8px;padding:1px 5px;font-weight:700">${totalItems}</span>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto;padding:5px 5px 2px;-webkit-overflow-scrolling:touch">
           ${dayItems.map(e=>`
-            <div onclick="openContentScheduleModal('${e.id}')" style="background:${PLATFORM_META[e.platform]?.light||'var(--pink-glow)'};border-left:3px solid ${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'};border-radius:6px;padding:4px 6px;cursor:pointer;transition:opacity .15s" title="${e.title}">
-              <div style="font-size:9px;font-weight:700;color:${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'}">
-                ${PLATFORM_META[e.platform]?.emoji||'✦'} ${CC_FORMAT[e.format]?.emoji||''}
-                <span style="float:right">${CC_STATUS[e.status]?.emoji||''}</span>
+            <div onclick="openContentScheduleModal('${e.id}')" style="background:${PLATFORM_META[e.platform]?.light||'var(--pink-glow)'};border-left:3px solid ${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'};border-radius:5px;padding:3px 5px;cursor:pointer;flex-shrink:0" title="${e.title}">
+              <div style="font-size:9px;font-weight:700;color:${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'};display:flex;align-items:center;justify-content:space-between">
+                <span>${PLATFORM_META[e.platform]?.emoji||'✦'} ${CC_FORMAT[e.format]?.emoji||''}</span>
+                <span>${CC_STATUS[e.status]?.emoji||''}</span>
               </div>
-              <div style="font-size:10px;color:var(--text);font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%">${e.title}</div>
+              <div style="font-size:9px;color:var(--text);font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%">${e.title}</div>
             </div>`).join('')}
-          ${loggedPosts.map(p=>{
-            const calItem=contentCalendar.find(c=>c.calItemId===p.calItemId||c.title===p.title&&c.date===ds);
+          ${dayItems.length>3?`<div style="font-size:8px;color:var(--text-soft);padding:2px 4px">+${dayItems.length-3} more</div>`:''}
+          ${loggedPosts.slice(0,2).map(p=>{
+            const calItem=contentCalendar.find(c=>c.calItemId===p.calItemId||(c.title===p.title&&c.date===ds));
             const calId=calItem?.id||'';
-            return `<div onclick="${calId?`openPostAnalytics('${calId}')`:`openEditPost(contentPosts.indexOf(contentPosts.find(x=>x.title==='${p.title.replace(/'/g,"\\'")}')))`}" style="background:#e8f8e8;border-left:3px solid #6ab88a;border-radius:6px;padding:4px 6px;cursor:pointer;" title="${p.title} — tap to edit analytics">
-              <div style="font-size:9px;font-weight:700;color:#3d7a3d">${PLATFORM_META[p.platform]?.emoji||''} 🚀 ${p.engRate?p.engRate+'% eng':''}</div>
-              <div style="font-size:10px;color:#2a5a2a;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.title}</div>
+            return `<div onclick="${calId?`openPostAnalytics('${calId}')`:`openEditPost(${contentPosts.indexOf(p)})`}" style="background:#e8f8e8;border-left:3px solid #6ab88a;border-radius:5px;padding:3px 5px;cursor:pointer;flex-shrink:0" title="${p.title}">
+              <div style="font-size:9px;font-weight:700;color:#3d7a3d">${PLATFORM_META[p.platform]?.emoji||''} 🚀${p.engRate?' '+p.engRate+'%':''}</div>
+              <div style="font-size:9px;color:#2a5a2a;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.title}</div>
             </div>`;
           }).join('')}
-          <div onclick="openContentScheduleModal(null,'${ds}')" style="font-size:11px;color:var(--text-soft);cursor:pointer;text-align:center;padding:3px;border:1px dashed var(--border);border-radius:6px;margin-top:2px">＋</div>
         </div>
+        <div onclick="openContentScheduleModal(null,'${ds}')" style="font-size:10px;color:var(--text-soft);cursor:pointer;text-align:center;padding:2px 0;border:1px dashed var(--border);border-radius:5px;margin-top:4px;flex-shrink:0">＋</div>
       </div>`;
     }).join('')}
+    </div>
   </div>`;
 }
 
@@ -12471,13 +12488,11 @@ function _renderCCMonth(){
     const isToday=ds===todayStr;
     const dayItems=filtered.filter(e=>e.date===ds);
     const posted=contentPosts.filter(p=>p.date===ds).length;
-    cells+=`<div onclick="openContentScheduleModal(null,'${ds}')" style="min-height:72px;background:${isToday?'var(--pink-glow)':'white'};border:1.5px solid ${isToday?'var(--pink-deep)':'var(--border)'};border-radius:10px;padding:6px;cursor:pointer;transition:background .15s">
-      <div style="font-size:11px;font-weight:700;color:${isToday?'var(--pink-deep)':'var(--text)'};margin-bottom:4px">${d}</div>
-      ${dayItems.slice(0,3).map(e=>`<div style="font-size:9px;background:${PLATFORM_META[e.platform]?.light||'var(--pink-glow)'};border-radius:4px;padding:2px 5px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:${PLATFORM_META[e.platform]?.color||'var(--text)'}">
-        ${PLATFORM_META[e.platform]?.emoji||''} ${CC_STATUS[e.status]?.emoji||''} ${e.title}
-      </div>`).join('')}
-      ${dayItems.length>3?`<div style="font-size:8px;color:var(--text-soft)">+${dayItems.length-3} more</div>`:''}
-      ${posted?`<div style="font-size:9px;color:#3d7a3d;font-weight:700">🚀 ${posted} posted</div>`:''}
+    cells+=`<div onclick="openContentScheduleModal(null,'${ds}')" style="min-height:68px;max-height:90px;overflow:hidden;background:${isToday?'var(--pink-glow)':'white'};border:1.5px solid ${isToday?'var(--pink-deep)':'var(--border)'};border-radius:10px;padding:5px;cursor:pointer;box-sizing:border-box">
+      <div style="font-size:11px;font-weight:700;color:${isToday?'var(--pink-deep)':'var(--text)'};margin-bottom:3px">${d}</div>
+      ${dayItems.slice(0,2).map(e=>`<div style="font-size:8px;background:${PLATFORM_META[e.platform]?.light||'var(--pink-glow)'};border-left:2px solid ${PLATFORM_META[e.platform]?.color||'var(--pink-deep)'};border-radius:3px;padding:1px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:${PLATFORM_META[e.platform]?.color||'var(--text)'}">${PLATFORM_META[e.platform]?.emoji||''} ${CC_STATUS[e.status]?.emoji||''} ${e.title}</div>`).join('')}
+      ${dayItems.length>2?`<div style="font-size:7px;color:var(--text-soft)">+${dayItems.length-2} more</div>`:''}
+      ${posted?`<div style="font-size:8px;color:#3d7a3d;font-weight:700">🚀×${posted}</div>`:''}
     </div>`;
   }
 
@@ -12645,9 +12660,9 @@ function _showPostedCelebration(e){
 // ── Modal ──
 function openContentScheduleModal(id, prefillDate){
   _ccEditId=id||null;
-  _csPlatform=null; _csFormat=null; _csStatus='idea';
+  _ccPlatforms=[]; _csFormat=null; _csStatus='idea';
 
-  // Reset chips
+  // Reset all chips
   document.querySelectorAll('#csPlatformChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('#csFormatChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('#csStatusChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
@@ -12664,11 +12679,12 @@ function openContentScheduleModal(id, prefillDate){
     document.getElementById('csTitle').value=e.title;
     document.getElementById('csConcept').value=e.concept||'';
     document.getElementById('csAddToCalendar').checked=!!e.calEventId;
-    _csPlatform=e.platform; _csFormat=e.format; _csStatus=e.status||'idea';
-    // Activate chips
-    document.querySelector(`#csPlatformChips [data-p="${e.platform}"]`)?.classList.add('active');
+    // Restore platforms (array or legacy single)
+    const platforms=Array.isArray(e.platforms)?e.platforms:(e.platform?[e.platform]:[]);
+    _ccPlatforms=[...platforms];
+    platforms.forEach(p=>{ document.querySelector(`#csPlatformChips [data-p="${p}"]`)?.classList.add('active'); });
+    _csFormat=e.format; _csStatus=e.status||'idea';
     document.querySelector(`#csFormatChips [data-fmt="${e.format}"]`)?.classList.add('active');
-    document.querySelector(`#csStatusChips [data-st="${e.status||'idea'}"]`)?.classList.remove('active');
     document.querySelectorAll('#csStatusChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
     document.querySelector(`#csStatusChips [data-st="${e.status||'idea'}"]`)?.classList.add('active');
   } else {
@@ -12682,10 +12698,6 @@ function openContentScheduleModal(id, prefillDate){
   openModal('contentScheduleModal');
 }
 
-function setCsPlatform(btn, p){
-  document.querySelectorAll('#csPlatformChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); _csPlatform=p;
-}
 function setCsFormat(btn, f){
   document.querySelectorAll('#csFormatChips .shower-mood-chip').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active'); _csFormat=f;
@@ -12700,40 +12712,58 @@ function saveContentSchedule(){
   const title=document.getElementById('csTitle').value.trim();
   if(!date){ showToast('Pick a date ✦'); return; }
   if(!title){ showToast('Add a title or idea ✦'); return; }
-  if(!_csPlatform){ showToast('Pick a platform ✦'); return; }
+  if(!_ccPlatforms.length){ showToast('Pick at least one platform ✦'); return; }
 
   const addToCal=document.getElementById('csAddToCalendar').checked;
-  const existing=_ccEditId?contentCalendar.find(x=>x.id===_ccEditId):null;
 
-  const entry={
-    id:existing?.id||_genId(),
-    date, platform:_csPlatform,
-    format:_csFormat||'long',
-    title,
-    concept:document.getElementById('csConcept').value.trim(),
-    status:_csStatus||'idea',
-    calEventId:existing?.calEventId||null,
-    createdAt:existing?.createdAt||new Date().toISOString(),
-  };
-
-  // Sync to main calendar
-  if(addToCal){
-    const meta=PLATFORM_META[_csPlatform]||{};
-    const calEntry={title:`${meta.emoji||'✦'} ${title}`,date,cat:'Content',color:meta.color||'var(--pink-deep)',done:entry.status==='posted',time:''};
-    if(entry.calEventId!=null){
-      const idx=calEvents.findIndex((_,i)=>i===entry.calEventId);
-      if(idx>=0) calEvents[idx]=calEntry; else { calEvents.push(calEntry); entry.calEventId=calEvents.length-1; }
-    } else { calEvents.push(calEntry); entry.calEventId=calEvents.length-1; }
+  // If editing a single entry, update it
+  if(_ccEditId){
+    const existing=contentCalendar.find(x=>x.id===_ccEditId); if(!existing) return;
+    existing.date=date; existing.title=title;
+    existing.platforms=_ccPlatforms; existing.platform=_ccPlatforms[0];
+    existing.format=_csFormat||'long'; existing.concept=document.getElementById('csConcept').value.trim();
+    existing.status=_csStatus||'idea';
+    if(addToCal && existing.calEventId!=null){
+      const meta=PLATFORM_META[_ccPlatforms[0]]||{};
+      if(calEvents[existing.calEventId]) calEvents[existing.calEventId]={title:`${meta.emoji||'✦'} ${title}`,date,cat:'Content',color:meta.color||'var(--pink-deep)',done:existing.status==='posted',time:''};
+    }
+    closeModal('contentScheduleModal');
+    scheduleSave();
+    renderContentCalendar();
     try{ buildCalendar(); }catch(e){}
+    showToast('Updated ✦');
+    return;
   }
 
-  if(existing){ const idx=contentCalendar.findIndex(x=>x.id===_ccEditId); contentCalendar[idx]=entry; }
-  else { contentCalendar.unshift(entry); awardXP(3,'Content scheduled 📅'); }
+  // New entry — create one per platform
+  _ccPlatforms.forEach(platform=>{
+    const meta=PLATFORM_META[platform]||{};
+    const entry={
+      id:_genId(), date, platform,
+      platforms:_ccPlatforms,
+      format:_csFormat||'long',
+      title, concept:document.getElementById('csConcept').value.trim(),
+      status:_csStatus||'idea', calEventId:null,
+      createdAt:new Date().toISOString(),
+    };
+    if(addToCal){
+      const calEntry={title:`${meta.emoji||'✦'} ${title}`,date,cat:'Content',color:meta.color||'var(--pink-deep)',done:false,time:''};
+      calEvents.push(calEntry);
+      entry.calEventId=calEvents.length-1;
+    }
+    contentCalendar.unshift(entry);
+  });
 
+  awardXP(_ccPlatforms.length*3, 'Content scheduled 📅');
   closeModal('contentScheduleModal');
   scheduleSave();
   renderContentCalendar();
-  showToast('Scheduled ✦');
+  try{ buildCalendar(); }catch(e){}
+
+  const msg=_ccPlatforms.length>1
+    ? `Scheduled on ${_ccPlatforms.length} platforms ✦`
+    : 'Scheduled ✦';
+  showToast(msg);
 }
 
 function deleteContentSchedule(){
@@ -15874,10 +15904,9 @@ function renderWeeklyReset(){
   _renderResetChecklist('resetMorningChecklist', srMorningItems);
   _renderResetChecklist('resetDigitalChecklist', srDigitalItems);
 
-  // Complete check
+  // Complete check handled in markResetPhase to avoid double-firing
   if(srPhasesDone.size===TOTAL_PHASES){
-    try{ checkAchievement('fin_weekly_reset'); awardXP(30,'Sunday Reset complete ✦'); }catch(e){}
-    showToast('Sunday Reset complete ✦ Week opened.');
+    try{ checkAchievement('fin_weekly_reset'); }catch(e){}
   }
 }
 
@@ -15937,12 +15966,45 @@ function selectResetVersion(v){
 }
 
 function markResetPhase(phase){
+  if(srPhasesDone.has(phase)){ showToast('Already done ✦'); return; }
   srPhasesDone.add(phase);
-  scheduleResetSave();
-  // Collect note values
   _collectResetNotes();
+  scheduleResetSave();
+
+  // Per-phase XP
+  const phaseXP = {
+    close:       {xp:8,  msg:'Week closed 🪞'},
+    clearMorning:{xp:10, msg:'Space cleared 🧹'},
+    clearDigital:{xp:8,  msg:'Digital cleared 📵'},
+    understand:  {xp:6,  msg:'Pattern spotted 🔍'},
+    decide:      {xp:10, msg:'Week decided ⚡'},
+    open:        {xp:8,  msg:'Week opened 🌱'},
+  };
+  const p = phaseXP[phase];
+  if(p) try{ awardXP(p.xp, p.msg); }catch(e){}
+
+  // Full completion — only once per reset
+  if(srPhasesDone.size===TOTAL_PHASES && !srPhasesDone._xpAwarded){
+    srPhasesDone._xpAwarded = true;
+    try{ checkAchievement('fin_weekly_reset'); }catch(e){}
+    try{ awardXP(50, 'Sunday Reset complete — full week ✦'); }catch(e){}
+    // Celebration overlay
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(60,20,40,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px';
+    overlay.innerHTML=`<div style="background:linear-gradient(135deg,#1a0a14,#2a1020);border-radius:28px;padding:36px 32px;max-width:340px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.5)">
+      <div style="font-size:40px;margin-bottom:12px">✦</div>
+      <div style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;font-weight:700;color:#fce8f4;margin-bottom:8px">Sunday Reset done.</div>
+      <div style="font-size:13px;color:rgba(240,160,192,.7);line-height:1.7;margin-bottom:8px">You closed the old week and opened the new one with intention. That's not nothing.</div>
+      <div style="font-size:11px;font-weight:700;color:rgba(240,160,192,.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">+50 XP earned</div>
+      ${srNotes.word?`<div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:#fce8f4;margin:14px 0;padding:12px;border:1px solid rgba(240,160,192,.2);border-radius:12px">This week: <em>${srNotes.word}</em></div>`:''}
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--pink-deep),#c060a0);color:white;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Start the week ✦</button>
+    </div>`;
+    overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+
   renderWeeklyReset();
-  showToast('Phase done ✦');
+  if(srPhasesDone.size<TOTAL_PHASES) showToast(`${p?.msg||'Done'} · +${p?.xp||0} XP ✦`);
 }
 
 function _collectResetNotes(){
@@ -25929,7 +25991,7 @@ function renderStudyTodayStrip(){
     qEl.textContent='"'+pick.text+'"';
   }
 
-  // 7-day dot heatmap
+  // 7-day dot heatmap — colour system matches week chart
   const dotsEl=document.getElementById('studyWeekDots');
   if(dotsEl){
     const dayNames=['M','T','W','T','F','S','S'];
@@ -25938,20 +26000,36 @@ function renderStudyTodayStrip(){
     for(let i=6;i>=0;i--){
       const d=new Date(); d.setDate(d.getDate()-i);
       const ds=d.toISOString().slice(0,10);
-      const hasTicks=studyTaskChecks.some(c=>c.date===ds);
-      const hasLog=studyLogs.some(l=>l.date===ds);
-      const hasCatchup=(typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds);
-      const hasSkip=studySkips.some(s=>s.date===ds)||(typeof studyUnplannedSkips!=='undefined'&&studyUnplannedSkips.some(s=>s.date===ds));
       const isToday2=ds===today2;
-      let dotCol='var(--border)', dotTitle='No activity';
-      if(hasTicks||hasLog||hasCatchup){ dotCol='var(--pink-deep)'; dotTitle='Studied ✓'; }
-      else if(hasSkip){ dotCol='#d08080'; dotTitle='Skipped'; }
-      const shadow=isToday2?'box-shadow:0 0 0 2px var(--pink-mid);':'';
+      const status=typeof _getDayStudyStatus==='function'?_getDayStudyStatus(ds):'none';
+      // Colours matching the week chart:
+      // all3 / exempt → light pink fill + pink-deep border (like the circle chart)
+      // partial → dark pink solid
+      // missed past day → red
+      // today with nothing → dashed border empty
+      // future → empty grey
+      let bg, border, title, extraStyle='';
+      if(status==='all3'){
+        bg='#fce8f4'; border='2px solid var(--pink-deep)'; title='All 3 done ✦';
+      } else if(status==='exempt'){
+        bg='#fce8f4'; border='2px solid var(--pink-deep)'; title='Exempt — streak protected 💗';
+      } else if(status==='partial'){
+        bg='var(--pink-deep)'; border='2px solid var(--pink-deep)'; title='Partial day';
+      } else if(isToday2){
+        bg='transparent'; border='2px dashed var(--border)'; title='Today';
+      } else {
+        // Past day — check if they had tasks set (if not, just grey)
+        const hadTasks=['High Energy','Medium Energy','Low Energy'].some(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
+        const hasSkip=studySkips.some(s=>s.date===ds)||(typeof studyUnplannedSkips!=='undefined'&&studyUnplannedSkips.some(s=>s.date===ds));
+        if(hadTasks){ bg='#f4a0a0'; border='2px solid #d06060'; title='Missed'; }
+        else { bg='var(--border)'; border='2px solid var(--border)'; title='No data'; }
+      }
+      if(isToday2) extraStyle='box-shadow:0 0 0 3px rgba(224,120,152,.2);';
       const fw=isToday2?'700':'400';
-      dots.push('<div title="'+dotTitle+'" style="display:flex;flex-direction:column;align-items:center;gap:2px">'
-        +'<div style="width:10px;height:10px;border-radius:50%;background:'+dotCol+';'+shadow+'"></div>'
-        +'<div style="font-size:8px;color:var(--text-soft);font-weight:'+fw+'">'+dayNames[6-i]+'</div>'
-        +'</div>');
+      dots.push(`<div title="${title}" style="display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div style="width:14px;height:14px;border-radius:50%;background:${bg};border:${border};${extraStyle}"></div>
+        <div style="font-size:8px;color:${isToday2?'var(--pink-deep)':'var(--text-soft)'};font-weight:${fw}">${dayNames[6-i]}</div>
+      </div>`);
     }
     dotsEl.innerHTML=dots.join('');
   }
@@ -25981,46 +26059,6 @@ function setStudyView(view){
 }
 
 // ── Weekly chart ──
-function renderStudyWeekChart(){
-  const chartEl=document.getElementById('studyWeekChart');
-  const labelEl=document.getElementById('studyWeekLabels');
-  const totalEl=document.getElementById('studyWeekTotal');
-  const statsEl=document.getElementById('studyWeekStats');
-  if(!chartEl) return;
-  const days=[];
-  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
-  const today=_todayStr();
-  // Count both logged mins and ticked task count
-  const dayMins=days.map(date=>studyLogs.filter(l=>l.date===date).reduce((s,l)=>s+(l.actual||0),0));
-  const dayTicks=days.map(date=>studyTaskChecks.filter(c=>c.date===date).length);
-  const maxMins=Math.max(...dayMins,30);
-  const totalMins=dayMins.reduce((a,b)=>a+b,0);
-  const studyDays=days.filter((_,i)=>dayMins[i]>0||dayTicks[i]>0).length;
-  if(totalEl) totalEl.textContent=_fmtMins(totalMins)+' logged this week';
-  const dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  chartEl.innerHTML=days.map((date,i)=>{
-    const mins=dayMins[i], ticks=dayTicks[i], pct=Math.round(mins/maxMins*100);
-    const isToday=date===today;
-    const col=mins===0?(ticks>0?'var(--pink-light)':'var(--pink-glow)'):(isToday?'var(--pink-deep)':'var(--pink-mid)');
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
-      <div style="font-size:9px;color:var(--text-soft)">${mins>0?_fmtMins(mins):ticks>0?ticks+'✓':''}</div>
-      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
-        <div style="width:100%;height:${Math.max(pct>0?pct:ticks>0?10:3,3)}%;background:${col};border-radius:4px 4px 0 0;transition:height 0.5s;min-height:3px"></div>
-      </div>
-    </div>`;
-  }).join('');
-  labelEl.innerHTML=dayLabels.map((l,i)=>{
-    const isToday=days[i]===today;
-    return `<div style="flex:1;text-align:center;font-size:9px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--pink-deep)':'var(--text-soft)'}">${l}</div>`;
-  }).join('');
-  if(statsEl){
-    statsEl.innerHTML=`
-      <div style="background:var(--pink-glow);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text)">📅 <strong>${studyDays}/7</strong> days active</div>
-      <div style="background:var(--pink-glow);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text)">⏱ <strong>${_fmtMins(Math.round(totalMins/7))}</strong> avg/day</div>
-      <div style="background:var(--pink-glow);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text)">🔥 <strong>${_checkStudyStreak()}</strong> day streak</div>`;
-  }
-}
-
 // ── Skip log renderer ──
 function renderStudySkipLog(){
   const el=document.getElementById('studySkipLog');
