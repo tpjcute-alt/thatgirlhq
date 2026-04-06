@@ -947,6 +947,200 @@ body { font-family:'Outfit',sans-serif; background:var(--cream); color:var(--tex
 body.dark-mode .study-session-card { background:var(--white) !important; }
 body.dark-mode .study-ritual-item { background:var(--pink-glow) !important; }
 body.dark-mode .study-skip-entry { background:var(--pink-glow) !important; }
+
+/* ── DARK MODE: Study section comprehensive fixes ── */
+/* Today's study status strip */
+body.dark-mode #studyTodayStrip {
+  background:linear-gradient(135deg,#1e0e18,#2a1520) !important;
+  border-color:var(--border) !important;
+}
+body.dark-mode #studyTodayStrip #studyTodayStatus {
+  color:var(--pink-deep) !important;
+}
+body.dark-mode #studyTodayStrip .study-stat-pill {
+  background:var(--pink-glow) !important;
+  color:var(--text) !important;
+}
+/* Stat pills inside strip (Done/Mins/Streak) */
+body.dark-mode #studyTodayStrip > div > div > div[style*="background:white"] {
+  background:var(--pink-glow) !important;
+  border:1px solid var(--border) !important;
+}
+/* Daily quote bubble */
+body.dark-mode #studyDailyQuote {
+  background:rgba(30,14,24,0.8) !important;
+  color:var(--text-mid) !important;
+  border-left-color:var(--pink) !important;
+}
+/* Ritual section */
+body.dark-mode #studyRitualSection {
+  background:linear-gradient(135deg,#1a0e18,#22121e) !important;
+  border-color:var(--border) !important;
+}
+/* Energy slot cards (High/Medium/Low) */
+body.dark-mode #studyHighCard,
+body.dark-mode #studyMedCard,
+body.dark-mode #studyLowCard {
+  background:var(--white) !important;
+  border-color:var(--border) !important;
+}
+/* Motivation card */
+body.dark-mode #studyMotivationCard {
+  background:linear-gradient(135deg,#1a0e18,#22121e) !important;
+}
+/* Study task rows */
+body.dark-mode .study-task-row {
+  background:var(--pink-glow) !important;
+  color:var(--text) !important;
+}
+/* Week chart + labels containers */
+body.dark-mode #studyWeekChart > div,
+body.dark-mode #studyWeekStats > div {
+  background:var(--pink-glow) !important;
+  color:var(--text) !important;
+}
+/* XP log rows */
+body.dark-mode [id^="xprow_"] {
+  background:var(--white) !important;
+  border-color:var(--border) !important;
+}
+/* Study completion Qs block */
+body.dark-mode #studyCompletionQs {
+  background:linear-gradient(135deg,#1a0e18,#22121e) !important;
+  border-color:var(--border) !important;
+}
+/* Timer banner */
+body.dark-mode #studyTimerBanner {
+  background:linear-gradient(135deg,#2a1020,#1e0e18) !important;
+  border-color:var(--pink-deep) !important;
+}
+body.dark-mode #studyTimerDisplay { color:var(--pink-deep) !important; }
+body.dark-mode #studyTimerSubject { color:var(--text) !important; }
+body.dark-mode #studyTimerPace { color:var(--text-mid) !important; }
+body.dark-mode #studyTimerPauseBtn {
+  background:var(--pink-glow) !important;
+  color:var(--pink-deep) !important;
+  border-color:var(--pink-deep) !important;
+}
+/* Unplanned alert */
+body.dark-mode #studyUnplannedAlert {
+  background:linear-gradient(135deg,#1e180a,#221800) !important;
+  border-color:#806820 !important;
+}
+/* Action buttons */
+body.dark-mode .study-action-btn {
+  background:var(--pink-glow) !important;
+  border-color:var(--border) !important;
+  color:var(--text-mid) !important;
+}
+body.dark-mode .study-action-btn.start {
+  background:var(--pink-deep) !important;
+  color:white !important;
+  border-color:var(--pink-deep) !important;
+}
+/* Section labels / subheadings inside study */
+body.dark-mode #studyTodayStrip .section-label,
+body.dark-mode .study-slot-label { color:var(--text-soft) !important; }
+/* Study section cards with new IDs */
+body.dark-mode #studyMotivationWrap,
+body.dark-mode #studyWeekCard,
+body.dark-mode #studySkipCard { background:var(--white) !important; border-color:var(--border) !important; }
+/* studyDailyQuote: override rgba white with dark equivalent */
+body.dark-mode #studyDailyQuote { background:rgba(20,8,16,0.85) !important; }
+/* studyCompletionQs reflection block */
+body.dark-mode #studyCompletionQs { background:linear-gradient(135deg,#1a0e18,#22121e) !important; border-color:var(--border) !important; }
+/* Study stat pills */
+body.dark-mode .study-stat-pill { background:var(--pink-glow) !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE — Global element fixes (hardcoded white → themed)
+   ═══════════════════════════════════════════════════════════ */
+
+/* CSS classes with background:white */
+body.dark-mode .gym-session-card,
+body.dark-mode .gym-day-toggle,
+body.dark-mode .gym-feel-btn { background:var(--white) !important; border-color:var(--border) !important; }
+
+body.dark-mode .meal-slot { background:var(--white) !important; border-color:var(--border) !important; color:var(--text) !important; }
+
+body.dark-mode .savings-card { background:var(--white) !important; border-color:var(--border) !important; }
+body.dark-mode .project-card { background:var(--white) !important; border-color:var(--border) !important; }
+body.dark-mode .challenge-card { background:var(--white) !important; border-color:var(--border) !important; }
+body.dark-mode .therapy-card,
+body.dark-mode .lecture-card { background:var(--white) !important; border-color:var(--border) !important; }
+
+body.dark-mode .ie-scale-btn { background:var(--pink-glow) !important; border-color:var(--border) !important; color:var(--text-mid) !important; }
+body.dark-mode .ritual-check { background:var(--pink-glow) !important; border-color:var(--pink-mid) !important; }
+
+/* Achievement/XP toast popup */
+body.dark-mode .ach-toast { background:var(--white) !important; border-color:var(--pink) !important; color:var(--text) !important; }
+
+/* XP delete button */
+body.dark-mode .xp-del-btn { background:var(--pink-glow) !important; border-color:var(--border) !important; color:var(--text-soft) !important; }
+
+/* Ritual activity banners (generated via banner.style.cssText) — these are JS-generated
+   so we patch them via a class override */
+body.dark-mode .ritual-popup-banner { background:var(--white) !important; border-color:var(--pink) !important; color:var(--text) !important; }
+
+/* Lecture note editor */
+body.dark-mode #lecNoteBody { background:var(--pink-glow) !important; color:var(--text) !important; border-color:var(--border) !important; }
+
+/* Sync tab button */
+body.dark-mode #syncTabNew { background:var(--pink-glow) !important; color:var(--pink-deep) !important; }
+
+/* Auto-skip toggle thumb */
+body.dark-mode #studyAutoSkipThumb { background:var(--text-soft) !important; }
+
+/* Timer pause button */
+body.dark-mode #studyTimerPauseBtn { background:var(--pink-glow) !important; }
+
+/* Study task row checked state */
+body.dark-mode .study-task-row[style*="#eef7ee"] { background:var(--green-light) !important; }
+
+/* Week-at-a-glance stat chips (generated spans) */
+body.dark-mode #heroNarrative span[style*="background:white"] { background:var(--pink-glow) !important; }
+
+/* Content post mark-as-posted button */
+body.dark-mode button[onclick*="markContentPosted"] { background:var(--pink-glow) !important; border-color:var(--border) !important; }
+
+/* Finance account rows */
+body.dark-mode [onclick*="openAddAccountModal"] { background:var(--white) !important; }
+
+/* Modals — ensure modal-box is covered */
+body.dark-mode .modal-box { background:var(--white) !important; }
+body.dark-mode .modal-overlay { background:rgba(0,0,0,0.7) !important; }
+
+/* Inline card containers inside panels that are background:white in HTML */
+body.dark-mode [id$="Panel"] > div[style*="background:white"],
+body.dark-mode [id$="Section"] > div[style*="background:white"],
+body.dark-mode [id$="Card"] > div[style*="background:white"] { background:var(--white) !important; border-color:var(--border) !important; }
+
+/* General: any card-level div with border+white bg inside a dark-mode page section */
+body.dark-mode div[style*="background:white"][style*="border:1.5px solid var(--border)"] { background:var(--white) !important; }
+body.dark-mode div[style*="background:white"][style*="border-radius:20px"] { background:var(--white) !important; }
+body.dark-mode div[style*="background:white"][style*="border-radius:16px"] { background:var(--white) !important; }
+body.dark-mode div[style*="background:white"][style*="border-radius:14px"] { background:var(--white) !important; }
+
+/* Hardcoded radial-gradient light pink backgrounds */
+body.dark-mode div[style*="radial-gradient"][style*="#fff8fb"],
+body.dark-mode div[style*="radial-gradient"][style*="#fce0ee"],
+body.dark-mode div[style*="radial-gradient"][style*="#fde8f5"],
+body.dark-mode div[style*="radial-gradient"][style*="#fde0ee"] {
+  background:linear-gradient(135deg,#1a0e18,#221220) !important;
+}
+
+/* Hardcoded pink-light backgrounds on inline elements */
+body.dark-mode div[style*="background:#fff8fb"] { background:var(--pink-glow) !important; }
+body.dark-mode div[style*="background:#fce0ee"],
+body.dark-mode div[style*="background:#fde8f2"],
+body.dark-mode div[style*="background:#fde8f5"],
+body.dark-mode div[style*="background:#fce8f4"],
+body.dark-mode div[style*="background:#fff3e0"] { background:var(--pink-glow) !important; }
+
+/* rgba white backgrounds → dark equivalent */
+body.dark-mode div[style*="background:rgba(255,255,255"] { background:rgba(30,14,24,0.8) !important; }
+
+
 .study-task-row:hover { filter: brightness(0.96); }
 .study-task-row:active { transform: scale(0.99); }
 body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
@@ -3018,36 +3212,26 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
   <!-- ── THAT GIRL NOTES ── -->
   <div id="prod-tgn" class="prod-panel" style="display:none">
     <div id="tgnListView">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="section-label" style="margin-bottom:0">ThatGirlNotes</div>
         <button class="pink-btn" onclick="openNewTGNote()">＋ New Note</button>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-        <input class="text-input" id="tgnSearch" placeholder="🔍 Search notes…" style="flex:1;min-width:160px;font-size:13px" oninput="renderTGNList()">
-        <input class="text-input" id="tgnCatFilter" placeholder="Filter by category…" style="width:170px;font-size:13px" oninput="renderTGNList()">
-      </div>
-      <div id="tgnNoteCount" style="font-size:11px;color:var(--text-soft);margin-bottom:10px"></div>
       <div id="tgnList"></div>
       <div id="tgnEmpty" style="font-size:13px;color:var(--text-soft);font-style:italic;padding:16px 0">No notes yet — create your first one ✦</div>
     </div>
     <div id="tgnEditorView" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
         <button class="pink-pill" style="font-size:11px" onclick="closeTGNoteEditor()">← Back</button>
-        <div id="tgnAutoSaveIndicator" style="font-size:11px;color:var(--text-soft);font-style:italic;opacity:0;transition:opacity 0.4s;flex:1;text-align:center"></div>
-        <button class="pink-btn" id="tgnSaveBtn" style="font-size:11px;padding:8px 18px;margin-left:auto" onclick="saveTGNoteManual()">Save ✦</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
-        <span id="tgnWordCount" style="font-size:10px;color:var(--text-soft);letter-spacing:0.5px">0 words</span>
-        <span id="tgnLastSaved" style="font-size:10px;color:var(--text-soft);font-style:italic"></span>
+        <button class="pink-btn" style="font-size:11px;padding:8px 18px;margin-left:auto" onclick="saveTGNote()">Save ✦</button>
       </div>
       <div class="note-editor">
-        <input class="note-editor-title" id="tgnTitle" placeholder="Note title…" oninput="tgnAutoSave()">
+        <input class="note-editor-title" id="tgnTitle" placeholder="Note title…">
         <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-          <input class="text-input" style="width:160px;font-size:12px;padding:7px 12px" id="tgnCategory" placeholder="Category (e.g. mindset, wellness…)" oninput="tgnAutoSave()">
-          <input class="text-input" style="width:130px;font-size:12px;padding:7px 12px" id="tgnDate" type="date" onchange="tgnAutoSave()">
+          <input class="text-input" style="width:160px;font-size:12px;padding:7px 12px" id="tgnCategory" placeholder="Category (e.g. mindset, wellness…)">
+          <input class="text-input" style="width:130px;font-size:12px;padding:7px 12px" id="tgnDate" type="date">
         </div>
         <hr style="border:none;border-top:1px solid var(--border);margin-bottom:14px">
-        <textarea class="note-editor-body" id="tgnBody" placeholder="Write anything — habits, reflections, rituals, things she knows…&#10;&#10;This is your space ✦" oninput="tgnAutoSave();tgnUpdateWordCount()"></textarea>
+        <textarea class="note-editor-body" id="tgnBody" placeholder="Write anything — habits, reflections, rituals, things she knows…&#10;&#10;This is your space ✦"></textarea>
       </div>
     </div>
   </div><!-- end prod-tgn -->
@@ -3135,15 +3319,15 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
           <div style="font-size:12px;color:var(--text-mid);margin-top:2px" id="studyTodayMeta"></div>
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <div style="text-align:center;background:white;border-radius:14px;padding:10px 16px;min-width:72px">
+          <div class="study-stat-pill" style="text-align:center;background:var(--white);border-radius:14px;padding:10px 16px;min-width:72px">
             <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="studyTodayDone">0</div>
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Done</div>
           </div>
-          <div style="text-align:center;background:white;border-radius:14px;padding:10px 16px;min-width:72px">
+          <div class="study-stat-pill" style="text-align:center;background:var(--white);border-radius:14px;padding:10px 16px;min-width:72px">
             <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="studyTodayMins">0</div>
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Mins</div>
           </div>
-          <div style="text-align:center;background:white;border-radius:14px;padding:10px 16px;min-width:72px">
+          <div class="study-stat-pill" style="text-align:center;background:var(--white);border-radius:14px;padding:10px 16px;min-width:72px">
             <div style="font-size:22px;font-weight:900;font-family:'Playfair Display',serif;color:var(--pink-deep)" id="studyStreak">0🔥</div>
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft)">Streak</div>
           </div>
@@ -3153,7 +3337,7 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
       <div id="studyWeekDots" style="display:flex;gap:5px;margin-top:12px;margin-bottom:4px"></div>
 
       <!-- Today's daily quote -->
-      <div id="studyDailyQuote" style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.7);border-radius:12px;font-size:13px;color:var(--text-mid);font-style:italic;border-left:3px solid var(--pink)"></div>
+      <div id="studyDailyQuote" style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.7);border-radius:12px;font-size:13px;color:var(--text-mid);font-style:italic;border-left:3px solid var(--pink);transition:background 0.3s"></div>
 
       <!-- Today's quick actions if no sessions planned -->
       <div id="studyTodayQuickActions" style="display:none;margin-top:14px">
@@ -3231,7 +3415,7 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
     </div>
 
     <!-- ── STUDY MOTIVATION CORNER ── -->
-    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
+    <div id="studyMotivationWrap" style="background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div class="section-label" style="margin-bottom:0">✨ Your Why</div>
         <button class="pink-pill" style="font-size:11px" onclick="refreshStudyMotivation()">🔀 Refresh</button>
@@ -3259,7 +3443,7 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
     </div>
 
     <!-- ── WEEKLY STUDY CHART ── -->
-    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
+    <div id="studyWeekCard" style="background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div class="section-label" style="margin-bottom:0">Weekly Study Map</div>
         <div style="font-size:12px;color:var(--text-mid)" id="studyWeekTotal"></div>
@@ -3270,7 +3454,7 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
     </div>
 
     <!-- ── SKIP LOG (accountability section) ── -->
-    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
+    <div id="studySkipCard" style="background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div class="section-label" style="margin-bottom:0">Skip Log 📋</div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -6749,7 +6933,7 @@ function setRitualTarget(key, av){
   const ex = document.getElementById('ritualTargetBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ritualTargetBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const label = document.createElement('span');
   label.textContent = 'Target time (mins):';
   label.style.cssText = 'font-weight:600;color:var(--text);flex-shrink:0';
@@ -7411,7 +7595,7 @@ function renameRitualVersion(key, oldName){
   const ex = document.getElementById('ritualRenameBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ritualRenameBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const label = document.createElement('span');
   label.textContent = 'Rename:';
   label.style.cssText = 'font-weight:600;color:var(--text);flex-shrink:0';
@@ -7449,7 +7633,7 @@ function deleteRitualVersion(key, vname){
   const ex = document.getElementById('ritualDeleteBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ritualDeleteBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = 'Delete version <strong>' + vname + '</strong> and all its steps?';
   const yesBtn = document.createElement('button');
@@ -7473,7 +7657,7 @@ function deleteRitualCategory(key){
   const ex = document.getElementById('ritualCatDeleteBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ritualCatDeleteBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = 'Delete the <strong>' + (ritualData[key]?.label||key) + '</strong> ritual and all its steps?';
   const yesBtn = document.createElement('button');
@@ -7497,7 +7681,7 @@ function addRitualVersion(key){
   const ex = document.getElementById('ritualAddVersionBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ritualAddVersionBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const label = document.createElement('span');
   label.textContent = 'Version name:';
   label.style.cssText = 'font-weight:600;color:var(--text);flex-shrink:0';
@@ -7529,7 +7713,7 @@ function duplicateRitualVersion(key, sourceName){
   const ex = document.getElementById('ritualDupBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ritualDupBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
 
   const label = document.createElement('span');
   label.innerHTML = `Duplicate <strong>${sourceName}</strong> as:`;
@@ -7881,7 +8065,7 @@ function showDeleteTripConfirm(i, name){
 
   const banner = document.createElement('div');
   banner.id = 'deleteTripConfirm';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;white-space:nowrap;max-width:90vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';white-space:nowrap;max-width:90vw';
   banner.innerHTML = `
     <span>Delete <strong>${name}</strong>?</span>
     <button onclick="document.getElementById('deleteTripConfirm').remove(); trips.splice(${i},1); renderTripCards(); scheduleSave();" style="background:#e07898;color:white;border:none;border-radius:12px;padding:6px 14px;font-family:Outfit,sans-serif;font-size:12px;font-weight:700;cursor:pointer">Delete</button>
@@ -14406,7 +14590,7 @@ function _showBanner(id, contentFn, timeout){
   if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = id;
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';flex-wrap:wrap;max-width:92vw';
   contentFn(banner);
   document.body.appendChild(banner);
   if(timeout) setTimeout(()=>{ const el=document.getElementById(id); if(el) el.remove(); }, timeout);
@@ -14977,7 +15161,7 @@ function deleteSSNote(){
   const ex = document.getElementById('ssnDeleteBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ssnDeleteBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;flex-wrap:wrap;max-width:90vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';flex-wrap:wrap;max-width:90vw';
   const msg = document.createElement('span'); msg.textContent = 'Delete this note?';
   const delBtn = document.createElement('button');
   delBtn.textContent = 'Yes, delete';
@@ -18897,7 +19081,7 @@ function addYTSection(){
   const ex = document.getElementById('ytAddSectionBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ytAddSectionBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const emojiIn = document.createElement('input');
   emojiIn.value = '🎵'; emojiIn.style.cssText = 'width:50px;border:1.5px solid #f0a0c0;border-radius:12px;padding:7px 10px;font-size:18px;text-align:center;outline:none';
   const nameIn = document.createElement('input');
@@ -18928,7 +19112,7 @@ function renameYTSection(si){
   const ex = document.getElementById('ytRenameBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ytRenameBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const emojiIn = document.createElement('input');
   emojiIn.value = sec.emoji; emojiIn.style.cssText = 'width:50px;border:1.5px solid #f0a0c0;border-radius:12px;padding:7px 10px;font-size:18px;text-align:center;outline:none';
   const nameIn = document.createElement('input');
@@ -18958,7 +19142,7 @@ function deleteYTSection(si){
   const ex = document.getElementById('ytDeleteBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'ytDeleteBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = `Delete <strong>${sec.emoji} ${sec.name}</strong> and all its videos?`;
   const yesBtn = document.createElement('button');
@@ -19208,7 +19392,7 @@ function addDLSection(){
   const ex = document.getElementById('dlAddSectionBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'dlAddSectionBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const emojiIn = document.createElement('input');
   emojiIn.value = '📥'; emojiIn.style.cssText = 'width:50px;border:1.5px solid #f0a0c0;border-radius:12px;padding:7px 10px;font-size:18px;text-align:center;outline:none';
   const nameIn = document.createElement('input');
@@ -19238,7 +19422,7 @@ function renameDLSection(si){
   const ex = document.getElementById('dlRenameBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'dlRenameBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
   const emojiIn = document.createElement('input');
   emojiIn.value = sec.emoji; emojiIn.style.cssText = 'width:50px;border:1.5px solid #f0a0c0;border-radius:12px;padding:7px 10px;font-size:18px;text-align:center;outline:none';
   const nameIn = document.createElement('input');
@@ -19268,7 +19452,7 @@ function deleteDLSection(si){
   const ex = document.getElementById('dlDeleteBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'dlDeleteBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = `Delete <strong>${sec.emoji} ${sec.name}</strong> and all its videos?`;
   const yesBtn = document.createElement('button');
@@ -20024,7 +20208,7 @@ function saveCouldntDoIt(){
 
   // Tick legendary challenge tracking — this counts as showing up
   try{ checkAchievement('study_full_day'); }catch(e){}
-  try{ addXP(5,'Showed up — couldn\'t do it but logged it 💗'); }catch(e){}
+  try{ awardXP(5,'Showed up — couldn\'t do it but logged it 💗'); }catch(e){}
 
   renderStudySessions();
   renderStudyTodayStrip();
@@ -20091,8 +20275,16 @@ function renderStudyWeekChart(){
   const totalEl=document.getElementById('studyWeekTotal');
   const statsEl=document.getElementById('studyWeekStats');
   if(!chartEl) return;
+  // Build Mon–Sun of the current calendar week (Mon-anchored)
   const days=[];
-  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+  const _now=new Date();
+  const _dow=_now.getDay(); // 0=Sun,1=Mon...6=Sat
+  const _monOffset=_dow===0?-6:1-_dow; // days back to reach Monday
+  const _mon=new Date(_now); _mon.setDate(_now.getDate()+_monOffset);
+  for(let i=0;i<7;i++){
+    const d=new Date(_mon); d.setDate(_mon.getDate()+i);
+    days.push(d.toISOString().slice(0,10));
+  }
   const today=_todayStr();
   const totalMins=days.reduce((s,date)=>s+studyLogs.filter(l=>l.date===date).reduce((a,l)=>a+(l.actual||0),0),0);
   const streak=_computeAll3Streak();
@@ -20113,6 +20305,7 @@ function renderStudyWeekChart(){
     else if(status==='exempt'){ bg='#fce8f4'; border='2px solid var(--pink-deep)'; label='💗'; }
     else if(status==='partial'){ bg='var(--pink-deep)'; border='2px solid var(--pink-deep)'; label=''; }
     else if(isToday){          bg='transparent'; border='2px dashed var(--border)'; label=''; }
+    else if(date>today){       bg='var(--border)'; border='2px solid var(--border)'; label=''; }
     else {
       // Past day with nothing — red if they had tasks set, grey if no routines
       const hadTasks=['High Energy','Medium Energy','Low Energy'].some(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
@@ -20125,10 +20318,12 @@ function renderStudyWeekChart(){
     </div>`;
   }).join('');
 
-  const dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  if(labelEl) labelEl.innerHTML=dayLabels.map((l,i)=>{
-    const isToday=days[i]===today;
-    return `<div style="flex:1;text-align:center;font-size:9px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--pink-deep)':'var(--text-soft)'}">${l}</div>`;
+  // Derive actual day-of-week label from each real date, not a hardcoded positional array
+  const DOW_SHORT=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if(labelEl) labelEl.innerHTML=days.map((date,i)=>{
+    const isToday=date===today;
+    const dayLabel=DOW_SHORT[new Date(date+'T12:00:00').getDay()];
+    return `<div style="flex:1;text-align:center;font-size:9px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--pink-deep)':'var(--text-soft)'}">${dayLabel}</div>`;
   }).join('');
 
   if(statsEl){
@@ -20380,7 +20575,7 @@ function _checkStudy60BadgeFromRoutine(){
     // Unlock it
     b.completed=true; b.completedDate=new Date().toISOString().slice(0,10);
     b.progress=60; b.streak=60;
-    try{ addXP(500,'🎓 Scholar — 60 Days!'); }catch(e){}
+    try{ awardXP(500,'🎓 Scholar — 60 Days!'); }catch(e){}
     try{ showAchToast({emoji:'🎓',title:'Scholar — 60 Days',desc:'Two months of showing up. That\'s legendary.',xp:500}); }catch(e){}
     scheduleSave();
   } else if(b){
@@ -20554,7 +20749,7 @@ function logChallengeProgress(i){
   const ex = document.getElementById('chalProgressBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'chalProgressBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
 
   const label = document.createElement('span');
   label.style.cssText = 'font-weight:600;color:var(--text);flex-shrink:0';
@@ -20623,7 +20818,7 @@ function resetChallenge(i){
   const ex = document.getElementById('chalResetBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'chalResetBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = 'Reset <strong>' + challenges[i].name + '</strong>?';
   const yesBtn = document.createElement('button');
@@ -20651,7 +20846,7 @@ function deleteChallenge(i){
   const ex = document.getElementById('chalDeleteBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'chalDeleteBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:#333;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;color:'+((document.body.classList.contains('dark-mode'))?'#f0d8e8':'#333')+';flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = 'Delete <strong>' + challenges[i].name + '</strong>?';
   const yesBtn = document.createElement('button');
@@ -20859,7 +21054,7 @@ function logBadgeProgress(i){
   const ex = document.getElementById('badgeProgressBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'badgeProgressBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;max-width:92vw;flex-wrap:wrap';
 
   const label = document.createElement('span');
   label.style.cssText = 'font-weight:600;color:var(--text);flex-shrink:0';
@@ -20914,7 +21109,7 @@ function resetBadge(i){
   const ex = document.getElementById('badgeResetBanner'); if(ex) ex.remove();
   const banner = document.createElement('div');
   banner.id = 'badgeResetBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:white;border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;flex-wrap:wrap;max-width:92vw';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(240,160,192,0.35);font-family:Outfit,sans-serif;font-size:13px;flex-wrap:wrap;max-width:92vw';
   const msg = document.createElement('span');
   msg.innerHTML = 'Reset <strong>' + badges[i].name + '</strong>?';
   const yesBtn = document.createElement('button');
@@ -21202,7 +21397,7 @@ function _showStudySinglePopup(title, sub, doneCount, remaining, streak){
   const popup = document.createElement('div');
   popup.id = 'studyRitualPopup';
   popup.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:9999;
-    background:white;border:2px solid #f0a0c0;border-radius:24px;padding:18px 22px;
+    background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;border-radius:24px;padding:18px 22px;
     box-shadow:0 8px 40px rgba(240,160,192,0.4);font-family:Outfit,sans-serif;
     max-width:340px;width:90vw;animation:fadeInUp 0.3s ease`;
 
@@ -21281,7 +21476,7 @@ function _showRitualCompleteToast(key){
   };
   const [title, sub] = msgs[key] || ['Ritual complete ✦', 'You showed up.'];
   const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:white;border:2px solid #f0a0c0;
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:'+((document.body.classList.contains('dark-mode'))?'#1c0e18':'white')+';border:2px solid #f0a0c0;
     border-radius:20px;padding:14px 18px;font-family:Outfit,sans-serif;z-index:9999;
     box-shadow:0 4px 20px rgba(240,160,192,0.35);max-width:260px;animation:fadeInUp 0.3s ease`;
   t.innerHTML = `<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${title}</div>
@@ -24771,169 +24966,32 @@ function _restoreHomeWidgetsForToday(){
 // ══════════════════════════════════════════════
 let tgnNotes = [];
 let currentTGNIdx = -1;
-let _tgnAutoSaveTimer = null;
-let _tgnLastSavedTime = null;
 
 function renderTGNList(){
   const list = document.getElementById('tgnList');
   const empty = document.getElementById('tgnEmpty');
-  const countEl = document.getElementById('tgnNoteCount');
   if(!list) return;
-
-  const searchQ = (document.getElementById('tgnSearch')?.value || '').toLowerCase().trim();
-  const catQ = (document.getElementById('tgnCatFilter')?.value || '').toLowerCase().trim();
-
-  // Filter notes
-  const filtered = tgnNotes
-    .map((n,i) => ({n, i})) // keep original index for open/delete
-    .filter(({n}) => {
-      const matchSearch = !searchQ ||
-        (n.title||'').toLowerCase().includes(searchQ) ||
-        (n.body||'').toLowerCase().includes(searchQ) ||
-        (n.category||'').toLowerCase().includes(searchQ);
-      const matchCat = !catQ || (n.category||'').toLowerCase().includes(catQ);
-      return matchSearch && matchCat;
-    });
-
-  // Count label
-  if(countEl){
-    if(tgnNotes.length === 0) countEl.textContent = '';
-    else if(filtered.length === tgnNotes.length) countEl.textContent = tgnNotes.length + (tgnNotes.length===1?' note':' notes');
-    else countEl.textContent = `${filtered.length} of ${tgnNotes.length} notes`;
-  }
-
-  if(!tgnNotes.length){
-    list.innerHTML = '';
-    if(empty) empty.style.display = 'block';
-    return;
-  }
-  if(empty) empty.style.display = 'none';
-
-  if(!filtered.length){
-    list.innerHTML = '<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:16px 0">No notes match your search ✦</div>';
-    return;
-  }
-
-  list.innerHTML = filtered.map(({n, i})=>`
+  if(!tgnNotes.length){ list.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  list.innerHTML = tgnNotes.map((n,i)=>`
     <div class="note-card" onclick="openTGNote(${i})">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
         <div style="flex:1;min-width:0">
           <div class="note-card-title">${n.title||'Untitled'}</div>
-          <div class="note-card-meta" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px">
-            ${n.category?`<span style="background:var(--pink-glow);border-radius:8px;padding:1px 8px;font-size:10px;font-weight:600;color:var(--pink-deep)">${n.category}</span>`:''}
-            ${n.date?`<span>${n.date}</span>`:''}
-            ${n.updatedAt?`<span style="opacity:0.7">· saved ${_tgnRelTime(n.updatedAt)}</span>`:''}
-          </div>
-          ${n.body?`<div style="font-size:12px;color:var(--text-soft);margin-top:6px;overflow:hidden;max-height:40px;line-height:1.6">${n.body.slice(0,130)}${n.body.length>130?'…':''}</div>`:''}
+          <div class="note-card-meta">${n.category?n.category+' · ':''} ${n.date||''}</div>
+          ${n.body?`<div style="font-size:12px;color:var(--text-soft);margin-top:4px;overflow:hidden;max-height:36px;line-height:1.5">${n.body.slice(0,100)}${n.body.length>100?'…':''}</div>`:''}
         </div>
-        <button onclick="event.stopPropagation();tgnConfirmDelete(${i})" title="Delete note" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text-soft);padding:4px 6px;flex-shrink:0;opacity:0.5;transition:opacity 0.15s;border-radius:8px" onmouseover="this.style.opacity=1;this.style.background='var(--red-light)'" onmouseout="this.style.opacity=0.5;this.style.background='none'">🗑</button>
+        <button onclick="event.stopPropagation();tgnNotes.splice(${i},1);renderTGNList();scheduleSave()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:4px;flex-shrink:0">🗑</button>
       </div>
     </div>`).join('');
 }
 
-function _tgnRelTime(ts){
-  if(!ts) return '';
-  const diff = Date.now() - new Date(ts).getTime();
-  const mins = Math.floor(diff/60000);
-  if(mins < 1) return 'just now';
-  if(mins < 60) return mins+'m ago';
-  const hrs = Math.floor(mins/60);
-  if(hrs < 24) return hrs+'h ago';
-  return Math.floor(hrs/24)+'d ago';
-}
-
-function tgnConfirmDelete(i){
-  if(confirm('Delete this note? This cannot be undone.')) {
-    tgnNotes.splice(i,1);
-    renderTGNList();
-    scheduleSave();
-  }
-}
-
-function tgnUpdateWordCount(){
-  const body = document.getElementById('tgnBody');
-  if(!body) return;
-  const words = body.value.trim() ? body.value.trim().split(/\s+/).length : 0;
-  const el = document.getElementById('tgnWordCount');
-  if(el) el.textContent = words + (words===1?' word':' words');
-}
-
-function _tgnShowAutoSaveIndicator(msg, isSuccess){
-  const el = document.getElementById('tgnAutoSaveIndicator');
-  if(!el) return;
-  el.textContent = msg;
-  el.style.color = isSuccess ? 'var(--pink-deep)' : 'var(--text-soft)';
-  el.style.opacity = '1';
-  clearTimeout(el._hideTimer);
-  el._hideTimer = setTimeout(()=>{ el.style.opacity='0'; }, 2000);
-}
-
-function _tgnUpdateLastSavedUI(){
-  const el = document.getElementById('tgnLastSaved');
-  if(el && _tgnLastSavedTime){
-    el.textContent = 'Last saved ' + _tgnRelTime(_tgnLastSavedTime);
-  }
-}
-
-// Core save logic — always call this, then scheduleSave() for persistence
-function _tgnPersist(){
-  const title = document.getElementById('tgnTitle').value.trim() || 'Untitled';
-  const body = document.getElementById('tgnBody').value;
-  const category = document.getElementById('tgnCategory').value.trim();
-  const date = document.getElementById('tgnDate').value || isoDate(now);
-  const updatedAt = new Date().toISOString();
-  if(currentTGNIdx >= 0){
-    tgnNotes[currentTGNIdx] = {...tgnNotes[currentTGNIdx], title, body, category, date, updatedAt};
-  } else {
-    tgnNotes.unshift({title, body, category, date, updatedAt});
-    currentTGNIdx = 0;
-  }
-  _tgnLastSavedTime = updatedAt;
-  _tgnUpdateLastSavedUI();
-  scheduleSave();
-}
-
-// Debounced auto-save triggered by oninput
-function tgnAutoSave(){
-  clearTimeout(_tgnAutoSaveTimer);
-  _tgnAutoSaveTimer = setTimeout(()=>{
-    _tgnPersist();
-    _tgnShowAutoSaveIndicator('✦ Auto-saved', true);
-  }, 600); // save 600ms after user stops typing
-}
-
-// Manual save (Save ✦ button) — immediate, with button feedback
-function saveTGNoteManual(){
-  clearTimeout(_tgnAutoSaveTimer);
-  _tgnPersist();
-  renderTGNList();
-  _tgnShowAutoSaveIndicator('✓ Saved!', true);
-  const btn = document.getElementById('tgnSaveBtn');
-  if(btn){
-    const orig = btn.textContent;
-    btn.textContent = '✓ Saved!';
-    btn.style.background = 'linear-gradient(135deg,#6ab88a,#4a9a6a)';
-    setTimeout(()=>{ btn.textContent=orig; btn.style.background=''; }, 1800);
-  }
-}
-
-// Keep legacy saveTGNote() working (called from closeTGNoteEditor etc.)
-function saveTGNote(){
-  clearTimeout(_tgnAutoSaveTimer);
-  _tgnPersist();
-  renderTGNList();
-}
-
 function openNewTGNote(){
   currentTGNIdx = -1;
-  _tgnLastSavedTime = null;
   document.getElementById('tgnTitle').value = '';
   document.getElementById('tgnCategory').value = '';
   document.getElementById('tgnDate').value = isoDate(now);
   document.getElementById('tgnBody').value = '';
-  const lsEl = document.getElementById('tgnLastSaved');
-  if(lsEl) lsEl.textContent = '';
-  tgnUpdateWordCount();
   document.getElementById('tgnListView').style.display = 'none';
   document.getElementById('tgnEditorView').style.display = 'block';
 }
@@ -24941,50 +24999,35 @@ function openNewTGNote(){
 function openTGNote(i){
   currentTGNIdx = i;
   const n = tgnNotes[i];
-  _tgnLastSavedTime = n.updatedAt || null;
-  document.getElementById('tgnTitle').value = n.title||'';
+  document.getElementById('tgnTitle').value = n.title||''  ;
   document.getElementById('tgnCategory').value = n.category||'';
   document.getElementById('tgnDate').value = n.date||isoDate(now);
   document.getElementById('tgnBody').value = n.body||'';
-  tgnUpdateWordCount();
-  _tgnUpdateLastSavedUI();
   document.getElementById('tgnListView').style.display = 'none';
   document.getElementById('tgnEditorView').style.display = 'block';
 }
 
 function closeTGNoteEditor(){
-  clearTimeout(_tgnAutoSaveTimer); // flush any pending auto-save immediately
   saveTGNote();
   document.getElementById('tgnListView').style.display = 'block';
   document.getElementById('tgnEditorView').style.display = 'none';
   renderTGNList();
 }
 
-// ── Save TGN notes on page hide/unload (catches tab close & navigation) ──
-document.addEventListener('visibilitychange', function(){
-  if(document.visibilityState === 'hidden'){
-    const editorOpen = document.getElementById('tgnEditorView')?.style.display !== 'none';
-    if(editorOpen){
-      clearTimeout(_tgnAutoSaveTimer);
-      _tgnPersist();
-      saveLocal(); // bypass the debounce — write to localStorage immediately
-    }
+function saveTGNote(){
+  const title = document.getElementById('tgnTitle').value.trim() || 'Untitled';
+  const body = document.getElementById('tgnBody').value;
+  const category = document.getElementById('tgnCategory').value.trim();
+  const date = document.getElementById('tgnDate').value || isoDate(now);
+  if(currentTGNIdx >= 0){
+    tgnNotes[currentTGNIdx] = {...tgnNotes[currentTGNIdx], title, body, category, date};
+  } else {
+    tgnNotes.unshift({title, body, category, date});
+    currentTGNIdx = 0;
   }
-});
-window.addEventListener('beforeunload', function(){
-  const editorOpen = document.getElementById('tgnEditorView')?.style.display !== 'none';
-  if(editorOpen){
-    clearTimeout(_tgnAutoSaveTimer);
-    _tgnPersist();
-    saveLocal();
-  }
-});
-
-// Update "last saved X ago" every minute while editor is open
-setInterval(function(){
-  const editorOpen = document.getElementById('tgnEditorView')?.style.display !== 'none';
-  if(editorOpen) _tgnUpdateLastSavedUI();
-}, 60000);
+  renderTGNList();
+  scheduleSave();
+}
 
 // ══════════════════════════════════════════════
 // PREMADE QUOTES — inject into existing renderQuotes
@@ -25167,7 +25210,7 @@ function _autoCheckStudyAchievements(){
     if(met && !unlockedAchievements.has(id)){
       unlockedAchievements.add(id);
       const ach=ALL_ACHIEVEMENTS.find(a=>a.id===id);
-      if(ach){ try{ addXP(ach.xp,'Achievement: '+ach.title); showAchToast(ach); }catch(e){} }
+      if(ach){ try{ awardXP(ach.xp,'Achievement: '+ach.title); showAchToast(ach); }catch(e){} }
       anyNew=true;
     }
   });
@@ -25388,13 +25431,13 @@ function _toggleTaskCheck(slot, taskId){
   } else {
     studyTaskChecks.push({date:today,slot,taskId,checkedAt:new Date().toISOString()});
     // XP for ticking a task
-    try{ addXP(5,'Study task: tick'); }catch(e){}
+    try{ awardXP(2,'Study task: tick'); }catch(e){}
     // Check if all tasks in this slot are now done
     const tasks=(studyRoutines[slot]||{}).tasks||[];
     const allDone=tasks.length>0&&tasks.every(t=>_isTaskChecked(slot,t.id));
     if(allDone){
       showToast(slot+' done ✦ '+{'High Energy':'🔥 Peak session complete!','Medium Energy':'⚡ Solid session!','Low Energy':'🌙 Showed up anyway — that counts!'}[slot]||'✓');
-      try{ addXP(15,slot+' session complete'); }catch(e){}
+      try{ awardXP(8,slot+' session complete'); }catch(e){}
 
       // Auto-stop timer if it's running for this slot, then open log
       if(_studyTimerInterval && _studyTimerSlot===slot){
@@ -25710,6 +25753,8 @@ function startStudyTimer(slot){
   _studyTimerPaused    = false;
   _studyTimerSubject   = slot;
   _studyTimerStartedAt = Date.now();
+  window._timerPausedAccumMs = 0; // reset pause accumulator for fresh timer
+  window._timerPausedSince   = null;
 
   const banner=document.getElementById('studyTimerBanner');
   if(banner){
@@ -25720,11 +25765,17 @@ function startStudyTimer(slot){
     if(pauseBtn) pauseBtn.textContent='⏸ Pause';
   }
 
+  // Wall-clock timer — immune to background tab throttling.
+  // Elapsed = Date.now() diff minus any paused time, so accuracy never drifts.
+  window._timerPausedAccumMs = 0;  // total milliseconds spent paused
+  window._timerPausedSince   = null; // timestamp when current pause started
+
   _studyTimerInterval=setInterval(()=>{
     if(_studyTimerPaused) return;
-    _studyTimerSecs++;
+    const elapsed = Date.now() - _studyTimerStartedAt - (window._timerPausedAccumMs||0);
+    _studyTimerSecs = Math.floor(elapsed / 1000);
     _updateTimerDisplay();
-  },1000);
+  },500); // 500ms poll: display updates twice/sec, stays accurate in bg tabs
 
   renderStudySessions();
   showToast('Timer started 🔥 Focus mode on.');
@@ -25797,6 +25848,15 @@ function _updateTimerDisplay(){
 
 function studyTimerPause(){
   _studyTimerPaused=!_studyTimerPaused;
+  // Track wall-clock pause duration so the elapsed calc stays correct
+  if(_studyTimerPaused){
+    window._timerPausedSince = Date.now(); // record when pause started
+  } else {
+    if(window._timerPausedSince){
+      window._timerPausedAccumMs = (window._timerPausedAccumMs||0) + (Date.now() - window._timerPausedSince);
+      window._timerPausedSince = null;
+    }
+  }
   const label=_studyTimerPaused?'▶ Resume':'⏸ Pause';
   // Update both banner button and card button
   const bannerBtn=document.getElementById('studyTimerPauseBtn');
@@ -25827,6 +25887,8 @@ function studyTimerAbandon(){
   clearInterval(_studyTimerInterval);
   _studyTimerInterval=null;
   _studyTimerPaused=false;
+  window._timerPausedAccumMs=0;
+  window._timerPausedSince=null;
   const banner=document.getElementById('studyTimerBanner');
   if(banner) banner.style.display='none';
   _studyTimerSlot=null;
@@ -25881,13 +25943,13 @@ function saveStudyLog(){
   renderStudySkipLog();
 
   // XP: base from time + focus bonus
-  let xp = Math.min(80, Math.round(actual/60*40) + (focus>=4?10:0));
+  let xp = Math.min(40, Math.round(actual/60*20) + (focus>=4?5:0));
   let toastMsg = 'Session logged ✦ +'+xp+' XP';
 
   // Bonus: completed within correct energy slot (logged during that slot)
   const curSlot = _currentEnergySlot();
   if(slot && curSlot === slot){
-    xp += 15;
+    xp += 8;
     toastMsg = 'In your '+slot+' window ✦ +'+xp+' XP';
   }
 
@@ -25897,15 +25959,15 @@ function saveStudyLog(){
   const logsToday = studyLogs.filter(l=>l.date===today);
   const slotsLogged = allSlots.filter(s=>logsToday.some(l=>l.slot===s));
   if(slotsLogged.length===3){
-    xp += 50;
+    xp += 20;
     // Show celebratory toast after brief delay
     setTimeout(()=>{
-      showToast('All 3 slots done. You are that girl. ✦ +50 XP bonus');
+      showToast('All 3 slots done. You are that girl. ✦ +20 XP bonus');
     }, 900);
     toastMsg = 'Session logged ✦ +'+xp+' XP total';
   }
 
-  try{ addXP(xp,'Study: '+subject); } catch(e){}
+  try{ awardXP(xp,'Study: '+subject); } catch(e){}
   showToast(toastMsg);
   _checkStudyStreak();
 }
@@ -26028,7 +26090,7 @@ function saveCatchup(){
   renderStudyTodayStrip();
   renderStudyWeekChart();
   const xp=Math.round(duration/60*30);
-  try{ addXP(xp,'Catch-up: '+subject); showToast('Catch-up logged! +'+xp+' XP 🌅'); }catch(e){ showToast('Catch-up logged ✦'); }
+  try{ awardXP(xp,'Catch-up: '+subject); showToast('Catch-up logged! +'+xp+' XP 🌅'); }catch(e){ showToast('Catch-up logged ✦'); }
 }
 
 function deleteStudyPlan(planId){
@@ -26156,14 +26218,22 @@ function renderStudyTodayStrip(){
   // 7-day dot heatmap — colour system matches week chart
   const dotsEl=document.getElementById('studyWeekDots');
   if(dotsEl){
-    const dayNames=['M','T','W','T','F','S','S'];
+    // Use actual day-of-week letters derived from the real date, not a hardcoded position array.
+    // Sun=0…Sat=6 → map to Mon-first display letters
+    const DOW_LETTERS=['S','M','T','W','T','F','S']; // index by JS getDay() (0=Sun)
+    // Build Mon–Sun of the current calendar week (Mon-anchored)
     const today2=_todayStr();
+    const _now2=new Date(); const _dow2=_now2.getDay();
+    const _monOff2=_dow2===0?-6:1-_dow2;
+    const _mon2=new Date(_now2); _mon2.setDate(_now2.getDate()+_monOff2);
     const dots=[];
-    for(let i=6;i>=0;i--){
-      const d=new Date(); d.setDate(d.getDate()-i);
+    for(let i=0;i<7;i++){
+      const d=new Date(_mon2); d.setDate(_mon2.getDate()+i);
       const ds=d.toISOString().slice(0,10);
       const isToday2=ds===today2;
       const status=typeof _getDayStudyStatus==='function'?_getDayStudyStatus(ds):'none';
+      // Derive the actual day letter from the date object so it tracks the real calendar week
+      const dayLetter=DOW_LETTERS[d.getDay()];
       // Colours matching the week chart:
       // all3 / exempt → light pink fill + pink-deep border (like the circle chart)
       // partial → dark pink solid
@@ -26179,6 +26249,9 @@ function renderStudyTodayStrip(){
         bg='var(--pink-deep)'; border='2px solid var(--pink-deep)'; title='Partial day';
       } else if(isToday2){
         bg='transparent'; border='2px dashed var(--border)'; title='Today';
+      } else if(ds>today2){
+        // Future day in this week — show as empty grey
+        bg='var(--border)'; border='2px solid var(--border)'; title='Upcoming';
       } else {
         // Past day — check if they had tasks set (if not, just grey)
         const hadTasks=['High Energy','Medium Energy','Low Energy'].some(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
@@ -26190,7 +26263,7 @@ function renderStudyTodayStrip(){
       const fw=isToday2?'700':'400';
       dots.push(`<div title="${title}" style="display:flex;flex-direction:column;align-items:center;gap:3px">
         <div style="width:14px;height:14px;border-radius:50%;background:${bg};border:${border};${extraStyle}"></div>
-        <div style="font-size:8px;color:${isToday2?'var(--pink-deep)':'var(--text-soft)'};font-weight:${fw}">${dayNames[6-i]}</div>
+        <div style="font-size:8px;color:${isToday2?'var(--pink-deep)':'var(--text-soft)'};font-weight:${fw}">${dayLetter}</div>
       </div>`);
     }
     dotsEl.innerHTML=dots.join('');
@@ -26465,7 +26538,7 @@ function saveStandaloneCatchup(){
   renderStudySessions();
   renderStudyTodayStrip();
   try{ renderStudyCatchupLog(); }catch(e){}
-  try{ addXP(20,'Catch-up day started'); }catch(e){}
+  try{ awardXP(20,'Catch-up day started'); }catch(e){}
   showToast('Catch-up day started 🌅 Your routines are resting today.');
 }
 
@@ -26484,12 +26557,12 @@ function toggleCatchupTodo(date, todoId){
   renderStudySessions();
   renderStudyTodayStrip();
   // XP on tick
-  if(t.checked){ try{ addXP(5,'Catch-up task'); }catch(e){} }
+  if(t.checked){ try{ awardXP(5,'Catch-up task'); }catch(e){} }
   // All done?
   const allDone=studyCatchupTodos[date].every(t=>t.checked);
   if(allDone && studyCatchupTodos[date].length>0){
     showToast('🌅 All catch-up tasks done! You\'re more that girl than you know ✦');
-    try{ addXP(15,'All catch-up tasks done'); }catch(e){}
+    try{ awardXP(15,'All catch-up tasks done'); }catch(e){}
   }
 }
 
@@ -26614,7 +26687,7 @@ window._toggleTaskCheck = function(slot, taskId){
     if(nowAllDone){
       const msgs=SLOT_COMPLETION_MSGS[slot]||['✦ Session complete!'];
       showToast(msgs[Math.floor(Math.random()*msgs.length)]);
-      try{ addXP(15,slot+' complete'); }catch(e){}
+      try{ awardXP(8,slot+' complete'); }catch(e){}
       // Check if ALL three are done → trigger completion questions
       setTimeout(()=>_checkAllSlotsComplete(), 300);
     }
@@ -26640,6 +26713,13 @@ function _checkAllSlotsComplete(){
     return tasks.length>0&&tasks.every(t=>_isTaskChecked(sl,t.id));
   });
   if(!allComplete) return;
+  // Award 100 XP once per day for completing all 3 slots
+  const all3XPKey='tgh_all3xp_'+today;
+  if(!localStorage.getItem(all3XPKey)){
+    localStorage.setItem(all3XPKey,'1');
+    try{ awardXP(30,'All 3 slots done — full study day!'); }catch(e){}
+    showToast('All 3 done! +30 XP — full study day 🔥');
+  }
   // Already answered today?
   if(studyCompletionReflections.some(r=>r.date===today)) return;
   // Show the questions block
@@ -26671,7 +26751,7 @@ function saveCompletionReflection(){
   });
   _saveStudyExtra2();
   document.getElementById('studyCompletionQs').style.display='none';
-  try{ addXP(20,'Full day reflection'); }catch(e){}
+  try{ awardXP(10,'Full day reflection'); }catch(e){}
   showToast('Reflection saved ✦ You\'re building something real.');
 }
 
