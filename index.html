@@ -2940,11 +2940,36 @@ body.dark-mode .study-task-row { background:var(--pink-glow) !important; }
             <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;font-weight:700;color:var(--text)">Master To-Do List</div>
             <button onclick="if(confirm('Clear all master todos?')){masterTodos=[];renderTodos('master');scheduleSave();}" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft)">Clear all</button>
           </div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <input class="text-input" style="flex:1;font-size:13px" id="masterTodoInput" placeholder="Add task…" onkeydown="if(event.key==='Enter')addMasterTodo()">
+          <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <input class="text-input" style="flex:1;min-width:120px;font-size:13px" id="masterTodoInput" placeholder="Add task…" onkeydown="if(event.key==='Enter')addMasterTodo()">
+            <select class="form-select" id="masterTodoDuration" style="font-size:12px;padding:8px 10px;border-radius:12px;min-width:76px" title="Estimated time">
+              <option value="unknown">⏱ ?</option>
+              <option value="5">≤ 5 min</option>
+              <option value="10">10 min</option>
+              <option value="20">20 min</option>
+              <option value="30">30 min+</option>
+            </select>
             <button class="pink-btn" style="padding:10px 16px;font-size:11px" onclick="addMasterTodo()">＋</button>
           </div>
           <div id="masterTodoList"></div>
+          <!-- Random Task Picker -->
+          <div id="randomTodoPicker" style="margin-top:14px;background:linear-gradient(135deg,var(--pink-glow),#f8f0ff);border:1.5px solid var(--pink-mid);border-radius:16px;padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">✦ Today's Task</div>
+            <div id="randomTodoResult" style="font-size:14px;font-weight:600;color:var(--text);min-height:22px;font-family:'Playfair Display',serif;font-style:italic">How much time do you have?</div>
+            <div id="randomTodoBadge" style="display:none;margin-top:6px"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="randomTodoTimeBtns">
+              <button class="study-action-btn" onclick="pickRandomTodo('5')" style="font-size:11px">≤ 5 min</button>
+              <button class="study-action-btn" onclick="pickRandomTodo('10')" style="font-size:11px">10 min</button>
+              <button class="study-action-btn" onclick="pickRandomTodo('20')" style="font-size:11px">20 min</button>
+              <button class="study-action-btn" onclick="pickRandomTodo('30')" style="font-size:11px">30 min+</button>
+              <button class="study-action-btn" onclick="pickRandomTodo('any')" style="font-size:11px">⚡ Surprise me</button>
+            </div>
+            <div id="randomTodoActions" style="display:none;margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="pink-btn" style="font-size:11px;padding:8px 14px" onclick="acceptRandomTodo()">✓ Add to Today</button>
+              <button class="study-action-btn" onclick="rerollRandomTodo()" style="font-size:11px">🔀 Different one</button>
+              <button class="study-action-btn" onclick="resetRandomTodoPicker()" style="font-size:11px;color:var(--text-soft)">✕</button>
+            </div>
+          </div>
         </div>
         <div class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -15579,7 +15604,10 @@ let masterTodos=[], quickTodos=[];
 
 function addMasterTodo(){
   const val=document.getElementById('masterTodoInput').value.trim(); if(!val) return;
-  masterTodos.push({text:val,done:false}); document.getElementById('masterTodoInput').value='';
+  const dur=document.getElementById('masterTodoDuration')?.value||'unknown';
+  masterTodos.push({text:val,done:false,duration:dur});
+  document.getElementById('masterTodoInput').value='';
+  if(document.getElementById('masterTodoDuration')) document.getElementById('masterTodoDuration').value='unknown';
   renderTodos('master'); checkAchievement('acad_first_todo'); checkAchievement('prod_first_todo');
   scheduleSave();
 }
@@ -15613,30 +15641,155 @@ function toggleTodo(list,i){
   scheduleSave();
 }
 let _todoDragSrc=null, _todoDragList=null;
+const TODO_DUR_LABELS={'5':'<=5m','10':'10m','20':'20m','30':'30m+','unknown':'?'};
+const TODO_DUR_COLORS={'5':'#e8f4e8','10':'#e8f0ff','20':'#fff3e0','30':'#ffe8e8','unknown':'var(--pink-glow)'};
+const TODO_DUR_TEXT={'5':'#2a6a2a','10':'#3040a0','20':'#805010','30':'#901010','unknown':'var(--text-soft)'};
+
 function todoItemHTML(t, i, listName){
-  return `<div class="todo-item" draggable="true"
-    ondragstart="todoDragStart(event,'${listName}',${i})"
-    ondragover="todoDragOver(event)"
-    ondrop="todoDrop(event,'${listName}',${i})"
-    ondragend="todoDragEnd(event)"
-    style="cursor:default">
-    <span style="color:var(--text-soft);font-size:14px;cursor:grab;padding-right:2px;user-select:none">⠿</span>
-    <div class="todo-check${t.done?' done':''}" onclick="toggleTodo('${listName}',${i})">${t.done?'✓':''}</div>
-    <div class="todo-text${t.done?' done':''}" style="flex:1;cursor:pointer" ondblclick="editTodoInline(event,'${listName}',${i})" title="Double-click to edit">${t.text}</div>
-    <button onclick="${listName}Todos.splice(${i},1);renderTodos('${listName}');scheduleSave()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px">✕</button>
-  </div>`;
+  var dur = t.duration || 'unknown';
+  var durLabel = TODO_DUR_LABELS[dur] || '?';
+  var durBg    = TODO_DUR_COLORS[dur] || 'var(--pink-glow)';
+  var durTxt   = TODO_DUR_TEXT[dur]   || 'var(--text-soft)';
+  var durBadge = '';
+  if(listName === 'master'){
+    durBadge = '<select onchange="masterTodos['+i+'].duration=this.value;scheduleSave()" '
+      + 'style="font-size:9px;font-weight:700;border:none;border-radius:8px;padding:2px 4px;'
+      + 'background:'+durBg+';color:'+durTxt+';cursor:pointer;font-family:Outfit,sans-serif" title="Est. time">'
+      + '<option value="5"'+(dur==='5'?' selected':'')+'>5m</option>'
+      + '<option value="10"'+(dur==='10'?' selected':'')+'>10m</option>'
+      + '<option value="20"'+(dur==='20'?' selected':'')+'>20m</option>'
+      + '<option value="30"'+(dur==='30'?' selected':'')+'>30m+</option>'
+      + '<option value="unknown"'+(dur==='unknown'?' selected':'')+'>?</option>'
+      + '</select>';
+  }
+  return '<div class="todo-item" draggable="true"'
+    + ' ondragstart="todoDragStart(event,\''+listName+'\','+i+')"'
+    + ' ondragover="todoDragOver(event)"'
+    + ' ondrop="todoDrop(event,\''+listName+'\','+i+')"'
+    + ' ondragend="todoDragEnd(event)"'
+    + ' style="cursor:default">'
+    + '<span style="color:var(--text-soft);font-size:14px;cursor:grab;padding-right:2px;user-select:none">&#8287;</span>'
+    + '<div class="todo-check'+(t.done?' done':'')+'" onclick="toggleTodo(\''+listName+'\','+i+')">'+(t.done?'&#10003;':'')+'</div>'
+    + '<div class="todo-text'+(t.done?' done':'')+'" style="flex:1;cursor:pointer" ondblclick="editTodoInline(event,\''+listName+'\','+i+')" title="Double-click to edit">'+t.text+'</div>'
+    + durBadge
+    + '<button onclick="'+listName+'Todos.splice('+i+',1);renderTodos(\''+listName+'\');scheduleSave()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px">&#10005;</button>'
+    + '</div>';
 }
+
 function renderTodos(which){
   if(which==='master'||which==='both'){
-    const el=document.getElementById('masterTodoList'); if(el)
-    el.innerHTML=masterTodos.length?masterTodos.map((t,i)=>todoItemHTML(t,i,'master')).join(''):`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">Nothing on the master list ✦</div>`;
+    var el=document.getElementById('masterTodoList'); if(el)
+    el.innerHTML=masterTodos.length?masterTodos.map(function(t,i){return todoItemHTML(t,i,'master');}).join(''):'<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">Nothing on the master list ✦</div>';
   }
   if(which==='quick'||which==='both'){
-    const el=document.getElementById('quickTodoList'); if(el)
-    el.innerHTML=quickTodos.length?quickTodos.map((t,i)=>todoItemHTML(t,i,'quick')).join(''):`<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">Just today — what are you doing right now? ✦</div>`;
+    var el2=document.getElementById('quickTodoList'); if(el2)
+    el2.innerHTML=quickTodos.length?quickTodos.map(function(t,i){return todoItemHTML(t,i,'quick');}).join(''):'<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:8px 0">Just today — what are you doing right now? ✦</div>';
   }
 }
+
+// ── Random Task Picker ──────────────────────────────────────────────────────
+var _randomTodoLastDuration = null;
+var _randomTodoCurrent      = null;
+
+function _getUndoneTodos(filterDur){
+  return masterTodos
+    .map(function(t,i){return {i:i,t:t};})
+    .filter(function(x){return !x.t.done;})
+    .filter(function(x){
+      if(filterDur==='any') return true;
+      var d = x.t.duration||'unknown';
+      if(filterDur==='unknown') return d==='unknown';
+      return d===filterDur || d==='unknown';
+    });
+}
+
+function _randomTodoDailyKey(dur){
+  return 'tgh_randomtodo_'+_todayStr()+'_'+dur;
+}
+
+function pickRandomTodo(duration){
+  _randomTodoLastDuration = duration;
+  var timeBtns = document.getElementById('randomTodoTimeBtns');
+  if(timeBtns) timeBtns.style.display = 'none';
+
+  var pool = _getUndoneTodos(duration);
+  var resultEl  = document.getElementById('randomTodoResult');
+  var badgeEl   = document.getElementById('randomTodoBadge');
+  var actionsEl = document.getElementById('randomTodoActions');
+
+  if(!pool.length){
+    resultEl.textContent = duration==='any'
+      ? 'All tasks done! Add more to your master list. ✦'
+      : 'No tasks in that time bucket — try another or add some!';
+    actionsEl.style.display = 'none';
+    badgeEl.style.display   = 'none';
+    return;
+  }
+
+  // Avoid repeating tasks shown today in this bucket
+  var todayKey   = _randomTodoDailyKey(duration);
+  var shownToday = JSON.parse(localStorage.getItem(todayKey)||'[]');
+  var unseen     = pool.filter(function(x){return shownToday.indexOf(x.i)<0;});
+  var candidates = unseen.length ? unseen : pool;
+  var pick       = candidates[Math.floor(Math.random()*candidates.length)];
+
+  var updated = shownToday.slice();
+  if(updated.indexOf(pick.i)<0) updated.push(pick.i);
+  try{ localStorage.setItem(todayKey, JSON.stringify(updated)); }catch(e){}
+
+  _randomTodoCurrent = pick;
+
+  var dur      = pick.t.duration||'unknown';
+  var lblMap   = {'5':'5 min or less','10':'~10 min','20':'~20 min','30':'30+ min','unknown':'Unknown time'};
+  var bgMap    = {'5':'#e8f4e8','10':'#e8f0ff','20':'#fff3e0','30':'#ffe8e8','unknown':'var(--pink-glow)'};
+  var txtMap   = {'5':'#2a6a2a','10':'#3040a0','20':'#805010','30':'#901010','unknown':'var(--text-soft)'};
+  var durLabel = lblMap[dur]||'Unknown time';
+  var durBg    = bgMap[dur]||'var(--pink-glow)';
+  var durTxt   = txtMap[dur]||'var(--text-soft)';
+
+  resultEl.textContent = pick.t.text;
+  badgeEl.innerHTML    = '<span style="display:inline-block;background:'+durBg+';color:'+durTxt+';font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">'+durLabel+'</span>';
+  badgeEl.style.display   = 'block';
+  actionsEl.style.display = 'flex';
+}
+
+function rerollRandomTodo(){
+  if(_randomTodoLastDuration) pickRandomTodo(_randomTodoLastDuration);
+}
+
+function acceptRandomTodo(){
+  if(!_randomTodoCurrent) return;
+  var txt = _randomTodoCurrent.t.text;
+  var already = quickTodos.some(function(q){return q.text===txt&&!q.done;});
+  if(!already){
+    if(quickTodos.filter(function(q){return !q.done;}).length>=5){
+      showToast('Quick list is full (5 max) — tick some off first ✦'); return;
+    }
+    quickTodos.push({text:txt, done:false});
+    renderTodos('quick');
+    renderHomeQuickTodos();
+    scheduleSave();
+  }
+  showToast('"'+txt+'" added to today ✦');
+  resetRandomTodoPicker();
+}
+
+function resetRandomTodoPicker(){
+  _randomTodoCurrent = null;
+  var resultEl = document.getElementById('randomTodoResult');
+  var badgeEl  = document.getElementById('randomTodoBadge');
+  var actEl    = document.getElementById('randomTodoActions');
+  var timeBtns = document.getElementById('randomTodoTimeBtns');
+  if(resultEl)  resultEl.textContent = 'How much time do you have?';
+  if(badgeEl)   badgeEl.style.display = 'none';
+  if(actEl)     actEl.style.display   = 'none';
+  if(timeBtns)  timeBtns.style.display = 'flex';
+}
+
 // ── Home page quick todos ─────────────────────────────────────────────────
+
+
+
 function renderHomeQuickTodos(){
   const el = document.getElementById('homeQuickTodos');
   if(!el) return;
@@ -25174,13 +25327,19 @@ function _autoCheckStudyAchievements(){
 
   // No-skip 14 days
   const today=(typeof _todayStr!=='undefined')?_todayStr():new Date().toISOString().slice(0,10);
-  let noSkipDays=0;
+  let noSkipDays=0, studyActiveDays=0;
   let cursor=new Date(today+'T12:00:00');
   for(let i=0;i<14;i++){
     const ds=cursor.toISOString().slice(0,10);
     const hasSkip=(typeof studySkips!=='undefined'&&studySkips.some(s=>s.date===ds))||(typeof studyUnplannedSkips!=='undefined'&&studyUnplannedSkips.some(s=>s.date===ds));
-    if(!hasSkip) noSkipDays++; cursor.setDate(cursor.getDate()-1);
+    const hasActivity=(typeof studyTaskChecks!=='undefined'&&studyTaskChecks.some(c=>c.date===ds))||(typeof studyLogs!=='undefined'&&studyLogs.some(l=>l.date===ds));
+    if(!hasSkip) noSkipDays++;
+    if(hasActivity) studyActiveDays++;
+    cursor.setDate(cursor.getDate()-1);
   }
+  // Only count as "no-skip fortnight" if the user has actually been actively studying
+  // (prevents firing on new users who simply haven't logged any skips yet)
+  const noSkipQualified = noSkipDays>=14 && studyActiveDays>=7;
 
   const checks=[
     ['study_first_tick',  totalTicks>=1],
@@ -25201,7 +25360,7 @@ function _autoCheckStudyAchievements(){
     ['study_ritual_21',   ritualStreak>=21],
     ['study_low_5',       low5>=5],
     ['study_high_7',      high7>=7],
-    ['study_noskip_14',   noSkipDays>=14],
+    ['study_noskip_14',   noSkipQualified],
     ['study_scholar_60',  all3Streak>=60],
   ];
 
