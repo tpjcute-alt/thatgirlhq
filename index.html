@@ -3784,6 +3784,7 @@ body.dark-mode .vice-feel-btn {
     <div id="studyWeekCard" style="background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div class="section-label" style="margin-bottom:0">Weekly Study Map</div>
+        <div style="font-size:11px;color:var(--text-soft);font-style:italic" id="studyWeekEditHint">tap any circle to view or edit that day</div>
         <div style="font-size:12px;color:var(--text-mid)" id="studyWeekTotal"></div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;justify-content:space-between" id="studyWeekChart"></div>
@@ -3958,6 +3959,32 @@ body.dark-mode .vice-feel-btn {
 </div>
 
 <!-- ── STUDY LOG MODAL (completed) ── -->
+<!-- ── STUDY DAY EDIT MODAL ── -->
+<div class="modal-overlay" id="studyDayEditModal" onclick="if(event.target===this)closeModal('studyDayEditModal')" style="display:none;z-index:1060">
+  <div class="modal-box" style="max-width:480px;padding:28px">
+    <button class="modal-close" onclick="closeModal('studyDayEditModal')">×</button>
+    <div class="modal-title" id="sdeDayTitle">Edit Day</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px" id="sdeDaySubtitle">Tap tasks to toggle them. Changes save instantly.</div>
+
+    <!-- Slot sections rendered by JS -->
+    <div id="sdeSlotsContainer" style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px"></div>
+
+    <!-- Manual override strip -->
+    <div style="background:var(--pink-glow);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">Mark whole day as</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="setStudyDayOverride('all')" id="sdeBtnAll" style="flex:1;padding:9px;border-radius:12px;border:1.5px solid var(--green);background:#eef7ee;font-size:12px;font-weight:700;color:#3d7a3d;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s">✦ All done</button>
+        <button onclick="setStudyDayOverride('partial')" id="sdeBtnPartial" style="flex:1;padding:9px;border-radius:12px;border:1.5px solid var(--pink-mid);background:var(--pink-glow);font-size:12px;font-weight:700;color:var(--pink-deep);cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s">⚡ Partial</button>
+        <button onclick="setStudyDayOverride('none')" id="sdeBtnNone" style="flex:1;padding:9px;border-radius:12px;border:1.5px solid #e8b0b0;background:#fee8e8;font-size:12px;font-weight:700;color:#c04040;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s">✗ Nothing done</button>
+        <button onclick="setStudyDayOverride(null)" id="sdeBtnAuto" style="flex:1;padding:9px;border-radius:12px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:600;color:var(--text-soft);cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s">↺ Auto</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-soft);margin-top:8px;font-style:italic" id="sdeOverrideNote">Auto: status calculated from your ticks below.</div>
+    </div>
+
+    <button class="pink-btn" style="width:100%" onclick="closeModal('studyDayEditModal');renderStudyWeekChart();renderStudyTodayStrip()">Done ✦</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="studyLogModal">
   <div class="modal-box" style="max-width:520px">
     <button class="modal-close" onclick="closeModal('studyLogModal')">×</button>
@@ -21001,23 +21028,39 @@ function _isExemptDay(date){
 
 function _getDayStudyStatus(date){
   // Returns: 'all3' | 'exempt' | 'partial' | 'none'
-  const slots = ['High Energy','Medium Energy','Low Energy'];
-  const highDone = (()=>{
-    const tasks=(studyRoutines['High Energy']||{}).tasks||[];
-    return tasks.length>0&&tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot==='High Energy'&&c.taskId===t.id));
-  })();
-  const medDone = (()=>{
-    const tasks=(studyRoutines['Medium Energy']||{}).tasks||[];
-    return tasks.length>0&&tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot==='Medium Energy'&&c.taskId===t.id));
-  })();
-  const lowDone = (()=>{
-    const tasks=(studyRoutines['Low Energy']||{}).tasks||[];
-    return tasks.length>0&&tasks.every(t=>studyTaskChecks.some(c=>c.date===date&&c.slot==='Low Energy'&&c.taskId===t.id));
-  })();
+  // Uses day snapshots so tasks added AFTER a past day don't mark it partial.
+  // A slot is "done" for date D if:
+  //   - We have a snapshot of tasks for that day+slot → all snapshotted tasks are checked
+  //   - No snapshot exists → fall back to current tasks (today or no data yet)
+  const today = (typeof _todayStr !== 'undefined') ? _todayStr() : new Date().toISOString().slice(0,10);
+
+  function _slotDone(slot){
+    const snap = studyDaySnapshots[date] && studyDaySnapshots[date][slot];
+    if(snap && snap.length > 0){
+      // Use snapshot: every task that existed that day must be checked
+      return snap.every(taskId => studyTaskChecks.some(c=>c.date===date&&c.slot===slot&&c.taskId===taskId));
+    }
+    // No snapshot: either today (live) or no data — use current tasks
+    const tasks = (studyRoutines[slot]||{}).tasks || [];
+    if(tasks.length === 0) return false;
+    return tasks.every(t => studyTaskChecks.some(c=>c.date===date&&c.slot===slot&&c.taskId===t.id));
+  }
+
+  // Also check manual overrides (day-edit)
+  if(studyDayOverrides && studyDayOverrides[date] === 'all') return 'all3';
+  if(studyDayOverrides && studyDayOverrides[date] === 'none') return 'none';
+  if(studyDayOverrides && studyDayOverrides[date] === 'partial') return 'partial';
+
+  const highDone = _slotDone('High Energy');
+  const medDone  = _slotDone('Medium Energy');
+  const lowDone  = _slotDone('Low Energy');
+
   if(highDone && medDone && lowDone) return 'all3';
+
   const medExempt = studyGenuineExempt.some(e=>e.date===date&&e.slot==='Medium Energy');
   const lowExempt = studyGenuineExempt.some(e=>e.date===date&&e.slot==='Low Energy');
   if(highDone && (medDone||medExempt) && (lowDone||lowExempt)) return 'exempt';
+
   const anyDone = studyTaskChecks.some(c=>c.date===date) || studyGenuineExempt.some(e=>e.date===date);
   if(anyDone) return 'partial';
   return 'none';
@@ -21086,7 +21129,7 @@ function renderStudyWeekChart(){
 
     return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
       <div style="font-size:8px;color:var(--text-soft);height:12px;display:flex;align-items:center">${mins>0?_fmtMins(mins):''}</div>
-      <div style="width:36px;height:36px;border-radius:50%;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.3s;${isToday?'box-shadow:0 0 0 3px rgba(224,120,152,.2);':''}">${label}</div>
+      <div style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.3s;${isToday?'box-shadow:0 0 0 3px rgba(224,120,152,.2);':''}" onclick="openStudyDayEdit('${date}')" onmouseover="this.style.transform='scale(1.13)'" onmouseout="this.style.transform=''>${label}</div>
     </div>`;
   }).join('');
 
@@ -26032,6 +26075,8 @@ let studyRoutines = {
 // ── Daily task completion log ──
 // { date, slot, taskId, checked, completedAt }
 let studyTaskChecks = [];
+let studyDaySnapshots = {}; // {date: {slot: [taskId, ...]}} — snapshot of tasks at time of first tick
+let studyDayOverrides = {}; // {date: 'all'|'none'|'partial'} — manual overrides from day-edit modal
 
 // ── Timer state ──
 let _studyTimerInterval  = null;
@@ -26209,6 +26254,11 @@ function _toggleTaskCheck(slot, taskId){
     studyTaskChecks=studyTaskChecks.filter(c=>!(c.date===today&&c.slot===slot&&c.taskId===taskId));
   } else {
     studyTaskChecks.push({date:today,slot,taskId,checkedAt:new Date().toISOString()});
+    // Snapshot the current task list for this day+slot on FIRST tick
+    if(!studyDaySnapshots[today]) studyDaySnapshots[today]={};
+    if(!studyDaySnapshots[today][slot]){
+      studyDaySnapshots[today][slot]=(studyRoutines[slot]||{}).tasks.map(t=>t.id);
+    }
     // XP for ticking a task
     try{ awardXP(2,'Study task: tick'); }catch(e){}
     // Check if all tasks in this slot are now done
@@ -26247,6 +26297,145 @@ function _resetTodayTicks(){
   renderStudyTodayStrip();
   showToast('Today\'s ticks cleared ✦');
 }
+
+// ── Study Day Edit Modal ──────────────────────────────────────
+let _sdeDate = null; // currently editing date
+
+function openStudyDayEdit(date) {
+  _sdeDate = date;
+  const modal = document.getElementById('studyDayEditModal');
+  if (!modal) return;
+
+  const today = _todayStr();
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const d = new Date(date + 'T12:00:00');
+  const dayName = DOW[d.getDay()];
+  const dateLabel = d.toLocaleDateString('en-GB', {day:'numeric', month:'long'});
+  const isToday = date === today;
+  const isFuture = date > today;
+
+  document.getElementById('sdeDayTitle').textContent = (isToday ? 'Today — ' : '') + dayName + ' ' + dateLabel;
+  document.getElementById('sdeDaySubtitle').textContent = isFuture
+    ? "This day hasn't happened yet."
+    : 'Tap tasks to toggle. Edits are retroactive — tasks added after this day are greyed out.';
+
+  _renderSdeSlots(date);
+  _updateSdeOverrideBtns();
+  modal.style.display = 'flex';
+}
+
+function _renderSdeSlots(date) {
+  const container = document.getElementById('sdeSlotsContainer');
+  if (!container) return;
+  const today = _todayStr();
+  const slots = ['High Energy', 'Medium Energy', 'Low Energy'];
+  const slotEmoji = { 'High Energy': '🔥', 'Medium Energy': '⚡', 'Low Energy': '🌿' };
+  const slotColor = { 'High Energy': '#fee8e8', 'Medium Energy': 'var(--pink-glow)', 'Low Energy': '#eef7ee' };
+
+  container.innerHTML = slots.map(slot => {
+    const tasks = (studyRoutines[slot] || {}).tasks || [];
+    const snap = studyDaySnapshots[date] && studyDaySnapshots[date][slot];
+
+    // A task "existed" on this date if it's in the snapshot, OR if date === today (no snapshot yet)
+    // Tasks NOT in snapshot but in current routine = added after this day → show greyed out, non-editable
+    const taskRows = tasks.map(t => {
+      const existedThen = !snap || snap.includes(t.id);
+      const isChecked = studyTaskChecks.some(c => c.date === date && c.slot === slot && c.taskId === t.id);
+
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;
+              background:${isChecked ? '#eef7ee' : 'none'};
+              border:1.5px solid ${isChecked ? 'var(--green)' : 'var(--border)'};
+              margin-bottom:6px;
+              opacity:${existedThen ? '1' : '0.4'};
+              cursor:${existedThen ? 'pointer' : 'default'}"
+              ${existedThen ? `onclick="_sdeToggleTask('${slot}','${t.id}')"` : ''}>
+        <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${isChecked ? 'var(--green)' : 'var(--border)'};
+                    background:${isChecked ? 'var(--green)' : 'none'};display:flex;align-items:center;justify-content:center;
+                    font-size:11px;flex-shrink:0;color:white">${isChecked ? '✓' : ''}</div>
+        <span style="font-size:13px;color:var(--text);flex:1;text-decoration:${isChecked ? 'none' : 'none'}">${t.text}</span>
+        ${!existedThen ? '<span style="font-size:10px;color:var(--text-soft);font-style:italic">added later</span>' : ''}
+      </div>`;
+    }).join('');
+
+    const checkedCount = tasks.filter(t => studyTaskChecks.some(c => c.date === date && c.slot === slot && c.taskId === t.id)).length;
+    const snapCount = snap ? snap.length : tasks.length;
+    const statusText = tasks.length === 0 ? 'No tasks set' : `${checkedCount}/${snapCount} done`;
+
+    return `<div style="border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;background:${slotColor[slot]}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${slotEmoji[slot]} ${slot}</div>
+        <div style="font-size:11px;color:var(--text-soft)">${statusText}</div>
+      </div>
+      ${tasks.length ? taskRows : '<div style="font-size:12px;color:var(--text-soft);font-style:italic">No tasks in this slot</div>'}
+    </div>`;
+  }).join('');
+}
+
+function _sdeToggleTask(slot, taskId) {
+  if (!_sdeDate) return;
+  const date = _sdeDate;
+  const existing = studyTaskChecks.find(c => c.date === date && c.slot === slot && c.taskId === taskId);
+  if (existing) {
+    studyTaskChecks = studyTaskChecks.filter(c => !(c.date === date && c.slot === slot && c.taskId === taskId));
+  } else {
+    studyTaskChecks.push({ date, slot, taskId, checkedAt: new Date().toISOString() });
+    // Ensure snapshot exists for this date+slot
+    if (!studyDaySnapshots[date]) studyDaySnapshots[date] = {};
+    if (!studyDaySnapshots[date][slot]) {
+      // Snapshot: only tasks that existed at the time = current tasks minus those added after
+      // Since we don't know creation dates, snapshot = all current tasks (user can see greyed ones)
+      studyDaySnapshots[date][slot] = (studyRoutines[slot] || {}).tasks.map(t => t.id);
+    }
+  }
+  saveStudyData();
+  _renderSdeSlots(date); // re-render slot list
+  _updateSdeOverrideBtns();
+}
+
+function setStudyDayOverride(val) {
+  if (!_sdeDate) return;
+  if (val === null) {
+    delete studyDayOverrides[_sdeDate];
+  } else {
+    studyDayOverrides[_sdeDate] = val;
+  }
+  saveStudyData();
+  _updateSdeOverrideBtns();
+}
+
+function _updateSdeOverrideBtns() {
+  if (!_sdeDate) return;
+  const override = studyDayOverrides[_sdeDate];
+  const noteEl = document.getElementById('sdeOverrideNote');
+  const btns = {
+    all: document.getElementById('sdeBtnAll'),
+    partial: document.getElementById('sdeBtnPartial'),
+    none: document.getElementById('sdeBtnNone'),
+    auto: document.getElementById('sdeBtnAuto'),
+  };
+
+  // Reset all
+  Object.values(btns).forEach(b => { if (b) { b.style.fontWeight = '600'; b.style.opacity = '1'; } });
+
+  if (override === 'all') {
+    if (btns.all) { btns.all.style.fontWeight = '900'; btns.all.style.boxShadow = '0 0 0 2px #3d7a3d'; }
+    if (noteEl) noteEl.textContent = 'Override: marking as all done ✦';
+  } else if (override === 'partial') {
+    if (btns.partial) { btns.partial.style.fontWeight = '900'; btns.partial.style.boxShadow = '0 0 0 2px var(--pink-deep)'; }
+    if (noteEl) noteEl.textContent = 'Override: marking as partial day.';
+  } else if (override === 'none') {
+    if (btns.none) { btns.none.style.fontWeight = '900'; btns.none.style.boxShadow = '0 0 0 2px #c04040'; }
+    if (noteEl) noteEl.textContent = 'Override: marking as nothing done.';
+  } else {
+    if (btns.auto) { btns.auto.style.fontWeight = '900'; btns.auto.style.boxShadow = '0 0 0 2px var(--border)'; }
+    if (noteEl) {
+      const status = _getDayStudyStatus(_sdeDate);
+      const statusLabels = { all3: '✦ All done', exempt: '💗 Exempt', partial: '⚡ Partial', none: '✗ Nothing logged' };
+      noteEl.textContent = 'Auto (from ticks): ' + (statusLabels[status] || status);
+    }
+  }
+}
+
 
 // ── Energy legend ──
 function renderEnergyLegend(){
@@ -27146,7 +27335,7 @@ window.collectAllData=function(){
   const d=_baseCollectStudy();
   d.studyPlans=studyPlans; d.studyLogs=studyLogs; d.studySkips=studySkips;
   d.studyRituals=studyRituals; d.studyMotivations=studyMotivations;
-  d.studyRoutines=studyRoutines; d.studyTaskChecks=studyTaskChecks;
+  d.studyRoutines=studyRoutines; d.studyTaskChecks=studyTaskChecks; d.studyDaySnapshots=studyDaySnapshots; d.studyDayOverrides=studyDayOverrides;
   return d;
 };
 
@@ -27159,6 +27348,8 @@ window.restoreAllData=function(d){
   if(d.studyRituals)     studyRituals.splice(0,studyRituals.length,...d.studyRituals);
   if(d.studyMotivations) studyMotivations.splice(0,studyMotivations.length,...d.studyMotivations);
   if(d.studyTaskChecks)  studyTaskChecks.splice(0,studyTaskChecks.length,...d.studyTaskChecks);
+  if(d.studyDaySnapshots) Object.assign(studyDaySnapshots, d.studyDaySnapshots);
+  if(d.studyDayOverrides) Object.assign(studyDayOverrides, d.studyDayOverrides);
   if(d.studyRoutines && typeof d.studyRoutines==='object'){
     ['High Energy','Medium Energy','Low Energy'].forEach(k=>{ if(d.studyRoutines[k]) studyRoutines[k]=d.studyRoutines[k]; });
   }
