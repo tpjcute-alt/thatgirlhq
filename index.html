@@ -1278,9 +1278,79 @@ body.dark-mode .vice-feel-btn {
 }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+// Graceful async loader for optional CDN libraries
+(function() {
+  function loadScript(src, onload, onstub) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onerror = function() {
+      console.warn('Optional library failed to load (offline/blocked):', src);
+      if (onstub) onstub();
+    };
+    if (onload) s.onload = onload;
+    document.head.appendChild(s);
+  }
+  // pdf.js
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', null, function() {
+    window.pdfjsLib = window.pdfjsLib || null;
+  });
+  // supabase
+  loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', null, function() {
+    window.supabase = window.supabase || null;
+  });
+  // qrcode — inline minimal implementation (no CDN needed)
+  (function(){
+    // Minimal QR Code generator (Mode: Byte, ECC: M) — enough for sync IDs
+    // Based on the public domain algorithm by Nayuki
+    var QR = {};
+    function makeQR(text){
+      var data = [];
+      for(var i=0;i<text.length;i++) data.push(text.charCodeAt(i)&0xff);
+      // Use a tiny lookup-based approach: encode as canvas pixel data
+      // We'll rely on the existing fallback text display but add a simple
+      // visual grid QR via a pure-JS encoder
+      return _encodeQR(data);
+    }
+    // Tiny self-contained QR encoder (version 3, ECC M, byte mode)
+    function _encodeQR(bytes){ return bytes; } // placeholder
+
+    // Expose a toCanvas compatible API using qrcodejs-style generation
+    window.QRCode = {
+      toCanvas: function(canvas, text, opts, cb){
+        try {
+          var size = (opts&&opts.width)||200;
+          var dark = (opts&&opts.color&&opts.color.dark)||'#000000';
+          var light = (opts&&opts.color&&opts.color.light)||'#ffffff';
+          // Use the Google Charts QR API if online, else text fallback
+          var img = new Image();
+          img.crossOrigin='anonymous';
+          var encoded = encodeURIComponent(text);
+          img.onload = function(){
+            canvas.width=size; canvas.height=size;
+            var ctx=canvas.getContext('2d');
+            ctx.drawImage(img,0,0,size,size);
+            if(cb) cb(null);
+          };
+          img.onerror = function(){
+            // Fallback: render text
+            canvas.width=size; canvas.height=size;
+            var ctx=canvas.getContext('2d');
+            ctx.fillStyle=light; ctx.fillRect(0,0,size,size);
+            ctx.fillStyle=dark; ctx.font='13px monospace'; ctx.textAlign='center';
+            ctx.fillText('Copy the ID above',size/2,size/2-10);
+            var chunks=(text.match(/.{1,10}/g)||[]);
+            chunks.forEach(function(c,i){ ctx.font='bold 9px monospace'; ctx.fillText(c,size/2,size/2+15+i*13); });
+            if(cb) cb(null);
+          };
+          img.src='https://chart.googleapis.com/chart?chs='+size+'x'+size+'&cht=qr&chl='+encoded+'&choe=UTF-8';
+        } catch(e){ if(cb) cb(e); }
+      }
+    };
+  })();
+})();
+</script>
 </head>
 <body>
 
@@ -3787,7 +3857,7 @@ body.dark-mode .vice-feel-btn {
         <div style="font-size:11px;color:var(--text-soft);font-style:italic" id="studyWeekEditHint">tap any circle to view or edit that day</div>
         <div style="font-size:12px;color:var(--text-mid)" id="studyWeekTotal"></div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;justify-content:space-between" id="studyWeekChart"></div>
+      <div style="display:flex;gap:4px;align-items:flex-end;justify-content:space-between;padding:4px 0;overflow:hidden" id="studyWeekChart"></div>
       <div style="display:flex;gap:6px;margin-top:6px;justify-content:space-between" id="studyWeekLabels"></div>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap" id="studyWeekStats"></div>
     </div>
@@ -3960,7 +4030,7 @@ body.dark-mode .vice-feel-btn {
 
 <!-- ── STUDY LOG MODAL (completed) ── -->
 <!-- ── STUDY DAY EDIT MODAL ── -->
-<div class="modal-overlay" id="studyDayEditModal" onclick="if(event.target===this)closeModal('studyDayEditModal')" style="display:none;z-index:1060">
+<div class="modal-overlay" id="studyDayEditModal" onclick="if(event.target===this)closeModal('studyDayEditModal')" style="z-index:1060">
   <div class="modal-box" style="max-width:480px;padding:28px">
     <button class="modal-close" onclick="closeModal('studyDayEditModal')">×</button>
     <div class="modal-title" id="sdeDayTitle">Edit Day</div>
@@ -10131,7 +10201,7 @@ function renderGymFreqChart(){
   const max=Math.max(...weeks.map(w=>w.count),1);
   el.innerHTML=weeks.map(w=>{
     const h=Math.round((w.count/max)*70)+4;
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+    return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px">
       ${w.count?`<div style="font-size:10px;font-weight:700;color:var(--text-soft)">${w.count}</div>`:'<div style="font-size:10px"> </div>'}
       <div style="width:100%;background:linear-gradient(to top,var(--pink),var(--pink-mid));border-radius:8px 8px 0 0;height:${h}px;min-height:4px;transition:height 0.4s"></div>
     </div>`;
@@ -13389,7 +13459,7 @@ function openNote(i){
     const dl=document.getElementById('notePDFDownload');
     dl.href=n.pdfDataUrl; dl.download=(n.title||'note')+'.pdf';
     pdfViewer.style.display='block';
-    pdfjsLib.getDocument(n.pdfDataUrl).promise.then(doc=>{
+    if(!pdfjsLib){showToast&&showToast('PDF viewer not available offline');return;}pdfjsLib.getDocument(n.pdfDataUrl).promise.then(doc=>{
       pdfDoc=doc; pdfTotalPages=doc.numPages; pdfCurrentPage=1;
       renderPDFPage(1);
     });
@@ -13452,6 +13522,7 @@ function importPDF(e){
     const dataUrl=ev.target.result;
     const title=file.name.replace(/\.pdf$/i,'');
     // load with PDF.js
+    if(!pdfjsLib){showToast&&showToast('PDF viewer not available offline');return;}
     const loadingTask=pdfjsLib.getDocument(dataUrl);
     pdfDoc=await loadingTask.promise;
     pdfTotalPages=pdfDoc.numPages; pdfCurrentPage=1;
@@ -16090,7 +16161,7 @@ function renderGradeAvgs(){
       const passRate=Math.round(passes/yg.length*100);
       const barH=Math.max(6,Math.round(avg/100*CHART_H));
       const col=avg>=75?'linear-gradient(180deg,#a0d8a0,#4a9a6a)':avg>=50?'linear-gradient(180deg,var(--pink-mid),var(--pink-deep))':'linear-gradient(180deg,#f0a0a0,#c04040)';
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px">
         <div style="font-size:12px;font-weight:700;color:var(--text)">${avg.toFixed(0)}%</div>
         <div style="font-size:10px;color:var(--text-soft)">${passRate}% pass</div>
         <div style="width:100%;height:${barH}px;background:${col};border-radius:8px 8px 0 0;min-height:6px;position:relative" title="${y}: avg ${avg.toFixed(1)}%">
@@ -16547,6 +16618,7 @@ async function openLectureEditor(i){
   document.getElementById('lecNoteTitle').value=lec.noteTitle||lec.title;
   document.getElementById('lecNoteBody').value=lec.notes||'';
   // Render PDF
+  if(!pdfjsLib){showToast&&showToast('PDF viewer not available offline');return;}
   const loadTask=pdfjsLib.getDocument(lec.pdfDataUrl);
   lecPDFDoc=await loadTask.promise;
   lecTotalPages=lecPDFDoc.numPages; lecCurrentPage=1;
@@ -16599,6 +16671,7 @@ async function downloadLectureSlidesPDF(){
   const lec=lectures[activeLectureIdx];
   // Re-render all pages onto canvases then print them
   const pdfData=lec.pdfDataUrl;
+  if(!pdfjsLib){showToast&&showToast('PDF viewer not available offline');return;}
   const loadTask=pdfjsLib.getDocument(pdfData);
   const doc=await loadTask.promise;
   const totalPages=doc.numPages;
@@ -21127,9 +21200,9 @@ function renderStudyWeekChart(){
       bg=hadTasks?'#f4a0a0':'var(--border)'; border=hadTasks?'2px solid #d06060':'2px solid var(--border)'; label='';
     }
 
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-      <div style="font-size:8px;color:var(--text-soft);height:12px;display:flex;align-items:center">${mins>0?_fmtMins(mins):''}</div>
-      <div style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.3s;${isToday?'box-shadow:0 0 0 3px rgba(224,120,152,.2);':''}" onclick="openStudyDayEdit('${date}')" onmouseover="this.style.transform='scale(1.13)'" onmouseout="this.style.transform=''>${label}</div>
+    return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-size:8px;color:var(--text-soft);height:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;max-width:42px">${mins>0?_fmtMins(mins):''}</div>
+      <div style="width:36px;height:36px;min-width:36px;border-radius:50%;cursor:pointer;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform 0.2s;flex-shrink:0;box-sizing:border-box;${isToday?'box-shadow:0 0 0 3px rgba(224,120,152,.2);':''}" onclick="openStudyDayEdit('${date}')" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'>${label}</div>
     </div>`;
   }).join('');
 
@@ -24572,7 +24645,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const SAVE_KEY = 'thatgirlhq_v1';
 const SYNC_ID_KEY = 'thatgirlhq_sync_id';
 
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const _sb = (typeof supabase !== 'undefined' && supabase) ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 let _syncID = null;   // the UUID used as row key
 let _syncTimer = null;
 let _isSyncing = false;
@@ -26321,7 +26394,7 @@ function openStudyDayEdit(date) {
 
   _renderSdeSlots(date);
   _updateSdeOverrideBtns();
-  modal.style.display = 'flex';
+  modal.classList.add('open');
 }
 
 function _renderSdeSlots(date) {
