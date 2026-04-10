@@ -28502,9 +28502,10 @@ function runAutoSkipCheck(showToastOnNone){
 
     if(hasSkip||hasUnplannedSkip||hasCatchup||hasIncomplRefl) continue;
 
-    // Check if they ticked ANY routine task this day
+    // Check if they ticked ANY routine task this day, OR logged any study time
     const hasTick = studyTaskChecks.some(c=>c.date===ds && slotsWithTasks.includes(c.slot));
-    if(!hasTick){
+    const hasLog  = (typeof studyLogs!=='undefined') && studyLogs.some(l=>l.date===ds && (l.actual||0)>0);
+    if(!hasTick && !hasLog){
       unaccountedDays.push(ds);
     }
   }
@@ -28560,7 +28561,8 @@ function _autoSkipAllUnaccounted(){
     const hasCatchup       = _isCatchupDay(ds)||((typeof studyCatchupLogs!=='undefined')&&studyCatchupLogs.some(c=>c.date===ds));
     const hasIncomplRefl   = (typeof studyIncompleteReflections!=='undefined')&&studyIncompleteReflections.some(r=>r.date===ds);
     const hasTick          = studyTaskChecks.some(c=>c.date===ds&&slotsWithTasks.includes(c.slot));
-    if(!hasSkip&&!hasUnplannedSkip&&!hasCatchup&&!hasIncomplRefl&&!hasTick){
+    const hasLog           = (typeof studyLogs!=='undefined')&&studyLogs.some(l=>l.date===ds&&(l.actual||0)>0);
+    if(!hasSkip&&!hasUnplannedSkip&&!hasCatchup&&!hasIncomplRefl&&!hasTick&&!hasLog){
       studyUnplannedSkips.push({
         id:_genId(), date:ds, reasons:['Auto-logged — no routine tasks ticked'],
         prevent:'', catchup:false, createdAt:new Date().toISOString(), isAutoSkip:true,
@@ -28758,6 +28760,20 @@ window.restoreAllData = function(d){
 // ── INIT ──
 loadStudyData();
 _loadStudyExtended();
+
+// Clean up any auto-logged skips for days that actually have study time logged
+// (fixes cases where the auto-skip ran before time was logged for that day)
+(function _cleanAutoSkips(){
+  try {
+    var before = studyUnplannedSkips.length;
+    studyUnplannedSkips = studyUnplannedSkips.filter(function(s){
+      if(!s.isAutoSkip) return true; // keep manually-logged skips
+      var hasLog = studyLogs.some(function(l){ return l.date===s.date && (l.actual||0)>0; });
+      return !hasLog; // remove if time was logged that day
+    });
+    if(studyUnplannedSkips.length < before) _saveStudyExtended();
+  } catch(e){}
+})();
 setTimeout(()=>{
   renderStudyTodayStrip();
   renderStudyWeekChart();
