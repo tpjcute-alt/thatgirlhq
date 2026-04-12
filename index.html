@@ -1296,9 +1296,18 @@ body.dark-mode .vice-feel-btn {
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', null, function() {
     window.pdfjsLib = window.pdfjsLib || null;
   });
-  // supabase
-  loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', null, function() {
-    window.supabase = window.supabase || null;
+  // supabase — when it loads, reset _sbClient so lazy getter picks it up, then retry any pending sync
+  loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', function() {
+    // Successfully loaded — reinit the client
+    _sbClient = null; // clear cached null so _getSb() re-evaluates
+    if(typeof _syncID !== 'undefined' && _syncID && !_isSyncing){
+      clearTimeout(_syncTimer);
+      _syncTimer = setTimeout(syncToCloud, 500);
+    }
+  }, function() {
+    // Failed to load CDN — supabase unavailable, local save only
+    window.supabase = null;
+    setSaveIndicator && setSaveIndicator('☁ Offline — saved locally');
   });
   // qrcode — inline minimal implementation (no CDN needed)
   (function(){
@@ -1566,7 +1575,7 @@ body.dark-mode .vice-feel-btn {
       </div>
       <div class="focus-task-card-actions" onclick="event.stopPropagation()">
         <button class="study-action-btn start" onclick="openFocusTaskModal()" style="font-size:11px">📋 Open Task</button>
-        <button class="study-action-btn" onclick="pickNewFocusTask()" style="font-size:11px">🔀 Different task</button>
+        <button class="study-action-btn" onclick="openFocusCustomiseModal()" style="font-size:11px">✏️ Customise</button>
         <button class="study-action-btn" onclick="completeFocusTaskFromCard()" id="ftcCompleteBtn" style="font-size:11px;display:none">✓ Mark complete</button>
       </div>
     </div>
@@ -3630,16 +3639,18 @@ body.dark-mode .vice-feel-btn {
     <div id="tgnEditorView" style="display:none">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
         <button class="pink-pill" style="font-size:11px" onclick="closeTGNoteEditor()">← Back</button>
-        <button class="pink-btn" style="font-size:11px;padding:8px 18px;margin-left:auto" onclick="saveTGNote()">Save ✦</button>
+        <span id="tgnEditorStatus" style="font-size:11px;color:var(--text-soft);font-style:italic"></span>
+        <button class="pink-btn" style="font-size:11px;padding:8px 18px;margin-left:auto" onclick="saveTGNote();_tgnShowSaved()">Save ✦</button>
       </div>
       <div class="note-editor">
-        <input class="note-editor-title" id="tgnTitle" placeholder="Note title…">
-        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-          <input class="text-input" style="width:160px;font-size:12px;padding:7px 12px" id="tgnCategory" placeholder="Category (e.g. mindset, wellness…)">
-          <input class="text-input" style="width:130px;font-size:12px;padding:7px 12px" id="tgnDate" type="date">
+        <input class="note-editor-title" id="tgnTitle" placeholder="Note title…" oninput="_tgnAutoSave()">
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+          <input class="text-input" style="width:160px;font-size:12px;padding:7px 12px" id="tgnCategory" placeholder="Category (e.g. mindset, wellness…)" oninput="_tgnAutoSave()">
+          <input class="text-input" style="width:130px;font-size:12px;padding:7px 12px" id="tgnDate" type="date" onchange="_tgnAutoSave()">
+          <span id="tgnSaveIndicator" style="font-size:10px;color:var(--text-soft);font-style:italic;opacity:0;transition:opacity 0.4s;margin-left:auto">saved ✦</span>
         </div>
         <hr style="border:none;border-top:1px solid var(--border);margin-bottom:14px">
-        <textarea class="note-editor-body" id="tgnBody" placeholder="Write anything — habits, reflections, rituals, things she knows…&#10;&#10;This is your space ✦"></textarea>
+        <textarea class="note-editor-body" id="tgnBody" placeholder="Write anything — habits, reflections, rituals, things she knows…&#10;&#10;This is your space ✦" oninput="_tgnAutoSave()"></textarea>
       </div>
     </div>
   </div><!-- end prod-tgn -->
@@ -16757,6 +16768,13 @@ function showPage(id){
     renderCountdowns(); renderProjectList(); renderLectureList();
     renderUrgeLog(); renderHrmDailyLog(); renderHrmWeekChart(); renderHrmCurveMarker(); renderTGNList(); try{renderViceLog();renderViceTrends();_populateViceSelect();}catch(e){}
   }
+  // Save any open TGN note when navigating away from productivity
+  if(id !== 'productivity') {
+    try {
+      const editorVisible = document.getElementById('tgnEditorView') && document.getElementById('tgnEditorView').style.display !== 'none';
+      if(editorVisible) { _tgnSaveToMemory(); clearTimeout(_tgnAutoSaveTimer); scheduleSave(); }
+    } catch(e) {}
+  }
 }
 
 // Init new renders
@@ -24643,10 +24661,23 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const SAVE_KEY = 'thatgirlhq_v1';
 const SYNC_ID_KEY = 'thatgirlhq_sync_id';
 
-const _sb = (typeof supabase !== 'undefined' && supabase) ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+// _sb is lazy — evaluated on first use so supabase CDN has time to load
+let _sbClient = null;
+function _getSb() {
+  if (_sbClient) return _sbClient;
+  // Try to init from window.supabase (loaded async by CDN)
+  if (typeof supabase !== 'undefined' && supabase && supabase.createClient) {
+    try { _sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON); } catch(e) {}
+  }
+  return _sbClient;
+}
+// Keep _sb as a compat alias — but now lazy
+Object.defineProperty(window, '_sb', { get: function(){ return _getSb(); }, configurable: true });
 let _syncID = null;   // the UUID used as row key
 let _syncTimer = null;
 let _isSyncing = false;
+let _syncRetryCount = 0;
+const _MAX_SYNC_RETRIES = 3;
 
 // ── UUID generator ─────────────────────────────
 function generateUUID(){
@@ -24700,10 +24731,12 @@ async function connectWithSyncID(id){
   id = id?.trim();
   const errEl = document.getElementById('syncGenError');
   if(!id){ errEl.textContent = 'No ID found.'; return; }
+  const sb = _getSb();
+  if(!sb){ errEl.textContent = '❌ Sync library not loaded yet — please wait a moment and try again.'; return; }
   errEl.textContent = 'Saving to cloud…';
   _syncID = id;
   try {
-    const { error } = await _sb.from('sync_data').upsert({
+    const { error } = await sb.from('sync_data').upsert({
       sync_id: id,
       data: collectCloudData(),
       updated_at: new Date().toISOString()
@@ -24728,8 +24761,10 @@ async function loginWithSyncID(){
   if(!id){ errEl.textContent = 'Please paste your Sync ID.'; return; }
   errEl.textContent = 'Loading…';
   // Try to fetch data from cloud
+  const sb = _getSb();
+  if(!sb){ errEl.textContent = '❌ Sync library not loaded — please wait a moment and try again.'; return; }
   try {
-    const { data, error } = await _sb.from('sync_data')
+    const { data, error } = await sb.from('sync_data')
       .select('data')
       .eq('sync_id', id)
       .single();
@@ -24809,6 +24844,7 @@ function collectAllData(){
     ritualTimeLogs,
     ytSections,
     brainLog, brainSessions, morningAnchor, curiosities,
+    focusTaskSnapshot: JSON.parse(JSON.stringify(focusTask)),
   };
 }
 
@@ -24858,6 +24894,7 @@ function restoreAllData(d){
     if(d.contentCalendar) contentCalendar.splice(0,contentCalendar.length,...d.contentCalendar);
     if(d.notes) notes.splice(0,notes.length,...d.notes);
     if(d.masterTodos) masterTodos.splice(0,masterTodos.length,...d.masterTodos);
+    if(d.focusTaskSnapshot){ try{ Object.assign(focusTask, d.focusTaskSnapshot); }catch(e){} }
     if(d.quickTodos) quickTodos.splice(0,quickTodos.length,...d.quickTodos);
     if(d.lectures) lectures.splice(0,lectures.length,...d.lectures);
     if(d.grades) grades.splice(0,grades.length,...d.grades);
@@ -25058,14 +25095,30 @@ function manuallySave(){
   const btn = document.getElementById('manualSaveBtn');
   const ok = saveLocal();
   if(ok){
-    // Also push to cloud immediately
-    syncToCloud();
-    setSaveIndicator('✓ Saved');
-    if(btn){
-      const orig = btn.textContent;
-      btn.textContent = '✓ Saved!';
-      btn.style.background = '#4a9a6a';
-      setTimeout(()=>{ btn.textContent = orig; btn.style.background = 'var(--pink-deep)'; }, 2000);
+    // Reset retry state so a manual save always attempts a fresh sync
+    _syncRetryCount = 0;
+    _isSyncing = false;
+    clearTimeout(_syncTimer);
+
+    const sb = _getSb();
+    if(sb){
+      syncToCloud();
+      if(btn){
+        const orig = btn.textContent;
+        btn.textContent = '⏳ Syncing…';
+        btn.style.background = '#a07030';
+        // Button will update when syncToCloud finishes via setSaveIndicator
+        setTimeout(()=>{ btn.textContent = orig; btn.style.background = 'var(--pink-deep)'; }, 4000);
+      }
+    } else {
+      // Supabase not available — show clear local-only message
+      setSaveIndicator('✓ Saved locally');
+      if(btn){
+        const orig = btn.textContent;
+        btn.textContent = '✓ Saved!';
+        btn.style.background = '#4a9a6a';
+        setTimeout(()=>{ btn.textContent = orig; btn.style.background = 'var(--pink-deep)'; }, 2000);
+      }
     }
   }
 }
@@ -25098,7 +25151,9 @@ function collectCloudData(){
   // We enforce a total payload cap of 3.8MB below — if exceeded we strip images
   // gracefully so core data always syncs even if someone has lots of images.
   const full = JSON.stringify(d);
-  if(full.length * 2 > 3.8 * 1024 * 1024){
+  // Use actual byte size estimate (length*2 overestimates for ASCII-heavy data)
+  const fullBytes = full.length; // chars ≈ bytes for JSON (mostly ASCII)
+  if(fullBytes > 3.8 * 1024 * 1024){
     // Too large — strip images to protect core sync
     if(d.visionBoards){
       const stripped = {};
@@ -25123,31 +25178,66 @@ function collectCloudData(){
 
 // ── Supabase cloud sync (no auth, just sync_id) ─
 async function syncToCloud(){
-  if(!_syncID || _isSyncing) return;
+  if(!_syncID) return;
+  if(_isSyncing) return;
+
+  // Check supabase is available
+  const sb = _getSb();
+  if(!sb){
+    // Supabase not loaded yet — retry once it might have loaded
+    saveLocal();
+    setSaveIndicator('☁ Waiting for sync…');
+    clearTimeout(_syncTimer);
+    _syncTimer = setTimeout(syncToCloud, 3000);
+    return;
+  }
+
   _isSyncing = true;
   setSaveIndicator('Syncing…');
   try {
     const payload = JSON.stringify(collectCloudData());
-    // Warn if still huge (> 4MB)
-    if(payload.length > 4 * 1024 * 1024){
-      console.warn('Payload too large for cloud sync:', payload.length);
+
+    // Check payload size in bytes (not chars) — Supabase has ~6MB row limit
+    const byteSize = new Blob([payload]).size;
+    if(byteSize > 5 * 1024 * 1024){
+      console.warn('Payload too large for cloud sync:', byteSize, 'bytes');
       saveLocal();
-      setSaveIndicator('⚠ Data too large to sync');
+      setSaveIndicator('⚠ Data too large — saved locally');
       _isSyncing = false;
+      _syncRetryCount = 0;
       return;
     }
-    const { error } = await _sb.from('sync_data').upsert({
+
+    const { error } = await sb.from('sync_data').upsert({
       sync_id: _syncID,
       data: payload,
       updated_at: new Date().toISOString()
     }, { onConflict: 'sync_id' });
+
     if(error) throw error;
+
     saveLocal();
     _lastSyncedTime = Date.now();
+    _syncRetryCount = 0;
     setSaveIndicator('✓ Synced');
   } catch(e){
     console.warn('Sync error:', e);
     saveLocal();
+
+    // Retry with backoff (up to 3 times) before showing the error
+    if(_syncRetryCount < _MAX_SYNC_RETRIES){
+      _syncRetryCount++;
+      const delay = Math.pow(2, _syncRetryCount) * 1000; // 2s, 4s, 8s
+      setSaveIndicator('⚠ Retrying sync…');
+      clearTimeout(_syncTimer);
+      _syncTimer = setTimeout(function(){
+        _isSyncing = false;
+        syncToCloud();
+      }, delay);
+      return;
+    }
+
+    _syncRetryCount = 0;
     setSaveIndicator('⚠ Cloud sync failed — saved locally');
   }
   _isSyncing = false;
@@ -25578,9 +25668,21 @@ function _renderHomeTripBanner(){
   if(savedSyncID){
     _syncID = savedSyncID;
     updateAuthUI(true);
-    // Pull latest from cloud
+    // Pull latest from cloud — wait up to 4s for supabase to load before trying
+    const _bootSb = await (async () => {
+      let sb = _getSb();
+      if(sb) return sb;
+      // Supabase CDN may still be loading — poll briefly
+      for(let i=0; i<8; i++){
+        await new Promise(r => setTimeout(r, 500));
+        sb = _getSb();
+        if(sb) return sb;
+      }
+      return null;
+    })();
     try {
-      const { data, error } = await _sb.from('sync_data')
+      if(!_bootSb){ setSaveIndicator('☁ Offline — using local data'); throw new Error('supabase not loaded'); }
+      const { data, error } = await _bootSb.from('sync_data')
         .select('data').eq('sync_id', _syncID).single();
       if(!error && data){
         // Merge cloud data with local media (vision boards, trip photos, milestones)
@@ -25895,25 +25997,59 @@ function openTGNote(i){
 }
 
 function closeTGNoteEditor(){
-  saveTGNote();
+  _tgnSaveToMemory();   // immediate in-memory save
+  clearTimeout(_tgnAutoSaveTimer);
+  scheduleSave();        // persist to localStorage right now
   document.getElementById('tgnListView').style.display = 'block';
   document.getElementById('tgnEditorView').style.display = 'none';
   renderTGNList();
 }
 
-function saveTGNote(){
-  const title = document.getElementById('tgnTitle').value.trim() || 'Untitled';
-  const body = document.getElementById('tgnBody').value;
-  const category = document.getElementById('tgnCategory').value.trim();
-  const date = document.getElementById('tgnDate').value || isoDate(now);
-  if(currentTGNIdx >= 0){
-    tgnNotes[currentTGNIdx] = {...tgnNotes[currentTGNIdx], title, body, category, date};
+// Debounce timer for autosave
+let _tgnAutoSaveTimer = null;
+
+function _tgnAutoSave() {
+  // Immediate in-memory save so data is never lost
+  _tgnSaveToMemory();
+  // Debounced persist to localStorage (300ms after last keystroke)
+  clearTimeout(_tgnAutoSaveTimer);
+  _tgnAutoSaveTimer = setTimeout(function() {
+    scheduleSave();
+    _tgnShowSaved();
+  }, 300);
+}
+
+function _tgnSaveToMemory() {
+  const titleEl    = document.getElementById('tgnTitle');
+  const bodyEl     = document.getElementById('tgnBody');
+  const categoryEl = document.getElementById('tgnCategory');
+  const dateEl     = document.getElementById('tgnDate');
+  if (!titleEl) return;
+  const title    = titleEl.value.trim() || 'Untitled';
+  const body     = bodyEl ? bodyEl.value : '';
+  const category = categoryEl ? categoryEl.value.trim() : '';
+  const date     = (dateEl && dateEl.value) ? dateEl.value : isoDate(now);
+  if (currentTGNIdx >= 0) {
+    tgnNotes[currentTGNIdx] = { ...tgnNotes[currentTGNIdx], title, body, category, date, updatedAt: new Date().toISOString() };
   } else {
-    tgnNotes.unshift({title, body, category, date});
+    const newNote = { title, body, category, date, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    tgnNotes.unshift(newNote);
     currentTGNIdx = 0;
   }
+}
+
+function _tgnShowSaved() {
+  const ind = document.getElementById('tgnSaveIndicator');
+  const status = document.getElementById('tgnEditorStatus');
+  if (ind) { ind.style.opacity = '1'; clearTimeout(ind._t); ind._t = setTimeout(function(){ ind.style.opacity='0'; }, 2000); }
+  if (status) { status.textContent = 'saved ✦'; clearTimeout(status._t); status._t = setTimeout(function(){ status.textContent=''; }, 2500); }
+}
+
+function saveTGNote(){
+  _tgnSaveToMemory();
   renderTGNList();
   scheduleSave();
+  _tgnShowSaved();
 }
 
 // ══════════════════════════════════════════════
@@ -26010,6 +26146,8 @@ window.refreshAllRenderers = function(){
   if(!window._heroStatsIntervalSet){ window._heroStatsIntervalSet=true; setInterval(()=>{ try{ renderHeroStatsStrip(); }catch(e){} }, 60000); }
   // Check data size and warn if near limit
   try { _checkDataSizeOnBoot(); } catch(e){}
+  // Re-evaluate focus task after any data restore — only pick new if genuinely needed
+  try { _ensureFocusTaskToday(); } catch(e){}
 };
 
 // ══════════════════════════════════════════════
@@ -28857,6 +28995,110 @@ setTimeout(()=>{
 
 
 <!-- ════════════ FOCUS TASK MODAL ════════════ -->
+
+<!-- ══════════════════════════════════════════════════════
+     FOCUS TASK CUSTOMISE MODAL
+     ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="focusCustomiseModal" onclick="if(event.target===this)closeModal('focusCustomiseModal')" style="display:none;z-index:1055">
+  <div class="modal-box" style="max-width:540px;width:96vw;padding:0;overflow:hidden;border-radius:24px">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,var(--pink-light),var(--pink-glow));padding:22px 24px 18px;position:relative;border-bottom:1px solid var(--border)">
+      <button class="modal-close" onclick="closeModal('focusCustomiseModal')" style="position:absolute;top:14px;right:14px">&#10005;</button>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--pink-deep);text-transform:uppercase;margin-bottom:4px">✦ Focus Task</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:700;color:var(--text)">Customise Today's Pick</div>
+      <div style="font-size:12px;color:var(--text-mid);margin-top:4px">Choose a task from your list, set the time, or write your own.</div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:20px 24px 26px;overflow-y:auto;max-height:72vh">
+
+      <!-- ── Current task info ── -->
+      <div id="fcmCurrentWrap" style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:18px;display:none">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-soft);text-transform:uppercase;margin-bottom:4px">Current task</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)" id="fcmCurrentText">—</div>
+        <span id="fcmCurrentDur" style="display:inline-block;font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;margin-top:6px"></span>
+      </div>
+
+      <!-- ── Duration filter ── -->
+      <div style="margin-bottom:18px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text-soft);text-transform:uppercase;margin-bottom:8px">⏱ How much time do you have?</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap" id="fcmDurFilters">
+          <button class="fcm-dur-btn active" data-dur="any" onclick="fcmSetDur(this,'any')">⚡ Any</button>
+          <button class="fcm-dur-btn" data-dur="5" onclick="fcmSetDur(this,'5')">≤ 5 min</button>
+          <button class="fcm-dur-btn" data-dur="10" onclick="fcmSetDur(this,'10')">10 min</button>
+          <button class="fcm-dur-btn" data-dur="20" onclick="fcmSetDur(this,'20')">20 min</button>
+          <button class="fcm-dur-btn" data-dur="30" onclick="fcmSetDur(this,'30')">30 min+</button>
+          <button class="fcm-dur-btn" data-dur="unknown" onclick="fcmSetDur(this,'unknown')">🤷 Unknown</button>
+        </div>
+      </div>
+
+      <!-- ── Task list ── -->
+      <div style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text-soft);text-transform:uppercase">📋 Pick from your list</div>
+          <button onclick="fcmSurpriseMe()" style="background:var(--pink-deep);color:white;border:none;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif">🎲 Surprise me</button>
+        </div>
+        <div style="max-height:220px;overflow-y:auto;border:1.5px solid var(--border);border-radius:14px;background:var(--white)" id="fcmTaskList">
+          <div style="padding:16px;text-align:center;font-size:12px;color:var(--text-soft)">Loading…</div>
+        </div>
+        <div style="font-size:10px;color:var(--text-soft);margin-top:6px;font-style:italic" id="fcmFilterHint"></div>
+      </div>
+
+      <!-- ── Manual entry ── -->
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text-soft);text-transform:uppercase;margin-bottom:8px">✍️ Or write your own task</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="text-input" id="fcmManualInput" placeholder="e.g. Review chapter 3 notes…" style="flex:1;font-size:13px"
+            onkeydown="if(event.key==='Enter')fcmSetManual()">
+          <select id="fcmManualDur" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:12px;font-size:12px;font-family:'Outfit',sans-serif;background:var(--white);color:var(--text);cursor:pointer">
+            <option value="unknown">? time</option>
+            <option value="5">≤5 min</option>
+            <option value="10">10 min</option>
+            <option value="20">20 min</option>
+            <option value="30">30+ min</option>
+          </select>
+        </div>
+        <button onclick="fcmSetManual()" style="margin-top:10px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;padding:9px 20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);font-family:'Outfit',sans-serif;width:100%">
+          Set as today's focus task &#8594;
+        </button>
+      </div>
+
+      <!-- ── Selected confirmation ── -->
+      <div id="fcmSelectedBanner" style="display:none;background:linear-gradient(135deg,#eef7ee,#d8f0d8);border:1.5px solid #a8d8a8;border-radius:14px;padding:14px 18px;margin-bottom:16px;text-align:center">
+        <div style="font-size:18px;margin-bottom:4px">✦</div>
+        <div style="font-size:13px;font-weight:700;color:#2a6a2a" id="fcmSelectedMsg">Task set!</div>
+      </div>
+
+      <button class="pink-btn" style="width:100%" onclick="closeModal('focusCustomiseModal')">Done ✦</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.fcm-dur-btn {
+  padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--white); font-size: 12px; cursor: pointer;
+  font-family: 'Outfit', sans-serif; color: var(--text-mid);
+  transition: all 0.15s; font-weight: 500;
+}
+.fcm-dur-btn.active {
+  background: var(--pink-deep); color: white; border-color: var(--pink-deep); font-weight: 700;
+}
+.fcm-task-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.fcm-task-row:last-child { border-bottom: none; }
+.fcm-task-row:hover { background: var(--pink-glow); }
+.fcm-task-row.selected { background: var(--pink-light); }
+.fcm-task-row-text { flex: 1; font-size: 13px; color: var(--text); font-weight: 500; }
+.fcm-task-row-dur {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  flex-shrink: 0;
+}
+</style>
+
 <div class="modal-overlay" id="focusTaskModal" onclick="if(event.target===this)closeModal('focusTaskModal')" style="display:none;z-index:1050">
   <div class="modal-box" style="max-width:520px;width:96vw;padding:0;overflow:hidden;border-radius:24px">
     <!-- Header -->
@@ -28898,7 +29140,7 @@ setTimeout(()=>{
       <!-- Action buttons -->
       <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="pink-btn" id="ftmCompleteTaskBtn" onclick="completeFocusTask()" style="flex:1;min-width:140px">&#10003; Complete Task &#43;XP</button>
-        <button class="study-action-btn" onclick="pickNewFocusTask();closeModal('focusTaskModal')" style="font-size:12px">&#128260; New task</button>
+        <button class="study-action-btn" onclick="closeModal('focusTaskModal');openFocusCustomiseModal()" style="font-size:12px">✏️ Customise</button>
       </div>
       <div style="margin-top:12px;text-align:center">
         <button style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-soft)" onclick="closeModal('focusTaskModal')">Close</button>
@@ -28987,8 +29229,15 @@ function pickNewFocusTask(duration) {
 function _ensureFocusTaskToday() {
   var today = _todayStr();
   _loadFocusTask();
-  // New day or no task set → auto-pick
-  if (focusTask.date !== today || !focusTask.text) {
+  // Only auto-pick if it's a brand new day or there's genuinely no task saved
+  // Do NOT repick if we already have a task for today (prevents re-randomising on every sync/restore)
+  if (!focusTask.text || focusTask.date !== today) {
+    // Check in-memory first (may have been restored from collectAllData via restoreAllData)
+    // If focusTask was just restored and matches today, skip repick
+    if (focusTask.date === today && focusTask.text) {
+      renderHomeFocusCard();
+      return;
+    }
     pickNewFocusTask();
   } else {
     renderHomeFocusCard();
@@ -29239,6 +29488,207 @@ function initFocusTask() {
 
 // Run after data is loaded
 setTimeout(function(){ try{ initFocusTask(); }catch(e){ console.warn('FocusTask init:', e); } }, 400);
+
+// ════════════════════════════════════════════════════════
+// FOCUS TASK CUSTOMISE MODAL — JS
+// ════════════════════════════════════════════════════════
+
+var _fcmDurFilter = 'any';
+var _fcmSelectedIndex = null;
+
+function openFocusCustomiseModal() {
+  _fcmDurFilter = 'any';
+  _fcmSelectedIndex = null;
+
+  // Reset duration buttons
+  document.querySelectorAll('.fcm-dur-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.dur === 'any');
+  });
+
+  // Show current task
+  var curWrap = document.getElementById('fcmCurrentWrap');
+  var curText = document.getElementById('fcmCurrentText');
+  var curDur  = document.getElementById('fcmCurrentDur');
+  if (focusTask.text) {
+    if (curWrap) curWrap.style.display = 'block';
+    if (curText) curText.textContent = focusTask.text;
+    if (curDur) {
+      var durMap  = {'5':'≤5 min','10':'10 min','20':'20 min','30':'30+ min','unknown':'? time'};
+      var bgMap   = {'5':'#e8f4e8','10':'#e8f0ff','20':'#fff3e0','30':'#ffe8e8','unknown':'var(--pink-glow)'};
+      var txtMap  = {'5':'#2a6a2a','10':'#3040a0','20':'#805010','30':'#901010','unknown':'var(--text-soft)'};
+      var d = focusTask.duration || 'unknown';
+      curDur.textContent = durMap[d] || '? time';
+      curDur.style.background = bgMap[d] || 'var(--pink-glow)';
+      curDur.style.color = txtMap[d] || 'var(--text-soft)';
+    }
+  } else {
+    if (curWrap) curWrap.style.display = 'none';
+  }
+
+  // Clear manual input
+  var mi = document.getElementById('fcmManualInput');
+  if (mi) mi.value = '';
+
+  // Hide selected banner
+  var banner = document.getElementById('fcmSelectedBanner');
+  if (banner) banner.style.display = 'none';
+
+  // Render task list
+  _fcmRenderList();
+
+  document.getElementById('focusCustomiseModal').style.display = 'flex';
+}
+
+function fcmSetDur(btn, dur) {
+  _fcmDurFilter = dur;
+  document.querySelectorAll('.fcm-dur-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  _fcmRenderList();
+}
+
+function _fcmGetPool() {
+  return masterTodos
+    .map(function(t, i){ return {i: i, t: t}; })
+    .filter(function(x){
+      if (x.t.done) return false;
+      if (_fcmDurFilter === 'any') return true;
+      if (_fcmDurFilter === 'unknown') return !x.t.duration || x.t.duration === 'unknown';
+      return x.t.duration === _fcmDurFilter;
+    });
+}
+
+function _fcmRenderList() {
+  var listEl = document.getElementById('fcmTaskList');
+  var hintEl = document.getElementById('fcmFilterHint');
+  if (!listEl) return;
+
+  var pool = _fcmGetPool();
+  var allPool = masterTodos.map(function(t,i){return{i:i,t:t};}).filter(function(x){return !x.t.done;});
+
+  if (!allPool.length) {
+    listEl.innerHTML = '<div style="padding:18px;text-align:center;font-size:12px;color:var(--text-soft)">No tasks in your master list yet. Add some in Brain Dump &rarr; Master List!</div>';
+    if (hintEl) hintEl.textContent = '';
+    return;
+  }
+
+  if (!pool.length) {
+    listEl.innerHTML = '<div style="padding:18px;text-align:center;font-size:12px;color:var(--text-soft)">No tasks match this time filter. Try a different one or pick from all.</div>';
+    if (hintEl) hintEl.textContent = _fcmDurFilter !== 'any' ? 'Showing 0 of ' + allPool.length + ' tasks for this duration.' : '';
+    return;
+  }
+
+  var durMap  = {'5':'≤5 min','10':'10 min','20':'20 min','30':'30+ min','unknown':'? time'};
+  var bgMap   = {'5':'#e8f4e8','10':'#e8f0ff','20':'#fff3e0','30':'#ffe8e8','unknown':'var(--pink-glow)'};
+  var txtMap  = {'5':'#2a6a2a','10':'#3040a0','20':'#805010','30':'#901010','unknown':'var(--text-soft)'};
+
+  listEl.innerHTML = pool.map(function(x) {
+    var dur = x.t.duration || 'unknown';
+    var isCurrentTask = focusTask.text === x.t.text;
+    var isSelected = _fcmSelectedIndex === x.i;
+    return '<div class="fcm-task-row' + (isSelected ? ' selected' : '') + '" onclick="fcmPickTask(' + x.i + ')" id="fcmRow_' + x.i + '">'
+      + '<div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--border);background:' + (isSelected ? 'var(--pink-deep)' : 'none') + ';flex-shrink:0;display:flex;align-items:center;justify-content:center">'
+      + (isSelected ? '<div style="width:8px;height:8px;border-radius:50%;background:white"></div>' : '')
+      + '</div>'
+      + '<div class="fcm-task-row-text">' + _escHtml(x.t.text) + (isCurrentTask ? ' <span style="font-size:9px;color:var(--pink-deep);font-weight:700">(current)</span>' : '') + '</div>'
+      + '<span class="fcm-task-row-dur" style="background:' + (bgMap[dur]||'var(--pink-glow)') + ';color:' + (txtMap[dur]||'var(--text-soft)') + '">' + (durMap[dur]||'?') + '</span>'
+      + '</div>';
+  }).join('');
+
+  if (hintEl) hintEl.textContent = pool.length + ' of ' + allPool.length + ' tasks shown';
+}
+
+function fcmPickTask(index) {
+  _fcmSelectedIndex = index;
+  var task = masterTodos[index];
+  if (!task) return;
+
+  // Highlight row
+  document.querySelectorAll('.fcm-task-row').forEach(function(r){ r.classList.remove('selected'); });
+  var row = document.getElementById('fcmRow_' + index);
+  if (row) {
+    row.classList.add('selected');
+    var radio = row.querySelector('div[style*="border-radius:50%"]');
+    if (radio) {
+      radio.style.background = 'var(--pink-deep)';
+      radio.innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:white"></div>';
+    }
+  }
+
+  // Set the task
+  var today = _todayStr();
+  focusTask.date      = today;
+  focusTask.todoIndex = index;
+  focusTask.text      = task.text;
+  focusTask.duration  = task.duration || 'unknown';
+  focusTask.steps     = [];
+  focusTask.completed = false;
+  focusTask.xpAwarded = false;
+  _saveFocusTask();
+  renderHomeFocusCard();
+
+  // Show banner
+  _fcmShowBanner('✦ "' + task.text + '" set as today\'s focus!');
+
+  // Update current task display
+  var curText = document.getElementById('fcmCurrentText');
+  if (curText) curText.textContent = task.text;
+  var curWrap = document.getElementById('fcmCurrentWrap');
+  if (curWrap) curWrap.style.display = 'block';
+}
+
+function fcmSurpriseMe() {
+  var pool = _fcmGetPool();
+  if (!pool.length) {
+    showToast('No tasks match that filter — try "Any" ✦'); return;
+  }
+  // Avoid re-picking current
+  var candidates = pool.filter(function(x){ return x.t.text !== focusTask.text; });
+  if (!candidates.length) candidates = pool;
+  var pick = candidates[Math.floor(Math.random() * candidates.length)];
+  fcmPickTask(pick.i);
+}
+
+function fcmSetManual() {
+  var inp = document.getElementById('fcmManualInput');
+  var durSel = document.getElementById('fcmManualDur');
+  if (!inp) return;
+  var txt = inp.value.trim();
+  if (!txt) { inp.focus(); showToast('Please enter a task name ✦'); return; }
+
+  var today = _todayStr();
+  focusTask.date      = today;
+  focusTask.todoIndex = null;
+  focusTask.text      = txt;
+  focusTask.duration  = durSel ? durSel.value : 'unknown';
+  focusTask.steps     = [];
+  focusTask.completed = false;
+  focusTask.xpAwarded = false;
+  _saveFocusTask();
+  renderHomeFocusCard();
+
+  _fcmShowBanner('✦ "' + txt + '" set as today\'s focus!');
+  inp.value = '';
+
+  // Update current task display
+  var curText = document.getElementById('fcmCurrentText');
+  if (curText) curText.textContent = txt;
+  var curWrap = document.getElementById('fcmCurrentWrap');
+  if (curWrap) curWrap.style.display = 'block';
+
+  // Deselect list
+  _fcmSelectedIndex = null;
+  document.querySelectorAll('.fcm-task-row').forEach(function(r){ r.classList.remove('selected'); });
+}
+
+function _fcmShowBanner(msg) {
+  var banner = document.getElementById('fcmSelectedBanner');
+  var msgEl  = document.getElementById('fcmSelectedMsg');
+  if (!banner || !msgEl) return;
+  msgEl.textContent = msg;
+  banner.style.display = 'block';
+  clearTimeout(banner._t);
+  banner._t = setTimeout(function(){ banner.style.display = 'none'; }, 3000);
+}
 
 </script>
 </body>
