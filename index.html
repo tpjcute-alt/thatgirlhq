@@ -2724,6 +2724,7 @@ body.dark-mode .vice-feel-btn {
   <!-- Platform tabs -->
   <div class="ritual-tabs" id="contentPlatformTabs" style="margin-bottom:24px">
     <button class="ritual-tab active" onclick="switchContentPlatform(this,'overview')">📊 Overview</button>
+    <button class="ritual-tab" onclick="switchContentPlatform(this,'timetable')">🗓 Timetable</button>
     <button class="ritual-tab" onclick="switchContentPlatform(this,'calendar')">📅 Calendar</button>
     <button class="ritual-tab" onclick="switchContentPlatform(this,'ideas')">💡 Ideas</button>
     <button class="ritual-tab" onclick="switchContentPlatform(this,'youtube')">▶️ YouTube</button>
@@ -2778,6 +2779,68 @@ body.dark-mode .vice-feel-btn {
     <canvas id="platformPieChart" style="display:none"></canvas>
     <canvas id="viewsLineChart" style="display:none"></canvas>
     <div id="platformLegend" style="display:none"></div>
+  </div>
+
+  <!-- Timetable panel -->
+  <div id="cpanel-timetable" class="content-panel" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;font-weight:700;color:var(--text)">Content Timetable</div>
+        <div style="font-size:12px;color:var(--text-mid);font-style:italic">your fixed weekly schedule — what you post, where, every week ✦</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="pink-pill" style="font-size:11px" onclick="_ttSetView('weekly')" id="ttBtnWeekly">📆 Weekly</button>
+        <button class="pink-pill" style="font-size:11px" onclick="_ttSetView('monthly')" id="ttBtnMonthly">🗓 Monthly</button>
+      </div>
+    </div>
+
+    <!-- WEEKLY TIMETABLE -->
+    <div id="ttWeeklyView">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">Weekly Schedule — repeats every week</div>
+      <div id="ttWeekGrid"></div>
+      <div style="margin-top:16px;background:var(--pink-glow);border-radius:14px;padding:14px 16px">
+        <div style="font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">✦ Add / edit a slot</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:0 0 auto">
+            <div style="font-size:11px;color:var(--text-soft);margin-bottom:4px">Day</div>
+            <select id="ttDay" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:12px;background:var(--white);color:var(--text)">
+              <option value="Mon">Monday</option><option value="Tue">Tuesday</option><option value="Wed">Wednesday</option>
+              <option value="Thu">Thursday</option><option value="Fri">Friday</option><option value="Sat">Saturday</option><option value="Sun">Sunday</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:11px;color:var(--text-soft);margin-bottom:4px">Content type</div>
+            <input class="text-input" id="ttType" placeholder="e.g. Lock-in study vlog" style="font-size:12px">
+          </div>
+          <div style="flex:0 0 auto">
+            <div style="font-size:11px;color:var(--text-soft);margin-bottom:4px">Platform</div>
+            <select id="ttPlatform" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:12px;background:var(--white);color:var(--text)">
+              <option value="tiktok">🎵 TikTok</option><option value="youtube">▶️ YouTube</option><option value="shorts">⚡ Shorts</option><option value="instagram">📸 Instagram</option><option value="all">🌐 All platforms</option>
+            </select>
+          </div>
+          <div style="flex:0 0 auto">
+            <div style="font-size:11px;color:var(--text-soft);margin-bottom:4px">Frequency</div>
+            <select id="ttFreq" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:12px;background:var(--white);color:var(--text)">
+              <option value="every">Every week</option><option value="alt">Every 2 weeks</option><option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <button class="pink-btn" style="font-size:12px;padding:9px 16px" onclick="_ttAddSlot()">＋ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONTHLY TIMETABLE -->
+    <div id="ttMonthlyView" style="display:none">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px">Monthly Schedule — recurring patterns</div>
+      <div id="ttMonthGrid"></div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-soft);font-style:italic;text-align:center">Your monthly slots are generated from your weekly timetable above ✦ Edit them in Weekly view.</div>
+    </div>
+
+    <!-- Recent posts by day (from logs) -->
+    <div style="margin-top:20px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">📬 Recent posts — matched to timetable</div>
+      <div id="ttRecentPosts"></div>
+    </div>
   </div>
 
   <!-- Ideas pipeline panel -->
@@ -12515,6 +12578,7 @@ function switchContentPlatform(btn, key){
   const panel=document.getElementById('cpanel-'+key);
   if(panel){ panel.style.display='block'; panel.classList.add('active'); }
   if(key==='overview') renderContentOverview();
+  else if(key==='timetable') renderTimetable();
   else if(key==='ideas') renderContentIdeas();
   else if(key==='calendar') renderContentCalendar();
   else renderPlatformPanel(key);
@@ -29488,6 +29552,523 @@ function initFocusTask() {
 
 // Run after data is loaded
 setTimeout(function(){ try{ initFocusTask(); }catch(e){ console.warn('FocusTask init:', e); } }, 400);
+
+// ════════════════════════════════════════════════════════════════
+// CONTENT TIMETABLE — weekly + monthly fixed schedule
+// ════════════════════════════════════════════════════════════════
+
+let contentTimetable = []; // [{id, day, type, platform, freq}]
+// day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'
+// freq: 'every'|'alt'|'monthly'
+
+const _TT_DAYS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const _TT_PLAT_META = {
+  tiktok:    {emoji:'🎵', color:'#b04aff', bg:'#f5eeff', label:'TikTok'},
+  youtube:   {emoji:'▶️', color:'#cc2222', bg:'#fff0f0', label:'YouTube'},
+  shorts:    {emoji:'⚡', color:'#cc4400', bg:'#fff4ee', label:'Shorts'},
+  instagram: {emoji:'📸', color:'#b02070', bg:'#ffeef8', label:'Instagram'},
+  all:       {emoji:'🌐', color:'#7060c0', bg:'#f0eeff', label:'All Platforms'},
+};
+const _TT_FREQ_LABEL = {every:'Every week', alt:'Every 2 weeks', monthly:'Monthly'};
+
+let _ttView = 'weekly';
+
+function _ttSetView(v){
+  _ttView = v;
+  document.getElementById('ttWeeklyView').style.display  = v==='weekly'  ? 'block' : 'none';
+  document.getElementById('ttMonthlyView').style.display = v==='monthly' ? 'block' : 'none';
+  document.getElementById('ttBtnWeekly').style.background  = v==='weekly'  ? 'var(--pink-deep)' : '';
+  document.getElementById('ttBtnWeekly').style.color       = v==='weekly'  ? 'white' : '';
+  document.getElementById('ttBtnMonthly').style.background = v==='monthly' ? 'var(--pink-deep)' : '';
+  document.getElementById('ttBtnMonthly').style.color      = v==='monthly' ? 'white' : '';
+  if(v==='monthly') _renderTTMonthly(); else _renderTTWeekly();
+}
+
+function renderTimetable(){
+  _renderTTWeekly();
+  _renderTTRecentPosts();
+  _ttSetView(_ttView);
+}
+
+function _ttAddSlot(){
+  var day      = document.getElementById('ttDay').value;
+  var type     = document.getElementById('ttType').value.trim();
+  var platform = document.getElementById('ttPlatform').value;
+  var freq     = document.getElementById('ttFreq').value;
+  if(!type){ document.getElementById('ttType').focus(); return; }
+  contentTimetable.push({id: Date.now()+'_'+Math.random(), day, type, platform, freq});
+  document.getElementById('ttType').value = '';
+  _saveContentTimetable();
+  _renderTTWeekly();
+  _renderTTRecentPosts();
+  showToast(day + ' — ' + type + ' added ✦');
+}
+
+function _ttDeleteSlot(id){
+  contentTimetable = contentTimetable.filter(function(s){ return s.id !== id; });
+  _saveContentTimetable();
+  _renderTTWeekly();
+  _renderTTMonthly();
+  _renderTTRecentPosts();
+}
+
+function _saveContentTimetable(){
+  try { localStorage.setItem('tgh_contentTimetable', JSON.stringify(contentTimetable)); } catch(e){}
+}
+function _loadContentTimetable(){
+  try {
+    var raw = localStorage.getItem('tgh_contentTimetable');
+    if(raw) contentTimetable = JSON.parse(raw);
+  } catch(e){}
+}
+
+function _renderTTWeekly(){
+  var el = document.getElementById('ttWeekGrid');
+  if(!el) return;
+
+  var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+  _TT_DAYS.forEach(function(day){
+    var slots = contentTimetable.filter(function(s){ return s.day === day; });
+    var pm   = {Mon:'#3040a0',Tue:'#8030cc',Wed:'#cc4400',Thu:'#cc2222',Fri:'#b02070',Sat:'#2a6a2a',Sun:'#806820'};
+    var bg   = {Mon:'#f0f4ff',Tue:'#f5eeff',Wed:'#fff4ee',Thu:'#fff0f0',Fri:'#ffeef8',Sat:'#eef7ee',Sun:'#fff8e0'};
+
+    // Get recent posts for this day of week
+    var dayIdx = _TT_DAYS.indexOf(day);
+    var recentForDay = (typeof contentPosts !== 'undefined') ? contentPosts.filter(function(p){
+      if(!p.date) return false;
+      var d = new Date(p.date + 'T12:00:00');
+      var dow = d.getDay(); // 0=Sun
+      var mapped = [6,0,1,2,3,4,5][dow]; // map to Mon=0..Sun=6
+      return mapped === dayIdx;
+    }).slice(0,2) : [];
+
+    html += '<div style="background:white;border:1.5px solid var(--border);border-radius:16px;overflow:hidden">';
+    // Day header
+    html += '<div style="background:' + (bg[day]||'var(--pink-glow)') + ';padding:10px 16px;display:flex;align-items:center;justify-content:space-between">';
+    html += '<div style="font-weight:800;font-size:13px;color:' + (pm[day]||'var(--text)') + '">' + day + '</div>';
+    if(slots.length===0) html += '<div style="font-size:11px;color:var(--text-soft);font-style:italic">nothing scheduled yet</div>';
+    html += '</div>';
+
+    // Slots
+    if(slots.length){
+      html += '<div style="padding:10px 14px;display:flex;flex-direction:column;gap:7px">';
+      slots.forEach(function(slot){
+        var platMeta = _TT_PLAT_META[slot.platform] || _TT_PLAT_META.all;
+        html += '<div style="display:flex;align-items:center;gap:8px;background:' + platMeta.bg + ';border:1px solid ' + platMeta.color + '30;border-radius:10px;padding:8px 12px">';
+        html += '<span style="font-size:14px">' + platMeta.emoji + '</span>';
+        html += '<div style="flex:1">';
+        html += '<div style="font-size:13px;font-weight:600;color:var(--text)">' + slot.type + '</div>';
+        html += '<div style="font-size:10px;color:var(--text-soft)">' + platMeta.label + ' · ' + (_TT_FREQ_LABEL[slot.freq]||slot.freq) + '</div>';
+        html += '</div>';
+        html += '<button onclick="_ttDeleteSlot(\'' + slot.id + '\')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:2px 6px" title="Remove">🗑</button>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Recent posts for this day
+    if(recentForDay.length){
+      html += '<div style="padding:0 14px 10px;border-top:1px solid var(--border)">';
+      html += '<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text-soft);text-transform:uppercase;padding-top:8px;margin-bottom:5px">Recent posts</div>';
+      recentForDay.forEach(function(p){
+        var platM = _TT_PLAT_META[p.platform] || {emoji:'✦', color:'var(--pink-deep)'};
+        html += '<div style="font-size:11px;color:var(--text-mid);padding:2px 0">' + platM.emoji + ' ' + p.title + ' <span style="color:var(--text-soft)">· ' + p.date + '</span></div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function _renderTTMonthly(){
+  var el = document.getElementById('ttMonthGrid');
+  if(!el) return;
+
+  // Build a 4-week grid
+  var weeks = ['Week 1','Week 2','Week 3','Week 4'];
+  var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:500px">';
+  // Header
+  html += '<tr><th style="width:80px;padding:8px;font-size:10px;color:var(--text-soft);font-weight:700;text-align:left;border-bottom:2px solid var(--border)">Week</th>';
+  _TT_DAYS.forEach(function(d){
+    html += '<th style="padding:8px 4px;font-size:10px;color:var(--text-soft);font-weight:700;text-align:center;border-bottom:2px solid var(--border)">' + d + '</th>';
+  });
+  html += '</tr>';
+
+  weeks.forEach(function(wk, wi){
+    html += '<tr style="background:' + (wi%2===0?'var(--pink-glow)':'white') + '">';
+    html += '<td style="padding:8px;font-size:11px;font-weight:700;color:var(--text-mid);border-right:1px solid var(--border)">' + wk + '</td>';
+    _TT_DAYS.forEach(function(day){
+      var slots = contentTimetable.filter(function(s){
+        if(s.day !== day) return false;
+        if(s.freq === 'every') return true;
+        if(s.freq === 'alt')   return wi % 2 === 0; // weeks 1 & 3
+        if(s.freq === 'monthly') return wi === 0;   // week 1 only
+        return false;
+      });
+      html += '<td style="padding:5px 3px;vertical-align:top;border:1px solid var(--border);min-height:44px">';
+      slots.forEach(function(s){
+        var platMeta = _TT_PLAT_META[s.platform] || {emoji:'✦', color:'var(--pink-deep)', bg:'var(--pink-glow)'};
+        html += '<div style="background:' + platMeta.bg + ';border-left:2px solid ' + platMeta.color + ';border-radius:4px;padding:3px 5px;margin-bottom:3px;font-size:9px;font-weight:600;color:var(--text);line-height:1.3">' + platMeta.emoji + ' ' + s.type + '</div>';
+      });
+      html += '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</table></div>';
+  el.innerHTML = html;
+}
+
+function _renderTTRecentPosts(){
+  var el = document.getElementById('ttRecentPosts');
+  if(!el) return;
+  if(typeof contentPosts === 'undefined' || !contentPosts.length){
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-soft);font-style:italic">No posts logged yet ✦</div>';
+    return;
+  }
+  var recent = contentPosts.slice(0,8);
+  var html = recent.map(function(p){
+    var platMeta = _TT_PLAT_META[p.platform] || {emoji:'✦', color:'var(--pink-deep)', bg:'var(--pink-glow)'};
+    // Find matching timetable slot
+    var d = p.date ? new Date(p.date + 'T12:00:00') : null;
+    var dow = d ? [6,0,1,2,3,4,5][d.getDay()] : -1;
+    var dayName = dow >= 0 ? _TT_DAYS[dow] : '';
+    var matchedSlot = dayName ? contentTimetable.find(function(s){ return s.day === dayName && s.platform === p.platform; }) : null;
+    var engCol = p.engRate >= 10 ? '#3d7a3d' : p.engRate >= 5 ? 'var(--pink-deep)' : 'var(--text-soft)';
+    return '<div style="background:white;border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">'
+      + '<span style="font-size:18px">' + platMeta.emoji + '</span>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.title + '</div>'
+      + '<div style="font-size:10px;color:var(--text-soft);margin-top:2px">'
+      + (dayName ? '<span style="background:' + platMeta.bg + ';color:' + platMeta.color + ';padding:1px 6px;border-radius:8px;font-weight:700;margin-right:5px">' + dayName + '</span>' : '')
+      + (matchedSlot ? '<span style="color:var(--pink-deep);font-weight:600">' + matchedSlot.type + ' · </span>' : '')
+      + p.date
+      + '</div>'
+      + '</div>'
+      + (p.engRate ? '<span style="font-size:12px;font-weight:700;color:' + engCol + '">' + p.engRate + '%</span>' : '');
+    + '</div>';
+  }).join('');
+  el.innerHTML = html || '<div style="font-size:12px;color:var(--text-soft);font-style:italic">No posts yet ✦</div>';
+}
+
+// Load timetable on startup
+_loadContentTimetable();
+// Pre-populate with common schedule if empty
+setTimeout(function(){
+  if(!contentTimetable.length){
+    contentTimetable = [
+      {id:'tt1', day:'Sun', type:'Long-form Study Vlog', platform:'youtube', freq:'every'},
+      {id:'tt2', day:'Sun', type:'Sunday Reset Vlog',   platform:'youtube', freq:'alt'},
+      {id:'tt3', day:'Tue', type:'Lock-in Study Vlog',  platform:'tiktok',  freq:'every'},
+    ];
+    _saveContentTimetable();
+  }
+}, 600);
+
+
+// ════════════════════════════════════════════════════════════════
+// ENHANCED ANALYTICS MODAL — first-hour actions, flop analysis,
+// growth tips, metric snapshots at different time windows
+// ════════════════════════════════════════════════════════════════
+
+// Platform-specific first-hour action guides
+var _FIRST_HOUR_GUIDE = {
+  tiktok: [
+    'Reply to every comment within the first 30 minutes — TikTok ranks engagement velocity heavily',
+    'Do NOT close the app after posting — watch the For You page for 5-10 mins to signal activity',
+    'Share to your story immediately to seed initial views',
+    'Post between 6-10pm for study/lifestyle content — peak scroll time',
+    'Pin a comment yourself to direct the narrative early',
+    'Check your analytics after 1hr: if views < 300, try reposting with a different first frame',
+  ],
+  youtube: [
+    'Share to your community tab + stories within the first 10 minutes',
+    'Reply to every comment in the first hour — YouTube heavily rewards early engagement',
+    'Post on Twitter/Instagram teasing a clip to drive external traffic',
+    'Make sure your end screen and cards are set before going live',
+    'Email your newsletter if you have one — first-hour CTR matters for recommendations',
+    'Watch your Click-Through Rate (CTR) — if below 3% your thumbnail needs work',
+  ],
+  shorts: [
+    'Post to YouTube Shorts AND TikTok simultaneously for maximum reach',
+    'Reply to every comment in the first 2 hours',
+    'Share to your main channel community post to boost initial views',
+    'Check completion rate after 1hr — if below 70%, your hook (first 3 seconds) is weak',
+    'Use hashtags: #studyvlog #studywithme #thatgirl for discoverability',
+  ],
+  instagram: [
+    'Reply to every story reply and comment in the first hour',
+    'Share your post to your story with a sticker poll or question to drive profile visits',
+    'Send the post directly to your top 10 most engaged followers via DM',
+    'Post during your followers\' most active hours (check Insights)',
+    'Drop a comment yourself asking a question to start conversations',
+    'Cross-post a teaser clip to TikTok/Reels for extra reach',
+  ],
+};
+
+var _FLOP_REASONS = {
+  tiktok: {
+    lowViews:    'Low views usually means the algorithm didn\'t push it past the initial 50-200 test audience. Your first frame, hook text, or audio might not be compelling enough.',
+    lowLikes:    'People watched but didn\'t like — your content was watchable but didn\'t create an emotional response. Add a stronger CTA or make the ending more satisfying.',
+    lowComments: 'No comments usually means no question or debate prompt. Try ending with "Comment your answer" or a polarising take.',
+    lowShares:   'Content gets shared when it\'s relatable enough to tag someone or save. Add a "you need to see this" element.',
+  },
+  youtube: {
+    lowViews:    'Low views = low CTR or poor search/recommendation pick-up. Check your thumbnail and title — they\'re not compelling enough to click.',
+    lowLikes:    'Low likes vs views = people watched but weren\'t moved. Check your call-to-action (do you ask them to like?), pacing, and ending.',
+    lowComments: 'No comments = no conversation starter. Ask a specific question in your video or description.',
+    lowRetention:'Low retention means you\'re losing people early. Check your first 30 seconds — cut the intro, get to value faster.',
+    lowCTR:      'Low CTR means your thumbnail or title isn\'t delivering on the promise people are searching for. A/B test the thumbnail.',
+  },
+  shorts: {
+    lowCompletion:'Low completion = weak hook. Your first 1-3 seconds must be visually arresting — no intros, no "hey guys", straight into the action.',
+    lowViews:    'Low views on Shorts = the algorithm killed it early. Try different audio (trending sounds help) or repost at a different time.',
+  },
+  instagram: {
+    lowReach:    'Low reach = low engagement rate on past posts. Instagram throttles accounts with poor recent engagement. Focus on quality over quantity.',
+    lowSaves:    'Saves are the most important metric for Instagram growth. Create "save-worthy" content: tips, aesthetics, information worth returning to.',
+    lowComments: 'No comments = no conversation starter. Use your caption to ask a direct, easy-to-answer question.',
+  },
+};
+
+var _GROWTH_BENCHMARKS = {
+  tiktok:    {good: 5, great: 10, unit:'% engagement rate'},
+  youtube:   {good: 4, great: 8,  unit:'% engagement rate'},
+  shorts:    {good: 3, great: 7,  unit:'% engagement rate'},
+  instagram: {good: 3, great: 6,  unit:'% engagement rate'},
+};
+
+// Metric snapshots — stores per-post analytics at different time windows
+// Structure: { [postId]: { '1hr': {...}, '24hr': {...}, '48hr': {...} } }
+var _postMetricSnapshots = {};
+
+function _loadMetricSnapshots(){
+  try {
+    var raw = localStorage.getItem('tgh_metricSnapshots');
+    if(raw) _postMetricSnapshots = JSON.parse(raw);
+  } catch(e){}
+}
+function _saveMetricSnapshots(){
+  try { localStorage.setItem('tgh_metricSnapshots', JSON.stringify(_postMetricSnapshots)); } catch(e){}
+}
+_loadMetricSnapshots();
+
+// Override openPostModal to inject the enhanced UI
+var _origOpenPostModal = window.openPostModal || function(){};
+window.openPostModal = function(platform){
+  _origOpenPostModal(platform);
+  // Inject enhanced sections after a tick
+  setTimeout(_enhancePostModal, 50);
+};
+var _origOpenEditPost = window.openEditPost || function(){};
+window.openEditPost = function(i){
+  _origOpenEditPost(i);
+  setTimeout(function(){ _enhancePostModal(i); }, 50);
+};
+
+function _enhancePostModal(editIdx){
+  var modal = document.getElementById('postModal');
+  if(!modal) return;
+  var box = modal.querySelector('.modal-box');
+  if(!box) return;
+
+  // Remove previously injected sections
+  ['_enhFirstHour','_enhSnapshot','_enhFlop','_enhGrowth'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.remove();
+  });
+
+  var saveBtn = box.querySelector('button[onclick="savePost()"]');
+  if(!saveBtn) return;
+
+  // --- FIRST HOUR GUIDE ---
+  var fhDiv = document.createElement('div');
+  fhDiv.id = '_enhFirstHour';
+  fhDiv.style.cssText = 'margin-bottom:14px';
+  fhDiv.innerHTML = _buildFirstHourHTML();
+  box.insertBefore(fhDiv, saveBtn.parentElement || saveBtn);
+
+  // --- METRIC SNAPSHOT ---
+  var snapDiv = document.createElement('div');
+  snapDiv.id = '_enhSnapshot';
+  snapDiv.style.cssText = 'margin-bottom:14px';
+  var postId = editIdx >= 0 && contentPosts[editIdx] ? (contentPosts[editIdx].calItemId || contentPosts[editIdx].date + '_' + editIdx) : null;
+  snapDiv.innerHTML = _buildSnapshotHTML(postId);
+  box.insertBefore(snapDiv, saveBtn.parentElement || saveBtn);
+
+  // --- FLOP ANALYSIS ---
+  var flopDiv = document.createElement('div');
+  flopDiv.id = '_enhFlop';
+  flopDiv.style.cssText = 'margin-bottom:14px';
+  flopDiv.innerHTML = _buildFlopHTML();
+  box.insertBefore(flopDiv, saveBtn.parentElement || saveBtn);
+
+  // --- GROWTH TIPS ---
+  var growthDiv = document.createElement('div');
+  growthDiv.id = '_enhGrowth';
+  growthDiv.style.cssText = 'margin-bottom:14px';
+  growthDiv.innerHTML = _buildGrowthHTML();
+  box.insertBefore(growthDiv, saveBtn.parentElement || saveBtn);
+
+  // Re-wire platform change to update sections
+  var platSel = document.getElementById('postPlatform');
+  if(platSel && !platSel._enhHooked){
+    platSel._enhHooked = true;
+    platSel.addEventListener('change', function(){ _enhancePostModal(editIdx); });
+  }
+}
+
+function _buildFirstHourHTML(){
+  var plat = document.getElementById('postPlatform')?.value || 'tiktok';
+  var guide = _FIRST_HOUR_GUIDE[plat] || _FIRST_HOUR_GUIDE.tiktok;
+  var pm = _TT_PLAT_META[plat] || {emoji:'✦', color:'var(--pink-deep)', bg:'var(--pink-glow)', label:plat};
+  return '<div style="background:linear-gradient(135deg,' + pm.bg + ',#fff);border:1.5px solid ' + pm.color + '40;border-radius:14px;padding:14px 16px">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:' + pm.color + ';margin-bottom:8px">' + pm.emoji + ' First-hour playbook for ' + pm.label + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:5px">'
+    + guide.map(function(tip, i){
+      return '<div style="display:flex;gap:8px;align-items:flex-start">'
+        + '<span style="flex-shrink:0;width:18px;height:18px;border-radius:50%;background:' + pm.color + ';color:white;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px">' + (i+1) + '</span>'
+        + '<span style="font-size:12px;color:var(--text);line-height:1.5">' + tip + '</span>'
+        + '</div>';
+    }).join('')
+    + '</div></div>';
+}
+
+function _buildSnapshotHTML(postId){
+  var windows = [
+    {key:'1hr',  label:'After 1 hour'},
+    {key:'2hr',  label:'After 2 hours'},
+    {key:'24hr', label:'After 24 hours'},
+    {key:'48hr', label:'After 48 hours'},
+  ];
+  var snaps = postId && _postMetricSnapshots[postId] ? _postMetricSnapshots[postId] : {};
+  var html = '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:10px">📈 Metric snapshots — track performance over time</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  windows.forEach(function(w){
+    var snap = snaps[w.key] || {};
+    var hasData = snap.views !== undefined;
+    html += '<div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--text-soft);margin-bottom:6px">' + w.label + '</div>';
+    if(hasData){
+      html += '<div style="font-size:12px;color:var(--text)">👁 ' + (snap.views||0).toLocaleString() + ' views</div>'
+        + '<div style="font-size:12px;color:var(--text)">❤️ ' + (snap.likes||0).toLocaleString() + ' likes</div>'
+        + (snap.comments !== undefined ? '<div style="font-size:12px;color:var(--text)">💬 ' + snap.comments + ' comments</div>' : '');
+    } else {
+      html += '<div style="display:flex;flex-direction:column;gap:4px">'
+        + '<input placeholder="Views" type="number" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-family:Outfit,sans-serif;font-size:11px;width:100%;background:var(--pink-glow)" id="_snap_views_' + w.key + '">'
+        + '<input placeholder="Likes" type="number" style="padding:5px 8px;border:1px solid var(--border);border-radius:7px;font-family:Outfit,sans-serif;font-size:11px;width:100%;background:var(--pink-glow)" id="_snap_likes_' + w.key + '">'
+        + '<button onclick="_saveSnap(\'' + (postId||'pending') + '\',\'' + w.key + '\')" style="margin-top:3px;background:var(--pink-deep);color:white;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Save</button>'
+        + '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function _saveSnap(postId, window){
+  var views = parseInt(document.getElementById('_snap_views_' + window)?.value) || 0;
+  var likes = parseInt(document.getElementById('_snap_likes_' + window)?.value) || 0;
+  if(!_postMetricSnapshots[postId]) _postMetricSnapshots[postId] = {};
+  _postMetricSnapshots[postId][window] = {views, likes, savedAt: new Date().toISOString()};
+  _saveMetricSnapshots();
+  // Re-render snapshot section
+  var postIdx = typeof postId === 'string' ? contentPosts.findIndex(function(p,i){ return (p.calItemId||p.date+'_'+i) === postId; }) : -1;
+  _enhancePostModal(postIdx);
+  showToast(window + ' snapshot saved ✦');
+}
+
+function _buildFlopHTML(){
+  var views    = parseInt(document.getElementById('postViews')?.value) || 0;
+  var likes    = parseInt(document.getElementById('postLikes')?.value) || 0;
+  var comments = parseInt(document.getElementById('postComments')?.value) || 0;
+  var plat     = document.getElementById('postPlatform')?.value || 'tiktok';
+  var reasons  = _FLOP_REASONS[plat] || _FLOP_REASONS.tiktok;
+  var bench    = _GROWTH_BENCHMARKS[plat] || {good:5, great:10, unit:'% engagement rate'};
+
+  if(!views && !likes) return '';
+
+  var engRate  = views ? Math.round((likes + comments) / views * 1000) / 10 : 0;
+  var issues   = [];
+  var isGood   = engRate >= bench.good;
+
+  if(views < 200 && plat === 'tiktok')   issues.push(reasons.lowViews);
+  if(views < 500 && plat !== 'tiktok')   issues.push(reasons.lowViews);
+  if(likes / Math.max(views,1) < 0.02)   issues.push(reasons.lowLikes || '');
+  if(comments < 3)                        issues.push(reasons.lowComments || '');
+  issues = issues.filter(Boolean).slice(0,3);
+
+  var engColor = engRate >= bench.great ? '#3d7a3d' : engRate >= bench.good ? 'var(--pink-deep)' : '#c04040';
+  var engLabel = engRate >= bench.great ? '✦ Strong performance!' : engRate >= bench.good ? '👍 Decent — keep going' : '⚠ Below benchmark';
+
+  return '<div style="background:' + (isGood ? 'linear-gradient(135deg,#eef7ee,#d8f0d8)' : 'linear-gradient(135deg,#fff4ee,#ffe0cc)') + ';border:1.5px solid ' + (isGood ? '#a8d8a8' : '#f0a060') + ';border-radius:14px;padding:14px 16px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:' + engColor + '">Performance analysis</div>'
+    + '<span style="font-size:18px;font-weight:900;color:' + engColor + '">' + engRate + '%</span>'
+    + '</div>'
+    + '<div style="font-size:12px;font-weight:600;color:' + engColor + ';margin-bottom:' + (issues.length?'10px':'0') + '">' + engLabel + ' · benchmark: ' + bench.good + '% ' + bench.unit + '</div>'
+    + (issues.length ? '<div style="display:flex;flex-direction:column;gap:6px">' + issues.map(function(r){
+        return '<div style="display:flex;gap:7px;align-items:flex-start">'
+          + '<span style="flex-shrink:0;font-size:12px;margin-top:1px">💡</span>'
+          + '<span style="font-size:12px;color:var(--text);line-height:1.5">' + r + '</span>'
+          + '</div>';
+      }).join('') + '</div>' : '')
+    + '</div>';
+}
+
+function _buildGrowthHTML(){
+  var plat  = document.getElementById('postPlatform')?.value || 'tiktok';
+  var posts = (typeof contentPosts !== 'undefined') ? contentPosts.filter(function(p){ return p.platform === plat && p.engRate > 0; }) : [];
+  var bench = _GROWTH_BENCHMARKS[plat] || {good:5, great:10};
+  if(!posts.length) return '';
+
+  var avgEng   = posts.reduce(function(a,p){ return a + p.engRate; }, 0) / posts.length;
+  var topPost  = posts.reduce(function(a,b){ return b.engRate > a.engRate ? b : a; }, posts[0]);
+  var trend    = posts.length >= 3 ? posts.slice(-3).map(function(p){ return p.engRate; }) : null;
+  var trending = trend && trend[2] > trend[0] ? '📈 Trending up' : trend ? '📉 Dropping' : null;
+
+  var tips = [];
+  if(avgEng < bench.good)   tips.push('Your average engagement is below benchmark. Focus on one platform and go deep rather than spreading thin.');
+  if(topPost)               tips.push('Your best performer was "' + topPost.title + '" at ' + topPost.engRate + '% — understand what made it different and replicate it.');
+  if(posts.length < 5)      tips.push('You need at least 5 posts to find your pattern. Keep going — data compounds.');
+  if(avgEng >= bench.great) tips.push('You\'re above the benchmark for ' + plat + ' — now focus on consistency. Post at least 3x per week to sustain the algorithm\'s attention.');
+
+  if(!tips.length) return '';
+
+  return '<div style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink-deep);margin-bottom:8px">🌱 Growth insights (' + plat + ')</div>'
+    + (trending ? '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">' + trending + ' · avg ' + avgEng.toFixed(1) + '% engagement</div>' : '')
+    + '<div style="display:flex;flex-direction:column;gap:6px">'
+    + tips.map(function(t){
+      return '<div style="display:flex;gap:7px;align-items:flex-start">'
+        + '<span style="flex-shrink:0;font-size:10px;margin-top:2px">✦</span>'
+        + '<span style="font-size:12px;color:var(--text);line-height:1.5">' + t + '</span>'
+        + '</div>';
+    }).join('')
+    + '</div></div>';
+}
+
+// Update flop analysis when metrics change
+(function _hookMetricInputs(){
+  ['postViews','postLikes','postComments'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && !el._enhHooked){
+      el._enhHooked = true;
+      el.addEventListener('input', function(){
+        var flopEl = document.getElementById('_enhFlop');
+        if(flopEl) flopEl.innerHTML = _buildFlopHTML();
+        var growthEl = document.getElementById('_enhGrowth');
+        if(growthEl) growthEl.innerHTML = _buildGrowthHTML();
+      });
+    }
+  });
+})();
+
+
 
 // ════════════════════════════════════════════════════════
 // FOCUS TASK CUSTOMISE MODAL — JS
