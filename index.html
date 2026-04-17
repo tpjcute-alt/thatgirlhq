@@ -3108,6 +3108,7 @@ body.dark-mode .vice-feel-btn {
     <button class="ritual-tab" onclick="switchProdTab(this,'hrm')">🔄 Habit Reframe</button>
     <button class="ritual-tab" onclick="switchProdTab(this,'tgn')">✨ ThatGirlNotes</button>
     <button class="ritual-tab" onclick="switchProdTab(this,'screenshotnotes')">📸 Screenshot Notes</button>
+    <button class="ritual-tab" onclick="switchProdTab(this,'habits')">🌸 Habits</button>
     <button class="ritual-tab" onclick="switchProdTab(this,'study')">📚 Study</button>
   </div>
 
@@ -3243,7 +3244,7 @@ body.dark-mode .vice-feel-btn {
       <div class="card">
         <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:700;color:var(--text);margin-bottom:8px">Brain Dump 🧠</div>
         <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:12px">Messy thoughts welcome. Get it all out.</div>
-        <textarea class="text-input" id="brainDumpText" rows="12" style="line-height:1.9" placeholder="Everything in your head right now…&#10;&#10;Worries, ideas, random things, stuff you need to do, feelings…"></textarea>
+        <textarea class="text-input" id="brainDumpText" rows="12" style="line-height:1.9" placeholder="Everything in your head right now…&#10;&#10;Worries, ideas, random things, stuff you need to do, feelings…" oninput="scheduleSave()"></textarea>
         <button class="pink-btn" style="margin-top:10px" onclick="flashSave(this,'Saved ✦')">Save ✦</button>
       </div>
       <div>
@@ -3718,6 +3719,166 @@ body.dark-mode .vice-feel-btn {
     </div>
   </div><!-- end prod-tgn -->
 
+  <!-- ── HABITS ── -->
+  <div id="prod-habits" class="prod-panel" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="page-title" style="font-size:18px">Habit Tracker &#x1F338;</div>
+        <div class="page-sub" style="font-size:12px;margin-top:3px">Build the life she lives every day &#10022;</div>
+      </div>
+      <button class="pink-btn" style="font-size:12px;padding:9px 20px" onclick="openHabitModal()">&#65291; New Habit</button>
+    </div>
+
+    <!-- Notification banner -->
+    <div id="habitNotifBanner" style="display:none;background:var(--pink-glow);border:1.5px solid var(--pink-mid);border-radius:14px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:var(--text-mid);align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="flex:1">&#x1F514; Enable browser notifications to receive habit reminders</span>
+      <button onclick="habitRequestNotif()" style="background:var(--pink-deep);color:white;border:none;border-radius:10px;padding:6px 16px;font-size:11px;font-weight:700;cursor:pointer">Enable</button>
+      <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-soft);padding:0 4px">&#10005;</button>
+    </div>
+
+    <!-- Stats strip -->
+    <div id="habitStatsStrip" style="display:none;background:var(--pink-glow);border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;gap:24px;flex-wrap:wrap"></div>
+
+    <!-- Filter row -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="brain-chip2 brain-chip2-active" id="hfAll"      onclick="habitFilter('all',this)">All</button>
+      <button class="brain-chip2"                   id="hfDaily"     onclick="habitFilter('daily',this)">Daily</button>
+      <button class="brain-chip2"                   id="hfWeekly"    onclick="habitFilter('weekly',this)">Weekly</button>
+      <button class="brain-chip2"                   id="hfBiweekly"  onclick="habitFilter('biweekly',this)">Bi-weekly</button>
+      <button class="brain-chip2"                   id="hfMonthly"   onclick="habitFilter('monthly',this)">Monthly</button>
+    </div>
+
+    <div id="habitList"></div>
+    <div id="habitEmpty" style="font-size:13px;color:var(--text-soft);font-style:italic;padding:32px 0;text-align:center;display:none">No habits yet &#8212; tap + New Habit to begin &#10022;</div>
+  </div><!-- end prod-habits -->
+
+  <!-- ── HABIT MODAL ── uses openModal/closeModal pattern ── -->
+  <div class="modal-overlay" id="habitModal">
+    <div class="modal-box" style="max-width:500px;width:100%;max-height:90vh;overflow-y:auto">
+      <button class="modal-close" onclick="closeModal('habitModal')">&#10005;</button>
+
+      <div style="font-family:'Playfair Display',serif;font-style:italic;font-size:19px;color:var(--pink-deep);margin-bottom:20px" id="habitModalTitle">New Habit</div>
+      <input type="hidden" id="habitEditIdx" value="">
+
+      <!-- Name -->
+      <div class="form-row" style="margin-bottom:14px">
+        <label class="form-label">Habit name <span style="color:var(--pink-deep)">*</span></label>
+        <input class="text-input" id="habitName" placeholder="e.g. Morning walk, Journalling, 2L water..." style="font-size:14px">
+      </div>
+
+      <!-- Emoji + colour row -->
+      <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="flex:0 0 auto">
+          <label class="form-label">Emoji</label>
+          <input class="text-input" id="habitEmoji" placeholder="&#x1F338;" maxlength="4" style="width:64px;font-size:20px;text-align:center;padding:6px">
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label class="form-label">Colour</label>
+          <div id="habitColorRow" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button type="button" class="hcb" data-c="#e07898" style="width:30px;height:30px;border-radius:50%;background:#e07898;border:3px solid #e07898;cursor:pointer;outline:2px solid rgba(0,0,0,.2);outline-offset:1px"></button>
+            <button type="button" class="hcb" data-c="#a8d8a8" style="width:30px;height:30px;border-radius:50%;background:#a8d8a8;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#a0b8e8" style="width:30px;height:30px;border-radius:50%;background:#a0b8e8;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#f5c080" style="width:30px;height:30px;border-radius:50%;background:#f5c080;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#c8a0e8" style="width:30px;height:30px;border-radius:50%;background:#c8a0e8;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#f0a0a0" style="width:30px;height:30px;border-radius:50%;background:#f0a0a0;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#80d0c8" style="width:30px;height:30px;border-radius:50%;background:#80d0c8;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#d4a0c8" style="width:30px;height:30px;border-radius:50%;background:#d4a0c8;border:3px solid transparent;cursor:pointer"></button>
+            <button type="button" class="hcb" data-c="#f0c090" style="width:30px;height:30px;border-radius:50%;background:#f0c090;border:3px solid transparent;cursor:pointer"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frequency -->
+      <div class="form-row" style="margin-bottom:4px">
+        <label class="form-label">Frequency</label>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <button type="button" class="brain-chip2 brain-chip2-active" id="hfq-daily"      onclick="habitSelectFreq('daily',this)">Daily</button>
+          <button type="button" class="brain-chip2"                   id="hfq-weekly"     onclick="habitSelectFreq('weekly',this)">Weekly</button>
+          <button type="button" class="brain-chip2"                   id="hfq-biweekly"   onclick="habitSelectFreq('biweekly',this)">Bi-weekly</button>
+          <button type="button" class="brain-chip2"                   id="hfq-monthly"    onclick="habitSelectFreq('monthly',this)">Monthly</button>
+          <button type="button" class="brain-chip2"                   id="hfq-custom"     onclick="habitSelectFreq('custom',this)">Custom days</button>
+        </div>
+      </div>
+
+      <!-- Bi-weekly options -->
+      <div id="hfq-biweekly-opts" style="display:none;margin:10px 0 14px;background:var(--pink-glow);border-radius:12px;padding:12px 14px">
+        <label class="form-label" style="margin-bottom:6px">Every X weeks on which day?</label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select class="text-input" id="habitBiweeklyEvery" style="width:120px;font-size:13px">
+            <option value="2">Every 2 weeks</option>
+            <option value="3">Every 3 weeks</option>
+            <option value="4">Every 4 weeks</option>
+          </select>
+          <select class="text-input" id="habitBiweeklyDay" style="width:120px;font-size:13px">
+            <option value="Mon">Monday</option><option value="Tue">Tuesday</option><option value="Wed">Wednesday</option>
+            <option value="Thu">Thursday</option><option value="Fri">Friday</option><option value="Sat">Saturday</option><option value="Sun">Sunday</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Monthly options -->
+      <div id="hfq-monthly-opts" style="display:none;margin:10px 0 14px;background:var(--pink-glow);border-radius:12px;padding:12px 14px">
+        <label class="form-label" style="margin-bottom:6px">Which day of the month?</label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select class="text-input" id="habitMonthlyEvery" style="width:120px;font-size:13px">
+            <option value="1">Every month</option>
+            <option value="2">Every 2 months</option>
+            <option value="3">Every 3 months</option>
+          </select>
+          <select class="text-input" id="habitMonthlyDay" style="width:120px;font-size:13px">
+            <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="5">5th</option>
+            <option value="6">6th</option><option value="7">7th</option><option value="8">8th</option><option value="9">9th</option><option value="10">10th</option>
+            <option value="11">11th</option><option value="12">12th</option><option value="13">13th</option><option value="14">14th</option><option value="15">15th</option>
+            <option value="16">16th</option><option value="17">17th</option><option value="18">18th</option><option value="19">19th</option><option value="20">20th</option>
+            <option value="21">21st</option><option value="22">22nd</option><option value="23">23rd</option><option value="24">24th</option><option value="25">25th</option>
+            <option value="26">26th</option><option value="27">27th</option><option value="28">28th</option><option value="last">Last day</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Custom day picker (weekly / custom days) -->
+      <div id="hfq-days-picker" style="display:none;margin:10px 0 14px;background:var(--pink-glow);border-radius:12px;padding:12px 14px">
+        <label class="form-label" style="margin-bottom:8px">Which days?</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="shower-mood-chip hday" data-d="Mon" onclick="habitToggleDay('Mon',this)">Mon</button>
+          <button type="button" class="shower-mood-chip hday" data-d="Tue" onclick="habitToggleDay('Tue',this)">Tue</button>
+          <button type="button" class="shower-mood-chip hday" data-d="Wed" onclick="habitToggleDay('Wed',this)">Wed</button>
+          <button type="button" class="shower-mood-chip hday" data-d="Thu" onclick="habitToggleDay('Thu',this)">Thu</button>
+          <button type="button" class="shower-mood-chip hday" data-d="Fri" onclick="habitToggleDay('Fri',this)">Fri</button>
+          <button type="button" class="shower-mood-chip hday" data-d="Sat" onclick="habitToggleDay('Sat',this)">Sat</button>
+          <button type="button" class="shower-mood-chip hday" data-d="Sun" onclick="habitToggleDay('Sun',this)">Sun</button>
+        </div>
+      </div>
+
+      <!-- Reminder -->
+      <div class="form-row" style="margin-bottom:14px">
+        <label class="form-label">Reminder time <span style="font-weight:400;color:var(--text-soft)">(optional)</span></label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
+          <input type="time" class="text-input" id="habitReminder" style="width:130px;font-size:14px">
+          <div id="habitNotifStatusModal" style="font-size:11px;color:var(--text-soft)"></div>
+        </div>
+      </div>
+
+      <!-- Target (optional) -->
+      <div class="form-row" style="margin-bottom:14px">
+        <label class="form-label">Target / goal <span style="font-weight:400;color:var(--text-soft)">(optional &#8212; e.g. "30 mins", "8 glasses")</span></label>
+        <input class="text-input" id="habitTarget" placeholder="e.g. 30 mins, 10,000 steps, 2L..." style="font-size:13px">
+      </div>
+
+      <!-- Notes -->
+      <div class="form-row" style="margin-bottom:22px">
+        <label class="form-label">Why this matters <span style="font-weight:400;color:var(--text-soft)">(optional)</span></label>
+        <textarea class="text-input" id="habitNotes" rows="2" placeholder="e.g. For my mental health, building that girl era energy..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button type="button" class="pink-btn" style="flex:1" onclick="habitSave()">Save Habit &#10022;</button>
+        <button type="button" id="habitDelBtn" style="display:none;background:var(--red-light);color:var(--red);border:1.5px solid var(--red);border-radius:14px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer" onclick="habitDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- ── SCREENSHOT NOTES ── -->
   <div id="prod-screenshotnotes" class="prod-panel" style="display:none">
 
@@ -3928,7 +4089,10 @@ body.dark-mode .vice-feel-btn {
     <div id="studyWeekCard" style="background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div class="section-label" style="margin-bottom:0">Weekly Study Map</div>
-        <div style="font-size:11px;color:var(--text-soft);font-style:italic" id="studyWeekEditHint">tap any circle to view or edit that day</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div style="font-size:11px;color:var(--text-soft);font-style:italic" id="studyWeekEditHint">tap any circle to view or edit that day</div>
+          <button onclick="openStudyDatePicker()" style="background:var(--pink-glow);border:1.5px solid var(--pink-mid);border-radius:10px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--pink-deep);cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap">📅 Go to date</button>
+        </div>
         <div style="font-size:12px;color:var(--text-mid)" id="studyWeekTotal"></div>
       </div>
       <div style="display:flex;gap:4px;align-items:flex-start;justify-content:space-between;padding:4px 0" id="studyWeekChart"></div>
@@ -4125,7 +4289,10 @@ body.dark-mode .vice-feel-btn {
       <div style="font-size:11px;color:var(--text-soft);margin-top:8px;font-style:italic" id="sdeOverrideNote">Auto: status calculated from your ticks below.</div>
     </div>
 
-    <button class="pink-btn" style="width:100%" onclick="closeModal('studyDayEditModal');renderStudyWeekChart();renderStudyTodayStrip()">Done ✦</button>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button onclick="_sdeLogSession()" style="flex:1;padding:12px;border:1.5px solid var(--pink-mid);border-radius:14px;background:var(--pink-glow);font-size:13px;font-weight:700;color:var(--pink-deep);cursor:pointer;font-family:'Outfit',sans-serif">+ Log time</button>
+      <button class="pink-btn" style="flex:2" onclick="closeModal('studyDayEditModal');scheduleSave();renderStudyWeekChart();renderStudyTodayStrip()">Done ✦</button>
+    </div>
   </div>
 </div>
 
@@ -18816,13 +18983,14 @@ function renderBookingsTab(){
 function saveTripField(field, value){
   if(currentTripIdx<0) return;
   trips[currentTripIdx][field]=value;
+  scheduleSave();
 }
 
 // ── COVER PHOTO ─────────────────────────────────────────
 function setTripCover(e){
   if(!e.target.files[0]||currentTripIdx<0) return;
   _compressImage(e.target.files[0], 800, 0.80, dataUrl=>{
-    trips[currentTripIdx].cover = dataUrl;
+    trips[currentTripIdx].cover = dataUrl; scheduleSave();
     const img=document.getElementById('tripCoverImg'), ph=document.getElementById('tripCoverPlaceholder');
     img.src=dataUrl; img.style.display='block'; ph.style.display='none';
     scheduleSave();
@@ -18927,15 +19095,15 @@ function saveBeforeEdit(i){
   const inp=document.getElementById('beforeEdit-'+i);
   if(inp&&inp.value.trim()) trips[currentTripIdx].beforeItems[i].text=inp.value.trim();
   trips[currentTripIdx].beforeItems[i]._editing=false;
-  renderBeforeChecklist();
+  renderBeforeChecklist(); scheduleSave();
 }
 function cancelBeforeEdit(i){ if(currentTripIdx<0) return; trips[currentTripIdx].beforeItems[i]._editing=false; renderBeforeChecklist(); }
 function toggleBeforeItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].beforeItems[i].done=!trips[currentTripIdx].beforeItems[i].done; renderBeforeChecklist(); scheduleSave(); }
-function removeBeforeItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].beforeItems.splice(i,1); renderBeforeChecklist(); }
+function removeBeforeItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].beforeItems.splice(i,1); renderBeforeChecklist(); scheduleSave(); }
 function addBeforeItem(){
   const inp=document.getElementById('beforeItemInput'); if(!inp||!inp.value.trim()) return;
   trips[currentTripIdx].beforeItems.push({text:inp.value.trim(),done:false,custom:true});
-  inp.value=''; renderBeforeChecklist();
+  inp.value=''; renderBeforeChecklist(); scheduleSave();
 }
 
 // ── ITINERARY ────────────────────────────────────────────
@@ -18948,7 +19116,7 @@ function renderItinerary(){
     <div style="background:white;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
         <div style="background:var(--pink);color:white;font-size:11px;font-weight:700;border-radius:10px;padding:4px 12px;flex-shrink:0">DAY ${di+1}</div>
-        <input class="text-input" style="flex:1;font-size:14px;font-weight:600" value="${day.date||''}" placeholder="Date or label (e.g. Friday 15 Aug)" oninput="trips[${currentTripIdx}].itineraryDays[${di}].date=this.value">
+        <input class="text-input" style="flex:1;font-size:14px;font-weight:600" value="${day.date||''}" placeholder="Date or label (e.g. Friday 15 Aug)" oninput="trips[${currentTripIdx}].itineraryDays[${di}].date=this.value;scheduleSave()">
         <button onclick="removeItineraryDay(${di})" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:13px">🗑</button>
       </div>
       ${['morning','afternoon','evening'].map(period=>{
@@ -18970,7 +19138,7 @@ function renderItinerary(){
                 <div style="flex:1;font-size:13px;${item.done?'text-decoration:line-through;opacity:0.55':''}font-weight:600;color:var(--text)">${item.text}</div>
                 <button onclick="removeItinItem(${di},'${period}',${ii})" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:11px">✕</button>
               </div>
-              ${item.notes!==undefined?`<textarea class="text-input" rows="1" style="margin-top:6px;font-size:12px;color:var(--text-mid)" placeholder="Notes…" oninput="trips[${currentTripIdx}].itineraryDays[${di}]['${period}'][${ii}].notes=this.value">${item.notes||''}</textarea>`:''}
+              ${item.notes!==undefined?`<textarea class="text-input" rows="1" style="margin-top:6px;font-size:12px;color:var(--text-mid)" placeholder="Notes…" oninput="trips[${currentTripIdx}].itineraryDays[${di}]['${period}'][${ii}].notes=this.value;scheduleSave()">${item.notes||''}</textarea>`:''}
             </div>`).join('')}
           </div>
           <div style="display:flex;gap:6px">
@@ -18980,7 +19148,7 @@ function renderItinerary(){
         </div>`;
       }).join('')}
       <div style="margin-top:8px">
-        <input class="text-input" style="font-size:12px" placeholder="💸 Estimated spend for this day (£)" value="${day.spend||''}" oninput="trips[${currentTripIdx}].itineraryDays[${di}].spend=this.value">
+        <input class="text-input" style="font-size:12px" placeholder="💸 Estimated spend for this day (£)" value="${day.spend||''}" oninput="trips[${currentTripIdx}].itineraryDays[${di}].spend=this.value;scheduleSave()">
       </div>
     </div>`).join('');
 }
@@ -18994,7 +19162,7 @@ function toggleItinItem(di,period,ii){
 function removeItinItem(di,period,ii){
   if(currentTripIdx<0) return;
   trips[currentTripIdx].itineraryDays[di][period].splice(ii,1);
-  renderItinerary();
+  renderItinerary(); scheduleSave();
 }
 function addItinItem(di,period){
   if(currentTripIdx<0) return;
@@ -19003,7 +19171,7 @@ function addItinItem(di,period){
   if(!trips[currentTripIdx].itineraryDays[di][period]) trips[currentTripIdx].itineraryDays[di][period]=[];
   trips[currentTripIdx].itineraryDays[di][period].push({text:inp.value.trim(),done:false,notes:''});
   inp.value='';
-  renderItinerary();
+  renderItinerary(); scheduleSave();
 }
 function addItineraryDay(){
   if(currentTripIdx<0) return;
@@ -19011,7 +19179,7 @@ function addItineraryDay(){
   renderItinerary(); scheduleSave();
   setTimeout(()=>{ const el=document.getElementById('itineraryDays'); if(el) el.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
 }
-function removeItineraryDay(i){ if(currentTripIdx<0) return; trips[currentTripIdx].itineraryDays.splice(i,1); renderItinerary(); }
+function removeItineraryDay(i){ if(currentTripIdx<0) return; trips[currentTripIdx].itineraryDays.splice(i,1); renderItinerary(); scheduleSave(); }
 
 // ── PACKING ──────────────────────────────────────────────
 const PACKING_LABELS = { suitcase:'🧳 Suitcase', bag:'👜 Day Bag', carryon:'✈️ Carry-on', toiletries:'🧴 Toiletries', docs:'📄 Documents' };
@@ -19068,11 +19236,11 @@ function savePackEdit(i){
   const inp=document.getElementById('packEdit-'+i);
   if(inp&&inp.value.trim()) trips[currentTripIdx].packing[activePackingListKey][i].text=inp.value.trim();
   trips[currentTripIdx].packing[activePackingListKey][i]._editing=false;
-  renderActivePackingList();
+  renderActivePackingList(); scheduleSave();
 }
 function cancelPackEdit(i){ if(currentTripIdx<0) return; trips[currentTripIdx].packing[activePackingListKey][i]._editing=false; renderActivePackingList(); }
-function togglePackItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].packing[activePackingListKey][i].done=!trips[currentTripIdx].packing[activePackingListKey][i].done; renderActivePackingList(); }
-function removePackItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].packing[activePackingListKey].splice(i,1); renderActivePackingList(); }
+function togglePackItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].packing[activePackingListKey][i].done=!trips[currentTripIdx].packing[activePackingListKey][i].done; renderActivePackingList(); scheduleSave(); }
+function removePackItem(i){ if(currentTripIdx<0) return; trips[currentTripIdx].packing[activePackingListKey].splice(i,1); renderActivePackingList(); scheduleSave(); }
 function addPackingItem(){
   const inp=document.getElementById('packingItemInput'); if(!inp||!inp.value.trim()) return;
   if(currentTripIdx<0) return;
@@ -19085,7 +19253,7 @@ function addPackingDefaults(){
   const defaults=PACKING_DEFAULTS[activePackingListKey]||[];
   const existing=trips[currentTripIdx].packing[activePackingListKey].map(x=>x.text.toLowerCase());
   defaults.forEach(d=>{ if(!existing.includes(d.toLowerCase())) trips[currentTripIdx].packing[activePackingListKey].push({text:d,done:false}); });
-  renderActivePackingList();
+  renderActivePackingList(); scheduleSave();
 }
 
 // ── BUDGET ───────────────────────────────────────────────
@@ -19110,7 +19278,7 @@ function renderBudgetTab(){
 function setBudgetType(type){
   if(currentTripIdx<0) return;
   trips[currentTripIdx].budgetType=type;
-  renderBudgetTab();
+  renderBudgetTab(); scheduleSave();
 }
 function addBudgetExpense(){
   const name=prompt('Expense name (e.g. Dinner, Hotel, Taxi):'); if(!name) return;
@@ -19149,14 +19317,14 @@ function renderJournalEntries(){
         <div style="font-size:12px;font-weight:700;color:var(--text-soft)">${e.date}${e.dayLabel?' · '+e.dayLabel:''}</div>
         <button onclick="trips[${currentTripIdx}].journalEntries.splice(${i},1);renderJournalEntries()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:11px">🗑</button>
       </div>
-      <textarea class="text-input" style="min-height:80px;font-size:13px" oninput="trips[${currentTripIdx}].journalEntries[${i}].text=this.value">${e.text}</textarea>
+      <textarea class="text-input" style="min-height:80px;font-size:13px" oninput="trips[${currentTripIdx}].journalEntries[${i}].text=this.value;scheduleSave()">${e.text}</textarea>
     </div>`).join('');
 }
 function addJournalEntry(){
   if(currentTripIdx<0) return;
   const dayLabel=prompt('Label this entry (e.g. Day 1, Arrival day, Last night…):')||'';
   trips[currentTripIdx].journalEntries.push({date:isoDate(now),dayLabel,text:''});
-  renderJournalEntries();
+  renderJournalEntries(); scheduleSave();
   setTimeout(()=>{ const el=document.getElementById('journalEntries'); el?.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
 }
 
@@ -19184,7 +19352,7 @@ function renderTripPhotos(){
     <div style="border-radius:14px;overflow:hidden;position:relative;background:var(--pink-glow)">
       <img src="${p.src}" style="width:100%;height:160px;object-fit:cover;display:block">
       <div style="padding:8px 10px;background:white">
-        <input class="text-input" style="font-size:11px;padding:4px 8px" placeholder="Add a caption…" value="${p.caption||''}" oninput="trips[${currentTripIdx}].photos[${i}].caption=this.value">
+        <input class="text-input" style="font-size:11px;padding:4px 8px" placeholder="Add a caption…" value="${p.caption||''}" oninput="trips[${currentTripIdx}].photos[${i}].caption=this.value;scheduleSave()">
       </div>
       <button onclick="trips[${currentTripIdx}].photos.splice(${i},1);renderTripPhotos()" style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,0.9);border:none;cursor:pointer;border-radius:50%;width:24px;height:24px;font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>
     </div>`).join('');
@@ -24838,8 +25006,13 @@ async function loginWithSyncID(){
     _syncID = id;
     _lastSyncedTime = Date.now();
     restoreAllData(typeof data.data === 'string' ? JSON.parse(data.data) : data.data);
+    // FIX: persist restored focusTask immediately so _ensureFocusTaskToday reads the right value
+    try { if(typeof _saveFocusTask==='function') _saveFocusTask(); } catch(e){}
     saveLocal();
     refreshAllRenderers();
+    // FIX: re-render study UI after cloud restore
+    try { renderStudyTodayStrip(); } catch(e){}
+    try { renderStudyWeekChart(); } catch(e){}
     hideAuthOverlay();
     updateAuthUI(true);
     showToast('✦ Data loaded from cloud!');
@@ -24908,7 +25081,7 @@ function collectAllData(){
     ritualTimeLogs,
     ytSections,
     brainLog, brainSessions, morningAnchor, curiosities,
-    focusTaskSnapshot: JSON.parse(JSON.stringify(focusTask)),
+    focusTaskSnapshot: (typeof focusTask !== "undefined") ? JSON.parse(JSON.stringify(focusTask)) : null,
   };
 }
 
@@ -24958,7 +25131,7 @@ function restoreAllData(d){
     if(d.contentCalendar) contentCalendar.splice(0,contentCalendar.length,...d.contentCalendar);
     if(d.notes) notes.splice(0,notes.length,...d.notes);
     if(d.masterTodos) masterTodos.splice(0,masterTodos.length,...d.masterTodos);
-    if(d.focusTaskSnapshot){ try{ Object.assign(focusTask, d.focusTaskSnapshot); }catch(e){} }
+    if(d.focusTaskSnapshot && typeof focusTask !== "undefined"){ try{ Object.assign(focusTask, d.focusTaskSnapshot); }catch(e){} }
     if(d.quickTodos) quickTodos.splice(0,quickTodos.length,...d.quickTodos);
     if(d.lectures) lectures.splice(0,lectures.length,...d.lectures);
     if(d.grades) grades.splice(0,grades.length,...d.grades);
@@ -25793,8 +25966,16 @@ function _renderHomeTripBanner(){
           }
         } catch(e2){ console.warn('Media merge error:', e2); }
         restoreAllData(cloudData);
+        // FIX: after cloud restore, immediately persist focusTask to localStorage
+        // so _ensureFocusTaskToday (called inside refreshAllRenderers) reads the
+        // cloud-restored value instead of the stale/randomly-picked local one.
+        try { if(typeof _saveFocusTask==='function') _saveFocusTask(); } catch(e){}
         saveLocal();
         refreshAllRenderers();
+        // FIX: force study UI to re-render after cloud restore so streaks/status
+        // reflect the synced data without needing a manual page refresh
+        try { renderStudyTodayStrip(); } catch(e){}
+        try { renderStudyWeekChart(); } catch(e){}
         setSaveIndicator('✓ Synced');
       }
     } catch(e){ console.warn('Boot sync error:', e); setSaveIndicator('⚠ Could not reach cloud'); }
@@ -26147,9 +26328,14 @@ window.renderQuotes = function(){
 // ══════════════════════════════════════════════
 const _origSwitchProdTab = switchProdTab;
 window.switchProdTab = function(btn, panel){
+  var tgnEditor = document.getElementById('tgnEditorView');
+  if(panel !== 'tgn' && tgnEditor && tgnEditor.style.display !== 'none'){
+    try{ _tgnSaveToMemory(); clearTimeout(_tgnAutoSaveTimer); scheduleSave(); }catch(e){}
+  }
   _origSwitchProdTab(btn, panel);
   if(panel==='tgn') renderTGNList();
   if(panel==='screenshotnotes') renderSSNotes();
+  if(panel==='habits') { try{ renderHabitList(); }catch(e){} }
 };
 
 // ══════════════════════════════════════════════
@@ -26165,6 +26351,10 @@ window.collectAllData = function(){
   d.tgnNotes = tgnNotes;
   d.totalXP = totalXP;
   d.playerLevel = playerLevel;
+  var bdEl = document.getElementById('brainDumpText');
+  d.brainDumpText = bdEl ? bdEl.value : '';
+  d.habits = typeof habits !== 'undefined' ? habits : [];
+  d.habitLogs = typeof habitLogs !== 'undefined' ? habitLogs : {};
   return d;
 };
 
@@ -26178,6 +26368,9 @@ window.restoreAllData = function(d){
   if(d.tgnNotes) tgnNotes.splice(0, tgnNotes.length, ...d.tgnNotes);
   if(d.totalXP !== undefined) totalXP = d.totalXP;
   if(d.playerLevel !== undefined) playerLevel = d.playerLevel;
+  if(d.brainDumpText !== undefined){ var bdEl=document.getElementById('brainDumpText'); if(bdEl) bdEl.value=d.brainDumpText; }
+  if(d.habits && typeof habits !== 'undefined') habits.splice(0, habits.length, ...d.habits);
+  if(d.habitLogs && typeof habitLogs !== 'undefined'){ Object.keys(habitLogs).forEach(function(k){delete habitLogs[k];}); Object.assign(habitLogs, d.habitLogs); }
   // Re-render vice tiers immediately so they're visible after restore
   try{ renderViceTiers(); _populateViceSelect(); renderViceLog(); renderViceTrends(); } catch(e){}
 };
@@ -26188,6 +26381,7 @@ window.refreshAllRenderers = function(){
   _baseRefresh();
   try { renderReflectionHistory(); } catch(e){}
   try { renderHomeQuickTodos(); } catch(e){}
+  try { renderHabitList(); } catch(e){}
   // Only re-render wellness sub-panels if the wellness page is currently active
   // — avoids cycle/shower/sleep/mood content bleeding into other pages on sync
   const _wellnessActive = document.getElementById('page-wellness')?.classList.contains('active');
@@ -26572,6 +26766,62 @@ function _resetTodayTicks(){
 }
 
 // ── Study Day Edit Modal ──────────────────────────────────────
+// ── "Go to date" date picker for study day edit ──────────────────────────────
+function openStudyDatePicker() {
+  // Build a tiny inline modal with a date input
+  const today = _todayStr();
+  const existing = document.getElementById('studyDatePickerModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'studyDatePickerModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1080;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+
+  overlay.innerHTML = `
+    <div style="background:var(--white,#fff);border-radius:24px;padding:28px;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.18);font-family:'Outfit',sans-serif">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text,#1a0a14);margin-bottom:6px">Go to a Date 📅</div>
+      <div style="font-size:13px;color:var(--text-soft,#a07090);margin-bottom:20px">Pick any past date to view or edit your study log for that day.</div>
+      <input type="date" id="studyDatePickerInput" max="${today}"
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--pink-mid,#f0a0c0);border-radius:14px;font-size:15px;font-family:'Outfit',sans-serif;color:var(--text,#1a0a14);background:var(--white,#fff);box-sizing:border-box;margin-bottom:16px;outline:none"
+        value="${today}">
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('studyDatePickerModal').remove()"
+          style="flex:1;padding:12px;border:1.5px solid var(--border,#f0d0e0);border-radius:14px;background:none;font-size:14px;font-weight:600;color:var(--text-soft,#a07090);cursor:pointer;font-family:'Outfit',sans-serif">
+          Cancel
+        </button>
+        <button onclick="_gotoStudyDate()"
+          style="flex:2;padding:12px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--pink-mid,#f0a0c0),var(--pink-deep,#e07898));font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:'Outfit',sans-serif">
+          Open Day ✦
+        </button>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text-soft,#a07090);width:100%;margin-bottom:2px">Quick jump:</span>
+        ${[-1,-2,-3,-4,-5,-6,-7].map(n => {
+          const d = new Date(today + 'T12:00:00');
+          d.setDate(d.getDate() + n);
+          const ds = d.toISOString().slice(0,10);
+          const label = n===-1 ? 'Yesterday' : d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+          return `<button onclick="document.getElementById('studyDatePickerInput').value='${ds}'" style="padding:5px 10px;border:1.5px solid var(--border,#f0d0e0);border-radius:20px;background:var(--pink-glow,#fdf0f8);font-size:11px;font-weight:600;color:var(--pink-deep,#e07898);cursor:pointer;font-family:'Outfit',sans-serif">${label}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  // Focus the date input
+  setTimeout(() => { const inp = document.getElementById('studyDatePickerInput'); if(inp) inp.focus(); }, 50);
+}
+
+function _gotoStudyDate() {
+  const inp = document.getElementById('studyDatePickerInput');
+  if (!inp || !inp.value) return;
+  const date = inp.value;
+  const today = _todayStr();
+  if (date > today) { showToast('Can\'t edit future dates ✦'); return; }
+  document.getElementById('studyDatePickerModal').remove();
+  openStudyDayEdit(date);
+}
+
 let _sdeDate = null; // currently editing date
 
 function openStudyDayEdit(date) {
@@ -26595,6 +26845,27 @@ function openStudyDayEdit(date) {
   _renderSdeSlots(date);
   _updateSdeOverrideBtns();
   modal.classList.add('open');
+}
+
+// Open log-session modal pre-targeted at the day being edited
+function _sdeLogSession() {
+  const date = _sdeDate;
+  if (!date) return;
+  // Close day edit, open log modal with the date set, then reopen day edit after
+  closeModal('studyDayEditModal');
+  // Determine best slot to pre-fill based on current energy
+  const slot = (typeof _currentEnergySlot === 'function') ? (_currentEnergySlot() || '') : '';
+  openStudyLogModal(null, slot, null, date);
+  // After log modal closes, reopen day-edit for the same date
+  const originalClose = window.closeModal;
+  const _reopenOnce = function(id) {
+    originalClose(id);
+    if (id === 'studyLogModal') {
+      window.closeModal = originalClose; // restore
+      setTimeout(function(){ openStudyDayEdit(date); }, 80);
+    }
+  };
+  window.closeModal = _reopenOnce;
 }
 
 function _renderSdeSlots(date) {
@@ -26661,6 +26932,7 @@ function _sdeToggleTask(slot, taskId) {
     }
   }
   saveStudyData();
+  scheduleSave(); // push to cloud so other devices see the change
   _renderSdeSlots(date); // re-render slot list
   _updateSdeOverrideBtns();
 }
@@ -26673,6 +26945,7 @@ function setStudyDayOverride(val) {
     studyDayOverrides[_sdeDate] = val;
   }
   saveStudyData();
+  scheduleSave(); // push to cloud
   _updateSdeOverrideBtns();
 }
 
@@ -27140,7 +27413,7 @@ function studyTimerAbandon(){
 }
 
 // ── Log modal ──
-function openStudyLogModal(planId, slot, prefillMins){
+function openStudyLogModal(planId, slot, prefillMins, forDate){
   document.getElementById('studyLogPlanId').value=planId||'';
   document.getElementById('studyLogSlot').value=slot||'';
   document.getElementById('studyLogPlanned').value=slot&&studyRoutines[slot]?studyRoutines[slot].duration||'':'';
@@ -27150,8 +27423,17 @@ function openStudyLogModal(planId, slot, prefillMins){
   if(paceMsg) paceMsg.style.display='none';
   document.querySelectorAll('#studyFocusStars .shower-mood-chip').forEach(b=>b.classList.remove('active'));
   window._studyLogFocus=3;
+  // Store target date for retroactive logging
+  window._studyLogForDate = forDate || null;
   const title=document.querySelector('#studyLogModal .modal-title');
-  if(title) title.textContent=slot?`Log ${slot} Session. ✦`:'Log Session. ✦';
+  const today=_todayStr();
+  let titleText=slot?`Log ${slot} Session. ✦`:`Log Session. ✦`;
+  if(forDate && forDate!==today){
+    const d=new Date(forDate+'T12:00:00');
+    const label=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    titleText=(slot?`Log ${slot} — `:`Log Session — `)+label+` ✦`;
+  }
+  if(title) title.textContent=titleText;
   openModal('studyLogModal');
 }
 
@@ -27169,41 +27451,48 @@ function saveStudyLog(){
   const actual =parseInt(document.getElementById('studyLogActual').value)||0;
   const note   =document.getElementById('studyLogNote').value.trim();
   const focus  =window._studyLogFocus||3;
+  // Support retroactive logging — use stored forDate if set
+  const logDate = (window._studyLogForDate) || _todayStr();
   if(!actual){ showToast('Add time spent ✦'); return; }
   const log={
     id:_genId(),planId:planId||null,slot,subject,planned,actual,focus,note,
-    date:_todayStr(),createdAt:new Date().toISOString(),pace:planned?Math.round(actual/planned*100):100,
+    date:logDate,createdAt:new Date().toISOString(),pace:planned?Math.round(actual/planned*100):100,
   };
   studyLogs.push(log);
   if(planId){ const p=studyPlans.find(x=>x.id===planId); if(p){p.status='done';p.logId=log.id;} }
   saveStudyData();
+  scheduleSave(); // also push to cloud
   closeModal('studyLogModal');
+  window._studyLogForDate = null; // reset
   renderStudySessions();
   renderStudyTodayStrip();
   renderStudyWeekChart();
   renderStudySkipLog();
 
+  const isRetro = logDate !== _todayStr();
   // XP: base from time + focus bonus
   let xp = Math.min(40, Math.round(actual/60*20) + (focus>=4?5:0));
-  let toastMsg = 'Session logged ✦ +'+xp+' XP';
+  let toastMsg = isRetro
+    ? 'Session backdated + saved ✦ +'+xp+' XP'
+    : 'Session logged ✦ +'+xp+' XP';
 
-  // Bonus: completed within correct energy slot (logged during that slot)
-  const curSlot = _currentEnergySlot();
-  if(slot && curSlot === slot){
-    xp += 8;
-    toastMsg = 'In your '+slot+' window ✦ +'+xp+' XP';
+  // Bonus: completed within correct energy slot (only for today)
+  if(!isRetro){
+    const curSlot = _currentEnergySlot();
+    if(slot && curSlot === slot){
+      xp += 8;
+      toastMsg = 'In your '+slot+' window ✦ +'+xp+' XP';
+    }
   }
 
-  // Check if all 3 slots now have at least one log today
-  const today = _todayStr();
+  // Check if all 3 slots now have at least one log on logDate
   const allSlots = ['High Energy','Medium Energy','Low Energy'];
-  const logsToday = studyLogs.filter(l=>l.date===today);
-  const slotsLogged = allSlots.filter(s=>logsToday.some(l=>l.slot===s));
+  const logsOnDate = studyLogs.filter(l=>l.date===logDate);
+  const slotsLogged = allSlots.filter(s=>logsOnDate.some(l=>l.slot===s));
   if(slotsLogged.length===3){
     xp += 20;
-    // Show celebratory toast after brief delay
     setTimeout(()=>{
-      showToast('All 3 slots done. You are that girl. ✦ +20 XP bonus');
+      showToast(isRetro?'All 3 slots logged for that day. ✦ +20 XP':'All 3 slots done. You are that girl. ✦ +20 XP bonus');
     }, 900);
     toastMsg = 'Session logged ✦ +'+xp+' XP total';
   }
@@ -30272,5 +30561,481 @@ function _fcmShowBanner(msg) {
 }
 
 </script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// HABIT TRACKER  v2
+// ════════════════════════════════════════════════════════════════
+var habits      = [];          // [{id,name,emoji,color,freq,days,bwEvery,bwDay,mEvery,mDay,reminder,target,notes,createdAt}]
+var habitLogs   = {};          // {habitId: {'YYYY-MM-DD': true}}
+var _hFreq      = 'daily';
+var _hColor     = '#e07898';
+var _hDays      = [];
+var _hFilter    = 'all';
+var _hNotifT    = {};          // timeout refs per habit id
+
+// ── Utility ────────────────────────────────────────────────────
+function _hToday(){ return (new Date()).toISOString().slice(0,10); }
+function _hDateStr(d){ return d.toISOString().slice(0,10); }
+function _hFmt12(t){
+  if(!t) return '';
+  var p=t.split(':'), h=parseInt(p[0]), m=parseInt(p[1]);
+  return (h%12||12)+':'+(m<10?'0'+m:m)+(h>=12?'pm':'am');
+}
+function _hOrdinal(n){
+  n=parseInt(n); var s=['th','st','nd','rd'], v=n%100;
+  return n+(s[(v-20)%10]||s[v]||s[0]);
+}
+function _hDayNames(){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; }
+function _hDoneToday(h){ return !!((habitLogs[h.id]||{})[_hToday()]); }
+
+// ── Due-date logic ─────────────────────────────────────────────
+function _hIsDueOn(h, d){
+  var ds = _hDateStr(d);
+  var created = new Date(h.createdAt||Date.now());
+  if(d < new Date(created.getFullYear(), created.getMonth(), created.getDate())) return false;
+  var dayName = _hDayNames()[d.getDay()];
+  if(h.freq === 'daily') return true;
+  if(h.freq === 'weekly' || h.freq === 'custom'){
+    return !h.days || !h.days.length || h.days.includes(dayName);
+  }
+  if(h.freq === 'biweekly'){
+    // Every N weeks on a specific day
+    var bwDay = h.bwDay || 'Mon';
+    if(dayName !== bwDay) return false;
+    var every = parseInt(h.bwEvery)||2;
+    // Week 0 = creation week; count weeks from creation
+    var createdMonday = new Date(created);
+    createdMonday.setDate(created.getDate() - ((created.getDay()+6)%7));
+    var thisMonday = new Date(d);
+    thisMonday.setDate(d.getDate() - ((d.getDay()+6)%7));
+    var weeksDiff = Math.round((thisMonday - createdMonday) / (7*86400000));
+    return weeksDiff % every === 0;
+  }
+  if(h.freq === 'monthly'){
+    var every = parseInt(h.mEvery)||1;
+    var mDay  = h.mDay;
+    // Check month interval from creation
+    var monthsDiff = (d.getFullYear()-created.getFullYear())*12 + (d.getMonth()-created.getMonth());
+    if(monthsDiff % every !== 0) return false;
+    if(mDay === 'last'){
+      var lastDay = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+      return d.getDate() === lastDay;
+    }
+    return d.getDate() === parseInt(mDay);
+  }
+  return false;
+}
+
+// ── Streak ─────────────────────────────────────────────────────
+function _hStreak(h){
+  var logs = habitLogs[h.id]||{};
+  var streak = 0;
+  var d = new Date();
+  // If not done today, start from yesterday
+  if(!logs[_hToday()]) d.setDate(d.getDate()-1);
+  for(var i=0; i<3650; i++){
+    if(_hIsDueOn(h,d)){
+      if(logs[_hDateStr(d)]) streak++;
+      else break;
+    }
+    d.setDate(d.getDate()-1);
+    if(d < new Date((h.createdAt||Date.now()) - 86400000)) break;
+  }
+  return streak;
+}
+
+// ── Completion rate ────────────────────────────────────────────
+function _hCompletionRate(h, days){
+  days = days||28;
+  var logs = habitLogs[h.id]||{};
+  var due=0, done=0;
+  var d = new Date();
+  for(var i=0; i<days; i++){
+    if(_hIsDueOn(h,d)){ due++; if(logs[_hDateStr(d)]) done++; }
+    d.setDate(d.getDate()-1);
+  }
+  return due===0 ? 100 : Math.round(done/due*100);
+}
+
+// ── Notifications ──────────────────────────────────────────────
+function habitRequestNotif(){
+  if(typeof Notification==='undefined'){ showToast('Notifications not supported in this browser'); return; }
+  Notification.requestPermission().then(function(p){
+    if(p==='granted'){
+      showToast('Reminders enabled! \u2744');
+      document.getElementById('habitNotifBanner').style.display='none';
+      habits.forEach(function(h){ if(h.reminder) _hScheduleReminder(h); });
+    } else { showToast('Notification permission denied'); }
+  });
+}
+function _hNotifGranted(){ return typeof Notification!=='undefined' && Notification.permission==='granted'; }
+function _hScheduleReminder(h){
+  if(!_hNotifGranted()||!h.reminder) return;
+  clearTimeout(_hNotifT[h.id]);
+  var p=h.reminder.split(':'), hh=parseInt(p[0]), mm=parseInt(p[1]);
+  function sched(){
+    var now=new Date(), t=new Date();
+    t.setHours(hh,mm,0,0);
+    if(t<=now) t.setDate(t.getDate()+1);
+    _hNotifT[h.id]=setTimeout(function(){
+      if(_hIsDueOn(h,new Date()) && !_hDoneToday(h)){
+        try{ new Notification((h.emoji||'\uD83C\uDF38')+' '+h.name,{body:'Habit reminder \u2744',tag:'h-'+h.id}); }catch(e){}
+      }
+      sched();
+    }, t-now);
+  }
+  sched();
+}
+function _hCancelReminder(id){ clearTimeout(_hNotifT[id]); delete _hNotifT[id]; }
+
+// ── Modal open/close ───────────────────────────────────────────
+function openHabitModal(idx){
+  var isEdit = idx!==undefined;
+  _hFreq  = 'daily';
+  _hColor = '#e07898';
+  _hDays  = [];
+  document.getElementById('habitModalTitle').textContent = isEdit?'Edit Habit':'New Habit';
+  document.getElementById('habitEditIdx').value = isEdit?idx:'';
+  document.getElementById('habitDelBtn').style.display = isEdit?'block':'none';
+
+  if(isEdit){
+    var h=habits[idx];
+    document.getElementById('habitName').value    = h.name||'';
+    document.getElementById('habitEmoji').value   = h.emoji||'';
+    document.getElementById('habitTarget').value  = h.target||'';
+    document.getElementById('habitNotes').value   = h.notes||'';
+    document.getElementById('habitReminder').value= h.reminder||'';
+    _hFreq  = h.freq||'daily';
+    _hColor = h.color||'#e07898';
+    _hDays  = (h.days||[]).slice();
+    // Restore bi-weekly
+    if(h.bwEvery) document.getElementById('habitBiweeklyEvery').value = h.bwEvery;
+    if(h.bwDay)   document.getElementById('habitBiweeklyDay').value   = h.bwDay;
+    // Restore monthly
+    if(h.mEvery)  document.getElementById('habitMonthlyEvery').value  = h.mEvery;
+    if(h.mDay)    document.getElementById('habitMonthlyDay').value     = h.mDay;
+  } else {
+    ['habitName','habitEmoji','habitTarget','habitNotes'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('habitReminder').value='';
+    document.getElementById('habitBiweeklyEvery').value='2';
+    document.getElementById('habitBiweeklyDay').value='Mon';
+    document.getElementById('habitMonthlyEvery').value='1';
+    document.getElementById('habitMonthlyDay').value='1';
+  }
+
+  // Freq buttons
+  ['daily','weekly','biweekly','monthly','custom'].forEach(function(f){
+    var el=document.getElementById('hfq-'+f);
+    if(el) el.classList.toggle('brain-chip2-active', f===_hFreq);
+  });
+  _hUpdateFreqUI();
+
+  // Day chips
+  document.querySelectorAll('#habitModal .hday').forEach(function(btn){
+    btn.classList.toggle('active', _hDays.includes(btn.getAttribute('data-d')));
+  });
+
+  // Colour swatches
+  document.querySelectorAll('#habitModal .hcb').forEach(function(btn){
+    var c=btn.getAttribute('data-c');
+    _hStyleColorBtn(btn, c===_hColor);
+  });
+
+  // Notif status
+  var ns=document.getElementById('habitNotifStatusModal');
+  if(ns){
+    if(typeof Notification==='undefined') ns.textContent='Notifications not supported';
+    else if(Notification.permission==='granted'){ ns.textContent='\uD83D\uDD14 Enabled'; ns.style.color='var(--pink-deep)'; }
+    else if(Notification.permission==='denied') ns.textContent='\uD83D\uDD15 Blocked in browser settings';
+    else ns.textContent='Will prompt on save if time is set';
+  }
+
+  openModal('habitModal');
+}
+
+function _hStyleColorBtn(btn, selected){
+  btn.style.border = selected ? '3px solid '+btn.getAttribute('data-c') : '3px solid transparent';
+  btn.style.outline = selected ? '2px solid rgba(0,0,0,.2)' : 'none';
+  btn.style.outlineOffset = '1px';
+}
+
+// Wire up colour buttons via delegation (runs once)
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('#habitModal .hcb');
+  if(!btn) return;
+  _hColor = btn.getAttribute('data-c');
+  document.querySelectorAll('#habitModal .hcb').forEach(function(b){ _hStyleColorBtn(b, b===btn); });
+});
+
+function habitSelectFreq(freq, btn){
+  _hFreq = freq;
+  document.querySelectorAll('#habitModal [id^="hfq-"]').forEach(function(b){ b.classList.remove('brain-chip2-active'); });
+  if(btn) btn.classList.add('brain-chip2-active');
+  _hUpdateFreqUI();
+}
+
+function _hUpdateFreqUI(){
+  document.getElementById('hfq-biweekly-opts').style.display = _hFreq==='biweekly' ? 'block' : 'none';
+  document.getElementById('hfq-monthly-opts').style.display  = _hFreq==='monthly'   ? 'block' : 'none';
+  document.getElementById('hfq-days-picker').style.display   = (_hFreq==='weekly'||_hFreq==='custom') ? 'block' : 'none';
+}
+
+function habitToggleDay(day, btn){
+  var i=_hDays.indexOf(day);
+  if(i>=0) _hDays.splice(i,1); else _hDays.push(day);
+  btn.classList.toggle('active', _hDays.includes(day));
+}
+
+// ── Save / Delete ──────────────────────────────────────────────
+function habitSave(){
+  var name=(document.getElementById('habitName').value||'').trim();
+  if(!name){ document.getElementById('habitName').focus(); showToast('Give your habit a name \u2744'); return; }
+  var reminder=document.getElementById('habitReminder').value||'';
+  if(reminder && typeof Notification!=='undefined' && Notification.permission==='default'){
+    Notification.requestPermission().then(function(p){ if(p==='granted') showToast('Reminders enabled \u2744'); });
+  }
+  var idxStr=document.getElementById('habitEditIdx').value;
+  var isEdit=idxStr!=='';
+  var oldId      = isEdit ? habits[parseInt(idxStr)].id        : 'h_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  var oldCreated = isEdit ? habits[parseInt(idxStr)].createdAt : Date.now();
+  var h={
+    id: oldId, name: name,
+    emoji:   (document.getElementById('habitEmoji').value||'').trim()||'\uD83C\uDF38',
+    color:   _hColor,
+    freq:    _hFreq,
+    days:    (_hFreq==='weekly'||_hFreq==='custom') ? _hDays.slice() : [],
+    bwEvery: document.getElementById('habitBiweeklyEvery').value,
+    bwDay:   document.getElementById('habitBiweeklyDay').value,
+    mEvery:  document.getElementById('habitMonthlyEvery').value,
+    mDay:    document.getElementById('habitMonthlyDay').value,
+    reminder: reminder,
+    target:  (document.getElementById('habitTarget').value||'').trim(),
+    notes:   (document.getElementById('habitNotes').value||'').trim(),
+    createdAt: oldCreated
+  };
+  if(isEdit){ _hCancelReminder(h.id); habits[parseInt(idxStr)]=h; }
+  else habits.push(h);
+  if(reminder) _hScheduleReminder(h);
+  closeModal('habitModal');
+  renderHabitList();
+  scheduleSave();
+  showToast((isEdit?'Habit updated':'Habit added')+' \u2744');
+}
+
+function habitDelete(){
+  var idxStr=document.getElementById('habitEditIdx').value;
+  if(idxStr==='') return;
+  var idx=parseInt(idxStr), h=habits[idx];
+  if(!h||!confirm('Delete "'+h.name+'"?\nAll logs will be lost.')) return;
+  _hCancelReminder(h.id);
+  delete habitLogs[h.id];
+  habits.splice(idx,1);
+  closeModal('habitModal');
+  renderHabitList();
+  scheduleSave();
+  showToast('Habit deleted');
+}
+
+// ── Filter ─────────────────────────────────────────────────────
+function habitFilter(f, btn){
+  _hFilter=f;
+  document.querySelectorAll('#prod-habits .brain-chip2').forEach(function(b){ b.classList.remove('brain-chip2-active'); });
+  if(btn) btn.classList.add('brain-chip2-active');
+  renderHabitList();
+}
+
+// ── Toggle log ─────────────────────────────────────────────────
+function habitToggleLog(hid, ds){
+  if(!habitLogs[hid]) habitLogs[hid]={};
+  if(habitLogs[hid][ds]) delete habitLogs[hid][ds]; else habitLogs[hid][ds]=true;
+  renderHabitList(); scheduleSave();
+}
+
+// ── Stats strip ────────────────────────────────────────────────
+function _hRenderStats(){
+  var strip=document.getElementById('habitStatsStrip'); if(!strip) return;
+  if(!habits.length){ strip.style.display='none'; return; }
+  var today=_hToday();
+  var totalDue=0, totalDone=0, bestStreak=0;
+  habits.forEach(function(h){
+    if(_hIsDueOn(h,new Date())) totalDue++;
+    if((habitLogs[h.id]||{})[today]) totalDone++;
+    var s=_hStreak(h); if(s>bestStreak) bestStreak=s;
+  });
+  var rate=totalDue?Math.round(totalDone/totalDue*100):0;
+  strip.style.display='flex';
+  strip.innerHTML=[
+    {val:totalDone+'/'+totalDue, lbl:'Done today'},
+    {val:rate+'%',               lbl:'Today completion'},
+    {val:bestStreak+'d',         lbl:'Best streak'},
+    {val:habits.length,          lbl:'Active habits'},
+  ].map(function(s){
+    return '<div style="text-align:center;flex:1;min-width:70px">'
+      +'<div style="font-size:18px;font-weight:700;color:var(--pink-deep)">'+s.val+'</div>'
+      +'<div style="font-size:10px;color:var(--text-soft);margin-top:2px">'+s.lbl+'</div>'
+      +'</div>';
+  }).join('<div style="width:1px;background:var(--border)"></div>');
+}
+
+// ── Main render ────────────────────────────────────────────────
+function renderHabitList(){
+  var list=document.getElementById('habitList');
+  var empty=document.getElementById('habitEmpty');
+  if(!list) return;
+  _hRenderStats();
+  var filtered=habits.filter(function(h){
+    if(_hFilter==='all') return true;
+    return h.freq===_hFilter;
+  });
+  if(!filtered.length){ list.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  var today=new Date(), todayStr=_hToday();
+  var html='';
+  filtered.forEach(function(h){
+    var ri=habits.indexOf(h);
+    var isDone=_hDoneToday(h);
+    var isDue=_hIsDueOn(h,today);
+    var streak=_hStreak(h);
+    var rate=_hCompletionRate(h,28);
+    var color=h.color||'#e07898';
+
+    // Frequency label
+    var freqLbl=_hFreqLabel(h);
+    var remStr=h.reminder?' \u00B7 \uD83D\uDD14 '+_hFmt12(h.reminder):'';
+    var targetStr=h.target?' \u00B7 '+h.target:'';
+
+    // Rate pill colour
+    var rateClr = rate>=80?'#2a7a40':rate>=50?'#a06010':'#c04040';
+    var rateBg  = rate>=80?'#e8f7ee':rate>=50?'#fff3e0':'#fee8e8';
+
+    html+='<div style="background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:16px;position:relative;overflow:hidden'+(isDue?'':';opacity:0.75')+'">';
+    html+='<div style="position:absolute;top:0;left:0;width:5px;height:100%;background:'+color+';border-radius:18px 0 0 18px"></div>';
+    html+='<div style="padding-left:8px">';
+
+    // Header
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+    html+='<span style="font-size:24px">'+(h.emoji||'\uD83C\uDF38')+'</span>';
+    html+='<div style="flex:1">';
+    html+='<div style="font-size:15px;font-weight:700;color:var(--text)">'+(h.name||'')+'</div>';
+    html+='<div style="font-size:11px;color:var(--text-soft);margin-top:2px">'+freqLbl+remStr+targetStr+'</div>';
+    html+='</div>';
+    // Stats pills
+    html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+    html+='<span style="font-size:11px;font-weight:700;background:'+rateBg+';color:'+rateClr+';border-radius:10px;padding:2px 8px">'+rate+'% (28d)</span>';
+    html+='<span style="font-size:11px;color:var(--text-soft)">\uD83D\uDD25 '+streak+' streak</span>';
+    html+='</div>';
+    html+='<button onclick="openHabitModal('+ri+')" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-size:11px;cursor:pointer;color:var(--text-soft);margin-left:6px">Edit</button>';
+    html+='</div>';
+
+    // Mark done button — only show if due today
+    if(isDue){
+      html+='<button onclick="habitToggleLog(\''+h.id+'\',\''+todayStr+'\')" style="width:100%;background:'+(isDone?color:'transparent')+';color:'+(isDone?'white':'var(--text-mid)')+';border:2px solid '+color+';border-radius:12px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;margin-bottom:14px">'+(isDone?'\u2713 Done today \u2744':'Mark done today')+'</button>';
+    } else {
+      html+='<div style="font-size:11px;color:var(--text-soft);font-style:italic;margin-bottom:14px;text-align:center">Not due today</div>';
+    }
+
+    // Heatmap
+    html+='<div>';
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-soft);margin-bottom:6px">Last 12 weeks</div>';
+    html+=_hHeatmap(h);
+    html+='</div>';
+
+    if(h.notes) html+='<div style="font-size:11px;color:var(--text-soft);font-style:italic;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">'+(h.notes||'')+'</div>';
+    html+='</div></div>';
+  });
+  list.innerHTML=html;
+
+  // Notification banner
+  var haRem=habits.some(function(h){ return !!h.reminder; });
+  var banner=document.getElementById('habitNotifBanner');
+  if(banner) banner.style.display=(haRem && typeof Notification!=='undefined' && Notification.permission==='default')?'flex':'none';
+}
+
+function _hFreqLabel(h){
+  if(h.freq==='daily') return 'Daily';
+  if(h.freq==='weekly'){
+    if(!h.days||!h.days.length) return 'Weekly (any day)';
+    return 'Weekly \u00B7 '+h.days.join(', ');
+  }
+  if(h.freq==='custom'){
+    if(!h.days||!h.days.length) return 'Custom';
+    return h.days.join(', ');
+  }
+  if(h.freq==='biweekly'){
+    return 'Every '+(h.bwEvery||2)+' weeks on '+(h.bwDay||'Mon');
+  }
+  if(h.freq==='monthly'){
+    var e=parseInt(h.mEvery)||1;
+    var d=h.mDay==='last'?'last day':_hOrdinal(h.mDay||1);
+    return (e===1?'Monthly':'Every '+e+' months')+' \u00B7 '+d;
+  }
+  return h.freq||'';
+}
+
+// ── Heatmap ────────────────────────────────────────────────────
+function _hHeatmap(habit){
+  var logs=habitLogs[habit.id]||{};
+  var today=new Date();
+  var days=[];
+  for(var i=83;i>=0;i--){ var d2=new Date(today); d2.setDate(today.getDate()-i); days.push(d2); }
+  var weeks=[];
+  for(var w=0;w<12;w++) weeks.push(days.slice(w*7,w*7+7));
+  var dayLabels=['S','M','T','W','T','F','S'];
+  var html='<div style="display:flex;gap:3px;align-items:flex-start;overflow-x:auto">';
+  html+='<div style="display:flex;flex-direction:column;gap:3px;margin-right:2px;flex-shrink:0">';
+  dayLabels.forEach(function(l,i){ html+='<div style="width:10px;height:10px;font-size:8px;color:var(--text-soft);line-height:10px;text-align:center">'+(i%2===0?l:'')+'</div>'; });
+  html+='</div>';
+  weeks.forEach(function(week){
+    html+='<div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">';
+    week.forEach(function(d2){
+      var ds2=_hDateStr(d2);
+      var done=!!logs[ds2];
+      var isToday=ds2===_hToday();
+      var isDue=_hIsDueOn(habit,d2);
+      var bg=done?habit.color:(isDue?'var(--border)':'transparent');
+      var bdr=isToday?'1.5px solid '+habit.color:'1px solid '+(isDue?'var(--border)':'transparent');
+      var op=(isDue||done)?'1':'0.2';
+      html+='<div onclick="habitToggleLog(\''+habit.id+'\',\''+ds2+'\')" title="'+ds2+(done?' \u2713':'')+'" style="width:10px;height:10px;border-radius:2px;background:'+bg+';border:'+bdr+';cursor:pointer;opacity:'+op+';transition:background .15s"></div>';
+    });
+    html+='</div>';
+  });
+  return html+'</div>';
+}
+
+// ── Persist ────────────────────────────────────────────────────
+(function(){
+  var _oc=window.collectAllData;
+  window.collectAllData=function(){
+    var d=_oc();
+    d.habits=habits;
+    d.habitLogs=habitLogs;
+    return d;
+  };
+  var _or=window.restoreAllData;
+  window.restoreAllData=function(d){
+    _or(d);
+    if(d.habits){ habits.splice(0,habits.length); d.habits.forEach(function(h){ habits.push(h); }); }
+    if(d.habitLogs){ Object.keys(habitLogs).forEach(function(k){ delete habitLogs[k]; }); Object.assign(habitLogs,d.habitLogs); }
+    habits.forEach(function(h){ if(h.reminder) _hScheduleReminder(h); });
+  };
+  var _oref=window.refreshAllRenderers;
+  window.refreshAllRenderers=function(){
+    _oref();
+    try{ renderHabitList(); }catch(e){}
+  };
+})();
+
+// ── Emergency save (visibility / unload) ───────────────────────
+function _hEmergencySave(){
+  try{ var e=document.getElementById('tgnEditorView'); if(e&&e.style.display!=='none'){ _tgnSaveToMemory(); clearTimeout(_tgnAutoSaveTimer); } }catch(ex){}
+  try{ scheduleSave(); }catch(ex){}
+}
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') _hEmergencySave(); });
+window.addEventListener('pagehide',_hEmergencySave);
+window.addEventListener('beforeunload',_hEmergencySave);
+</script>
+
 </body>
 </html>
