@@ -1428,13 +1428,16 @@ body.dark-mode .vice-feel-btn {
     <div id="authSignInChip" style="display:none">
       <button onclick="showAuthOverlay()" style="background:none;border:1.5px solid var(--pink-mid);border-radius:10px;padding:4px 9px;cursor:pointer;font-size:11px;font-weight:700;color:var(--pink-deep);font-family:Outfit,sans-serif">Sign in to sync ✦</button>
     </div>
-    <button onclick="location.reload()" title="Refresh page" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:Outfit,sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--pink-glow)'" onmouseout="this.style.background='none'">🔄</button>
+    <button onclick="pullFromCloud(this)" id="cloudPullBtn" title="Pull latest data from cloud" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:Outfit,sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--pink-glow)'" onmouseout="this.style.background='none'">🔄</button>
     <button onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:Outfit,sans-serif;transition:all 0.2s">🌙</button>
     <button onclick="manuallySave()" id="manualSaveBtn" title="Save now" style="background:var(--pink-deep);border:none;border-radius:10px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:700;color:white;font-family:Outfit,sans-serif;transition:all 0.2s">Save ✦</button>
     <button onclick="exportData()" title="Download backup" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-mid);font-family:Outfit,sans-serif">⬇</button>
     <label title="Import backup" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:var(--text-mid);font-family:Outfit,sans-serif">⬆<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
   </div>
   <div class="topbar-day" id="navDay" style="margin-left:8px"></div>
+  <div id="bootSyncBanner" style="display:none;position:fixed;top:56px;left:0;right:0;z-index:199;background:var(--pink-deep);color:white;font-size:12px;font-weight:600;text-align:center;padding:7px 16px;font-family:Outfit,sans-serif;letter-spacing:0.3px">
+    ☁ Fetching latest data from cloud… <span id="bootSyncSub" style="font-weight:400;opacity:0.85"></span>
+  </div>
 </div>
 
 <!-- ── SIDEBAR OVERLAY ── -->
@@ -4121,6 +4124,7 @@ body.dark-mode .vice-feel-btn {
           <div style="font-size:11px;color:#a07010;font-style:italic">You came back. That already takes courage.</div>
         </div>
         <button class="study-action-btn" style="font-size:10px;padding:5px 10px;background:#fff3e0;border-color:#f0c060;color:#a07010" onclick="openStandaloneCatchupModal()">＋ Log Catch-Up</button>
+        <button class="study-action-btn" style="font-size:10px;padding:5px 10px;background:#f0e8ff;border-color:#c8a0e8;color:#6030a0" onclick="openPastDayModal()">📅 Log Past Day</button>
       </div>
       <div id="studyCatchupLog"></div>
     </div>
@@ -4466,6 +4470,144 @@ body.dark-mode .vice-feel-btn {
     </div>
 
     <button class="pink-btn" style="width:100%;background:linear-gradient(135deg,#f0c060,#e0a030);box-shadow:0 4px 16px rgba(240,192,96,0.4)" onclick="saveStandaloneCatchup()">🌅 Start Catch-Up Day ✦</button>
+  </div>
+</div>
+
+<!-- ── PAST DAY STUDY LOG MODAL ── -->
+<div class="modal-overlay" id="pastDayModal">
+  <div class="modal-box" style="max-width:560px;max-height:92vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('pastDayModal')">×</button>
+    <div style="font-size:28px;text-align:center;margin-bottom:6px">📅</div>
+    <div class="modal-title" style="text-align:center">Log a Past Day</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:20px;text-align:center">
+      Forgot to log? Fill in what happened and it'll count toward your streak ✦
+    </div>
+
+    <!-- STEP 1: Date -->
+    <div class="form-row" style="margin-bottom:18px">
+      <label class="form-label">Which day are you logging?</label>
+      <input class="text-input" type="date" id="pastDayDate" style="font-size:14px" onchange="pastDayDateChanged()">
+      <div id="pastDayDateNote" style="font-size:11px;color:var(--text-soft);margin-top:4px"></div>
+    </div>
+
+    <!-- STEP 2: What type of day was it? -->
+    <div class="form-row" style="margin-bottom:18px">
+      <label class="form-label">What kind of day was it?</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="shower-mood-chip" onclick="setPastDayType(this,'study')"   id="pdTypeStudy">📚 I studied</button>
+        <button class="shower-mood-chip" onclick="setPastDayType(this,'catchup')" id="pdTypeCatchup">🌅 Catch-up day</button>
+        <button class="shower-mood-chip" onclick="setPastDayType(this,'missed')"  id="pdTypeMissed">😶 Missed / didn't study</button>
+      </div>
+    </div>
+
+    <!-- STEP 3a: Regular study — pick energy slot -->
+    <div id="pdStudySection" style="display:none">
+      <div class="form-row" style="margin-bottom:14px">
+        <label class="form-label">Which energy routine did you follow?</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="shower-mood-chip" onclick="setPastDaySlot(this,'High Energy')"   id="pdSlotHigh">⚡ High Energy</button>
+          <button class="shower-mood-chip" onclick="setPastDaySlot(this,'Medium Energy')" id="pdSlotMed">🌤 Medium Energy</button>
+          <button class="shower-mood-chip" onclick="setPastDaySlot(this,'Low Energy')"    id="pdSlotLow">🌙 Low Energy</button>
+          <button class="shower-mood-chip" onclick="setPastDaySlot(this,'none')"          id="pdSlotNone">✏️ No routine / freeform</button>
+        </div>
+      </div>
+
+      <!-- Task checklist (shown once slot picked) -->
+      <div id="pastDayRoutineSection" style="display:none;margin-bottom:14px">
+        <label class="form-label">Which steps did you do? <span style="font-weight:400;color:var(--text-soft)">(all ticked by default — untick what you skipped)</span></label>
+        <div id="pastDayTaskList" style="display:flex;flex-direction:column;gap:6px;margin:8px 0 12px"></div>
+        <div style="margin-top:6px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-soft);margin-bottom:6px">Anything extra you did that wasn't in the routine?</div>
+          <div id="pastDayExtras" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
+          <div style="display:flex;gap:8px">
+            <input class="text-input" id="pastDayExtraInput" placeholder="e.g. extra lecture, emergency Anki..." style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter')pastDayAddExtra()">
+            <button onclick="pastDayAddExtra()" style="background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--text-mid)">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Freeform (no routine) -->
+      <div id="pastDayFreeSection" style="display:none;margin-bottom:14px">
+        <label class="form-label">What did you study?</label>
+        <div id="pastDayFreeList" style="display:flex;flex-direction:column;gap:5px;margin:6px 0 6px"></div>
+        <div style="display:flex;gap:8px">
+          <input class="text-input" id="pastDayFreeInput" placeholder="e.g. Anatomy chapter, 30 Anki cards, past paper..." style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter')pastDayAddFree()">
+          <button onclick="pastDayAddFree()" style="background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--text-mid)">＋</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3b: Catch-up day -->
+    <div id="pdCatchupSection" style="display:none;margin-bottom:14px">
+      <div style="background:linear-gradient(135deg,#fffaf0,#fff3e0);border:1.5px solid #f0d080;border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:12px;color:#a07010">
+        🌅 A catch-up day means your regular energy routines were paused — you worked at your own pace on whatever needed doing.
+      </div>
+      <label class="form-label">What were you catching up on?</label>
+      <div style="font-size:11px;color:var(--text-soft);margin-bottom:8px">Add each thing separately so you can tick them off.</div>
+      <div id="pastDayCatchupList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <input class="text-input" id="pastDayCatchupInput" placeholder="e.g. Old Anki, review one lecture, 3 passtest..." style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter')pastDayAddCatchupTask()">
+        <button onclick="pastDayAddCatchupTask()" style="background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--text-mid)">＋</button>
+      </div>
+      <!-- Quick chips -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('Old Anki')" style="font-size:10px">Old Anki</button>
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('New Anki cards')" style="font-size:10px">New Anki</button>
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('3 passtest questions')" style="font-size:10px">Passtest</button>
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('Review a lecture')" style="font-size:10px">Lecture</button>
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('StudyGlow')" style="font-size:10px">StudyGlow</button>
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('NotebookLM')" style="font-size:10px">NotebookLM</button>
+        <button class="shower-mood-chip" onclick="pastDayAddCatchupQuick('Edit Anki cards')" style="font-size:10px">Edit cards</button>
+      </div>
+      <!-- Did you do them or plan to? -->
+      <div style="margin-top:10px">
+        <label class="form-label" style="margin-bottom:6px">Did you complete them?</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="shower-mood-chip" onclick="setPastCatchupDone(this,'all')"  id="pdCuDoneAll">✅ All done</button>
+          <button class="shower-mood-chip" onclick="setPastCatchupDone(this,'some')" id="pdCuDoneSome">🔄 Some done</button>
+          <button class="shower-mood-chip" onclick="setPastCatchupDone(this,'none')" id="pdCuDoneNone">🔴 None done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3c: Missed day note -->
+    <div id="pdMissedSection" style="display:none;margin-bottom:14px">
+      <div style="background:var(--pink-glow);border:1.5px solid var(--pink-mid);border-radius:14px;padding:14px 16px;font-size:12px;color:var(--text-mid)">
+        ✦ Logging a missed day keeps your history honest — it won't break your streak, it just records it happened.
+      </div>
+    </div>
+
+    <!-- Duration + focus + note (shown for study + catchup) -->
+    <div id="pastDayDetailsSection" style="display:none">
+      <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div>
+          <label class="form-label">How long? (mins)</label>
+          <input class="text-input" type="number" id="pastDayDuration" placeholder="e.g. 60" min="1" style="font-size:14px">
+        </div>
+        <div>
+          <label class="form-label">Focus quality</label>
+          <select class="form-select" id="pastDayFocus" style="font-size:13px">
+            <option value="5">🔥 Locked in</option>
+            <option value="4">✅ Good</option>
+            <option value="3" selected>😐 Okay</option>
+            <option value="2">😴 Scattered</option>
+            <option value="1">🫠 Barely there</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Reflection <span style="font-weight:400;color:var(--text-soft)">(optional — what helped or got in the way?)</span></label>
+        <textarea class="text-input" id="pastDayNote" rows="2" placeholder="What helped? What got in the way? What would you do differently?"></textarea>
+      </div>
+    </div>
+
+    <!-- Already-logged warning -->
+    <div id="pastDayExistsWarn" style="display:none;background:#fff3e0;border:1.5px solid #f0c060;border-radius:12px;padding:10px 14px;font-size:12px;color:#a07010;margin-top:14px">
+      ⚠ This day already has a log. Saving will add a new entry alongside it.
+    </div>
+
+    <button class="pink-btn" style="width:100%;margin-top:16px" onclick="savePastDayLog()">Save Past Day ✦</button>
   </div>
 </div>
 
@@ -25304,7 +25446,9 @@ function _mergeCoreAndMedia(core, media){
 function saveLocal(){
   try {
     // Save core data (no binary blobs) — stays well under 1MB
-    const coreData = JSON.stringify(_collectCoreData());
+    const _coreForSave = _collectCoreData();
+    _coreForSave._savedAt = Date.now();  // timestamp for cross-device comparison
+    const coreData = JSON.stringify(_coreForSave);
     localStorage.setItem(SAVE_KEY, coreData);
 
     // Save media separately — if this fails, core is already safe
@@ -25383,6 +25527,7 @@ function loadLocal(){
 // ── Strip base64 images for cloud (kept local only) ─
 function collectCloudData(){
   const d = collectAllData();
+  d._savedAt = Date.now();  // timestamp for conflict resolution across devices
   // Images are now compressed (50-100KB each via WebP/JPEG) so we CAN include
   // them in cloud sync — core data is ~300KB, leaving ~3.7MB for images.
   // We enforce a total payload cap of 3.8MB below — if exceeded we strip images
@@ -25889,14 +26034,145 @@ function _renderHomeTripBanner(){
     </div>`;
 }
 
+// ── Cloud data merge helper (shared by boot + pullFromCloud) ──
+function _mergeCloudMediaFromLocal(cloudData){
+  try {
+    const mediaRaw = localStorage.getItem(MEDIA_KEY);
+    if(!mediaRaw) return cloudData;
+    const localMedia = JSON.parse(mediaRaw);
+    if(cloudData.visionBoards && localMedia.visionBoards){
+      Object.keys(cloudData.visionBoards).forEach(k=>{
+        const cloudImgs = cloudData.visionBoards[k] || [];
+        const localImgs = localMedia.visionBoards[k] || [];
+        cloudData.visionBoards[k] = cloudImgs.map((img,i)=>({
+          ...img,
+          src: (img.src && img.src !== '' && img.src !== '__media__')
+            ? img.src : (localImgs[i]?.src || '')
+        }));
+      });
+    }
+    if(cloudData.trips && localMedia.tripCovers){
+      cloudData.trips = cloudData.trips.map((ct,i)=>({
+        ...ct,
+        cover: (ct.cover && ct.cover !== '' && ct.cover !== '__media__')
+          ? ct.cover : (localMedia.tripCovers[i] || ''),
+        photos: (ct.photos||[]).map((p,j)=>({
+          ...p,
+          src: (p.src && p.src !== '' && p.src !== '__media__')
+            ? p.src : (localMedia.tripPhotos?.[i]?.[j] || '')
+        }))
+      }));
+    }
+    if(cloudData.milestones && localMedia.milestoneImages){
+      cloudData.milestones = cloudData.milestones.map((m,i)=>({
+        ...m,
+        image: (m.image && m.image !== '' && m.image !== '__media__')
+          ? m.image : (localMedia.milestoneImages[i] || '')
+      }));
+    }
+  } catch(e){ console.warn('Media merge error:', e); }
+  return cloudData;
+}
+
+// ── Apply cloud data after fetch ──
+function _applyCloudData(cloudData){
+  const merged = _mergeCloudMediaFromLocal(cloudData);
+  restoreAllData(merged);
+  try { if(typeof _saveFocusTask==='function') _saveFocusTask(); } catch(e){}
+  saveLocal();
+  refreshAllRenderers();
+  try { renderStudyTodayStrip(); } catch(e){}
+  try { renderStudyWeekChart(); } catch(e){}
+}
+
+// ── Wait for supabase CDN to load ──
+async function _waitForSb(maxWaitMs){
+  maxWaitMs = maxWaitMs || 6000;
+  const step = 400;
+  let waited = 0;
+  let sb = _getSb();
+  while(!sb && waited < maxWaitMs){
+    await new Promise(r => setTimeout(r, step));
+    waited += step;
+    sb = _getSb();
+  }
+  return sb || null;
+}
+
+// ── Manual pull from cloud ──
+async function pullFromCloud(btn){
+  if(!_syncID){ showToast('No sync ID — set one up first ✦'); return; }
+  const origText = btn ? btn.textContent : '';
+  const origBg   = btn ? btn.style.background : '';
+  if(btn){ btn.textContent='⏳'; btn.style.background='var(--pink-glow)'; btn.disabled=true; }
+  setSaveIndicator('Pulling from cloud…');
+  try {
+    const sb = await _waitForSb(8000);
+    if(!sb){ setSaveIndicator('⚠ Offline — cannot reach cloud'); showToast('Offline — using local data'); return; }
+    const { data, error } = await sb.from('sync_data').select('data,updated_at').eq('sync_id', _syncID).single();
+    if(error || !data){ setSaveIndicator('⚠ Nothing found in cloud'); showToast('No cloud data found for this sync ID'); return; }
+    const cloudData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+    const cloudSavedAt = cloudData._savedAt || 0;
+    // Compare timestamps — warn if cloud is older than local
+    const localSavedAt = (() => { try{ const r=localStorage.getItem(SAVE_KEY); if(!r) return 0; return JSON.parse(r)._savedAt||0; } catch(e){ return 0; } })();
+    if(localSavedAt > cloudSavedAt && localSavedAt - cloudSavedAt > 30000){
+      const localDate = new Date(localSavedAt).toLocaleTimeString();
+      const cloudDate = cloudSavedAt ? new Date(cloudSavedAt).toLocaleTimeString() : 'unknown';
+      const ok = confirm(
+        'Your local data (' + localDate + ') is newer than the cloud (' + cloudDate + ').' +
+        '\n\nPulling from cloud will overwrite your local changes.\n\nContinue?'
+      );
+      if(!ok){ setSaveIndicator('Pull cancelled'); return; }
+    }
+    _applyCloudData(cloudData);
+    _lastSyncedTime = Date.now();
+    setSaveIndicator('✓ Pulled from cloud');
+    showToast('✓ Data pulled from cloud ✦');
+  } catch(e){
+    console.warn('Pull error:', e);
+    setSaveIndicator('⚠ Pull failed');
+    showToast('Could not pull from cloud — check connection');
+  } finally {
+    if(btn){ btn.textContent=origText; btn.style.background=origBg; btn.disabled=false; }
+  }
+}
+
+// ── Auto-pull when coming back from background (iPad) ──
+let _lastAutoSyncPull = 0;
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible' && _syncID){
+    const now = Date.now();
+    // Only auto-pull if it's been >90s since last pull (avoid hammering on quick tab switches)
+    if(now - _lastAutoSyncPull > 90000){
+      _lastAutoSyncPull = now;
+      // Silent pull — no confirm dialog, just use cloud if it's newer
+      (async function(){
+        try {
+          const sb = await _waitForSb(3000);
+          if(!sb) return;
+          const { data, error } = await sb.from('sync_data').select('data,updated_at').eq('sync_id', _syncID).single();
+          if(error || !data) return;
+          const cloudData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+          const cloudSavedAt = cloudData._savedAt || 0;
+          const localSavedAt = (() => { try{ const r=localStorage.getItem(SAVE_KEY); if(!r) return 0; return JSON.parse(r)._savedAt||0; } catch(e){ return 0; } })();
+          // Only apply if cloud is genuinely newer (>10s ahead to avoid race)
+          if(cloudSavedAt > localSavedAt + 10000){
+            _applyCloudData(cloudData);
+            _lastSyncedTime = Date.now();
+            setSaveIndicator('✓ Auto-synced from cloud');
+          }
+        } catch(e){ /* silent fail */ }
+      })();
+    }
+  }
+});
+
 (async function boot(){
-  // 1. Load local cache instantly
+  // 1. Load local cache instantly — show something ASAP
   const hadLocal = loadLocal();
   if(hadLocal){
-    // ── Migration: set spend cooldown if they have existing claimed prizes ──
     _runRewardsMigration();
     refreshAllRenderers();
-    // ── Migration: re-compress any oversized vision board images from before compression was added ──
     setTimeout(()=>{ try{ _migrateAndCompressExistingImages(); }catch(e){} }, 1500);
   }
 
@@ -25905,87 +26181,53 @@ function _renderHomeTripBanner(){
   if(savedSyncID){
     _syncID = savedSyncID;
     updateAuthUI(true);
-    // Pull latest from cloud — wait up to 4s for supabase to load before trying
-    const _bootSb = await (async () => {
-      let sb = _getSb();
-      if(sb) return sb;
-      // Supabase CDN may still be loading — poll briefly
-      for(let i=0; i<8; i++){
-        await new Promise(r => setTimeout(r, 500));
-        sb = _getSb();
-        if(sb) return sb;
-      }
-      return null;
-    })();
+
+    // Show loading banner so user knows cloud fetch is happening
+    const banner = document.getElementById('bootSyncBanner');
+    const bannerSub = document.getElementById('bootSyncSub');
+    if(banner) banner.style.display = 'block';
+    if(bannerSub) bannerSub.textContent = hadLocal ? '(local data shown — cloud may be newer)' : '';
+    setSaveIndicator('☁ Fetching cloud data…');
+
     try {
-      if(!_bootSb){ setSaveIndicator('☁ Offline — using local data'); throw new Error('supabase not loaded'); }
-      const { data, error } = await _bootSb.from('sync_data')
-        .select('data').eq('sync_id', _syncID).single();
-      if(!error && data){
-        // Merge cloud data with local media (vision boards, trip photos, milestones)
-        // IMPORTANT: read from MEDIA_KEY not SAVE_KEY — SAVE_KEY has __media__ placeholders
-        const cloudData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-        try {
-          const mediaRaw = localStorage.getItem(MEDIA_KEY);
-          if(mediaRaw){
-            const localMedia = JSON.parse(mediaRaw);
-            // If cloud has empty/missing images, fill from local media key
-            if(cloudData.visionBoards && localMedia.visionBoards){
-              Object.keys(cloudData.visionBoards).forEach(k=>{
-                const cloudImgs = cloudData.visionBoards[k] || [];
-                const localImgs = localMedia.visionBoards[k] || [];
-                cloudData.visionBoards[k] = cloudImgs.map((img,i)=>({
-                  ...img,
-                  src: (img.src && img.src !== '' && img.src !== '__media__')
-                    ? img.src  // cloud has real image — use it (synced from another device)
-                    : (localImgs[i]?.src || '')  // else use local
-                }));
-              });
-            }
-            // Trip covers and photos
-            if(cloudData.trips && localMedia.tripCovers){
-              cloudData.trips = cloudData.trips.map((ct,i)=>({
-                ...ct,
-                cover: (ct.cover && ct.cover !== '' && ct.cover !== '__media__')
-                  ? ct.cover : (localMedia.tripCovers[i] || ''),
-                photos: (ct.photos||[]).map((p,j)=>({
-                  ...p,
-                  src: (p.src && p.src !== '' && p.src !== '__media__')
-                    ? p.src : (localMedia.tripPhotos?.[i]?.[j] || '')
-                }))
-              }));
-            }
-            // Milestone images
-            if(cloudData.milestones && localMedia.milestoneImages){
-              cloudData.milestones = cloudData.milestones.map((m,i)=>({
-                ...m,
-                image: (m.image && m.image !== '' && m.image !== '__media__')
-                  ? m.image : (localMedia.milestoneImages[i] || '')
-              }));
-            }
-          }
-        } catch(e2){ console.warn('Media merge error:', e2); }
-        restoreAllData(cloudData);
-        // FIX: after cloud restore, immediately persist focusTask to localStorage
-        // so _ensureFocusTaskToday (called inside refreshAllRenderers) reads the
-        // cloud-restored value instead of the stale/randomly-picked local one.
-        try { if(typeof _saveFocusTask==='function') _saveFocusTask(); } catch(e){}
-        saveLocal();
-        refreshAllRenderers();
-        // FIX: force study UI to re-render after cloud restore so streaks/status
-        // reflect the synced data without needing a manual page refresh
-        try { renderStudyTodayStrip(); } catch(e){}
-        try { renderStudyWeekChart(); } catch(e){}
-        setSaveIndicator('✓ Synced');
+      const _bootSb = await _waitForSb(6000);
+      if(!_bootSb){
+        setSaveIndicator('☁ Offline — using local data');
+        if(banner) banner.style.display = 'none';
+        throw new Error('supabase not loaded');
       }
-    } catch(e){ console.warn('Boot sync error:', e); setSaveIndicator('⚠ Could not reach cloud'); }
+      const { data, error } = await _bootSb.from('sync_data')
+        .select('data,updated_at').eq('sync_id', _syncID).single();
+      if(banner) banner.style.display = 'none';
+      if(!error && data){
+        const cloudData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+        const cloudSavedAt = cloudData._savedAt || 0;
+        // Read local savedAt from the raw key (before any restore)
+        const localSavedAt = (() => { try{ const r=localStorage.getItem(SAVE_KEY); if(!r) return 0; return JSON.parse(r)._savedAt||0; } catch(e){ return 0; } })();
+        if(cloudSavedAt >= localSavedAt){
+          // Cloud is same age or newer — apply it
+          _applyCloudData(cloudData);
+          _lastSyncedTime = Date.now();
+          setSaveIndicator('✓ Synced from cloud');
+        } else {
+          // Local is newer — keep local, push it to cloud to reconcile
+          setSaveIndicator('✓ Local data is current');
+          clearTimeout(_syncTimer);
+          _syncTimer = setTimeout(syncToCloud, 2000);
+        }
+      } else {
+        setSaveIndicator(hadLocal ? '✓ Using local data' : '⚠ No cloud data found');
+      }
+    } catch(e){
+      if(banner) banner.style.display = 'none';
+      console.warn('Boot sync error:', e);
+      setSaveIndicator(hadLocal ? '☁ Using local (offline)' : '⚠ Could not reach cloud');
+    }
+    _lastAutoSyncPull = Date.now();
   } else if(!hadLocal){
-    // First time ever — show the sync ID overlay
     showAuthOverlay();
   } else {
-    // Has local data but no sync ID — always show the chip
     updateAuthUI(false);
-    // Also show the overlay so they can set up sync
     showAuthOverlay();
   }
 })();
@@ -27192,7 +27434,6 @@ function switchRoutineTab(btn, slot){
 function _renderRoutineEditorPanel(){
   const el=document.getElementById('routineEditorPanels'); if(!el) return;
   const tasks=_routineEditorTasks[_routineEditorSlot]||[];
-  const cfg=STUDY_SLOT_CONFIG[_routineEditorSlot];
 
   if(tasks.length===0){
     el.innerHTML=`<div style="text-align:center;padding:24px;background:var(--pink-glow);border-radius:12px;font-size:13px;color:var(--text-soft);font-style:italic">No tasks yet — add some below or pick from suggestions ✦</div>`;
@@ -27200,15 +27441,33 @@ function _renderRoutineEditorPanel(){
   }
 
   el.innerHTML=`
-    <div style="font-size:11px;color:var(--text-soft);margin-bottom:8px">Tasks run in order each day. Drag to reorder.</div>
+    <div style="font-size:11px;color:var(--text-soft);margin-bottom:8px">Tap a step to edit its name or timer. Drag ⋮⋮ to reorder.</div>
     <div id="routineTaskList" style="display:flex;flex-direction:column;gap:6px">
-      ${tasks.map((t,i)=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px">
-          <span style="font-size:16px;cursor:grab;color:var(--text-soft)">⋮⋮</span>
+      ${tasks.map((t,i)=> t._editing ? `
+        <div style="background:var(--white);border:2px solid var(--pink-mid);border-radius:14px;padding:12px 14px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pink-deep);margin-bottom:8px">Editing step ${i+1}</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input class="text-input" id="routineEditText_${i}" value="${_escHtml(t.text)}" placeholder="Step name…" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')_saveRoutineTaskEdit(${i})">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+            <label style="font-size:11px;color:var(--text-soft);white-space:nowrap">⏱ Timer (mins, optional):</label>
+            <input class="text-input" type="number" id="routineEditTimer_${i}" value="${t.timerMins||''}" placeholder="e.g. 10" min="1" max="180" style="width:80px;font-size:13px">
+            <span style="font-size:11px;color:var(--text-soft)">leave blank = no timer</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="_saveRoutineTaskEdit(${i})" class="pink-btn" style="font-size:12px;padding:7px 16px">Save ✦</button>
+            <button onclick="_cancelRoutineTaskEdit(${i})" style="background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 14px;font-size:12px;cursor:pointer;color:var(--text-soft)">Cancel</button>
+            <button onclick="_removeRoutineTask(${i})" style="background:var(--red-light);border:none;border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--red);margin-left:auto">🗑 Remove</button>
+          </div>
+        </div>` : `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;cursor:pointer" onclick="_editRoutineTask(${i})">
+          <span style="font-size:16px;cursor:grab;color:var(--text-soft);flex-shrink:0">⋮⋮</span>
           <span style="flex:1;font-size:13px;color:var(--text)">${t.text}</span>
-          ${t.timerMins?`<span style="font-size:10px;color:var(--text-soft);background:white;padding:2px 7px;border-radius:8px;border:1px solid var(--border)">${t.timerMins}m</span>`:''}
-          <button onclick="_removeRoutineTask(${i})" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:0 4px">🗑</button>
-        </div>`).join('')}
+          ${t.timerMins?`<span style="font-size:10px;color:var(--text-soft);background:white;padding:2px 7px;border-radius:8px;border:1px solid var(--border);flex-shrink:0">⏱ ${t.timerMins}m</span>`:''}
+          <span style="font-size:11px;color:var(--text-soft);flex-shrink:0">✏️</span>
+          <button onclick="event.stopPropagation();_removeRoutineTask(${i})" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:0 4px;flex-shrink:0">🗑</button>
+        </div>`
+      ).join('')}
     </div>`;
 }
 
@@ -27235,6 +27494,33 @@ function _removeRoutineTask(idx){
   _routineEditorTasks[_routineEditorSlot].splice(idx,1);
   _renderRoutineEditorPanel();
   _renderRoutineTaskSuggestions();
+}
+
+function _editRoutineTask(idx){
+  const tasks=_routineEditorTasks[_routineEditorSlot]||[];
+  tasks.forEach((t,i)=>{ t._editing = i===idx; });
+  _renderRoutineEditorPanel();
+  setTimeout(()=>{ const el=document.getElementById('routineEditText_'+idx); if(el){ el.focus(); el.select(); } },50);
+}
+
+function _saveRoutineTaskEdit(idx){
+  const tasks=_routineEditorTasks[_routineEditorSlot]||[];
+  const t=tasks[idx]; if(!t) return;
+  const textEl=document.getElementById('routineEditText_'+idx);
+  const timerEl=document.getElementById('routineEditTimer_'+idx);
+  const newText=(textEl?.value||'').trim();
+  if(!newText){ showToast('Step name cannot be empty ✦'); textEl?.focus(); return; }
+  t.text=newText;
+  t.timerMins=timerEl&&timerEl.value?parseInt(timerEl.value)||null:null;
+  t._editing=false;
+  _renderRoutineEditorPanel();
+  _renderRoutineTaskSuggestions();
+}
+
+function _cancelRoutineTaskEdit(idx){
+  const tasks=_routineEditorTasks[_routineEditorSlot]||[];
+  if(tasks[idx]) tasks[idx]._editing=false;
+  _renderRoutineEditorPanel();
 }
 
 function saveRoutineEditor(){
@@ -31026,6 +31312,325 @@ function _hHeatmap(habit){
     try{ renderHabitList(); }catch(e){}
   };
 })();
+
+// ══════════════════════════════════════════════════════════
+// PAST DAY STUDY LOG
+// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// PAST DAY STUDY LOG  v2
+// ══════════════════════════════════════════════════════════
+var _pdType        = '';   // 'study' | 'catchup' | 'missed'
+var _pdSlot        = '';   // 'High Energy' | 'Medium Energy' | 'Low Energy' | 'none'
+var _pdTaskChecks  = {};   // taskId -> bool
+var _pdExtras      = [];   // [{id,text}]
+var _pdFreeItems   = [];   // [{id,text}] freeform study items
+var _pdCatchupTasks = [];  // [{id,text}]
+var _pdCatchupDone = '';   // 'all'|'some'|'none'
+
+function openPastDayModal(){
+  _pdType=''; _pdSlot=''; _pdTaskChecks={}; _pdExtras=[]; _pdFreeItems=[]; _pdCatchupTasks=[]; _pdCatchupDone='';
+  var yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  document.getElementById('pastDayDate').value = yesterday.toISOString().slice(0,10);
+
+  // Reset all type/slot chips
+  document.querySelectorAll('#pastDayModal .shower-mood-chip').forEach(function(b){ b.classList.remove('active'); });
+
+  // Hide all sections
+  ['pdStudySection','pdCatchupSection','pdMissedSection','pastDayDetailsSection',
+   'pastDayRoutineSection','pastDayFreeSection','pastDayExistsWarn'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='none';
+  });
+
+  // Reset inputs
+  ['pastDayDuration','pastDayNote','pastDayExtraInput','pastDayCatchupInput','pastDayFreeInput'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+
+  pastDayDateChanged();
+  openModal('pastDayModal');
+}
+
+function pastDayDateChanged(){
+  var ds=document.getElementById('pastDayDate').value;
+  var note=document.getElementById('pastDayDateNote');
+  var warn=document.getElementById('pastDayExistsWarn');
+  if(!ds) return;
+  var today=_todayStr();
+  if(ds>=today){
+    if(note){ note.textContent='Please pick a past date.'; note.style.color='var(--red)'; }
+    return;
+  }
+  var daysAgo=Math.round((new Date(today)-new Date(ds))/86400000);
+  if(note){
+    note.textContent = daysAgo===1?'Yesterday':daysAgo+' days ago';
+    note.style.color = daysAgo>14?'#a07010':'var(--text-soft)';
+  }
+  var hasLog = studyLogs.some(function(l){ return l.date===ds; }) ||
+               (typeof studyCatchupDays!=='undefined' && studyCatchupDays[ds]);
+  if(warn) warn.style.display=hasLog?'block':'none';
+}
+
+// ── Step 2: type of day ────────────────────────────────────
+function setPastDayType(btn, type){
+  _pdType=type; _pdSlot=''; _pdTaskChecks={}; _pdExtras=[]; _pdFreeItems=[]; _pdCatchupTasks=[]; _pdCatchupDone='';
+
+  document.querySelectorAll('#pdTypeStudy,#pdTypeCatchup,#pdTypeMissed').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  // Reset slot chips
+  ['pdSlotHigh','pdSlotMed','pdSlotLow','pdSlotNone'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('active');
+  });
+
+  // Show/hide sections
+  var show=function(id){ var el=document.getElementById(id); if(el) el.style.display='block'; };
+  var hide=function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; };
+
+  hide('pdStudySection'); hide('pdCatchupSection'); hide('pdMissedSection');
+  hide('pastDayDetailsSection'); hide('pastDayRoutineSection'); hide('pastDayFreeSection');
+
+  if(type==='study'){
+    show('pdStudySection');
+  } else if(type==='catchup'){
+    show('pdCatchupSection');
+    show('pastDayDetailsSection');
+    _renderPdCatchupList();
+  } else if(type==='missed'){
+    show('pdMissedSection');
+  }
+}
+
+// ── Step 3a: energy slot (within study) ────────────────────
+function setPastDaySlot(btn, slot){
+  _pdSlot=slot; _pdTaskChecks={}; _pdExtras=[]; _pdFreeItems=[];
+
+  ['pdSlotHigh','pdSlotMed','pdSlotLow','pdSlotNone'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('active');
+  });
+  btn.classList.add('active');
+
+  var hide=function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; };
+  var show=function(id){ var el=document.getElementById(id); if(el) el.style.display='block'; };
+
+  hide('pastDayRoutineSection'); hide('pastDayFreeSection');
+  show('pastDayDetailsSection');
+
+  if(slot==='none'){
+    show('pastDayFreeSection');
+    _renderPdFreeList();
+  } else {
+    show('pastDayRoutineSection');
+    _renderPdTaskList(slot);
+    var routine=typeof studyRoutines!=='undefined'?(studyRoutines[slot]||{}):{}; 
+    var durEl=document.getElementById('pastDayDuration');
+    if(durEl && routine.duration && !durEl.value) durEl.value=routine.duration;
+  }
+}
+
+// ── Task list (routine steps) ──────────────────────────────
+function _renderPdTaskList(slot){
+  var el=document.getElementById('pastDayTaskList'); if(!el) return;
+  var tasks=(typeof studyRoutines!=='undefined'?(studyRoutines[slot]||{}).tasks:[])||[];
+  if(!tasks.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic;padding:8px">No tasks set for this routine — add them in the Routine Editor first.</div>';
+    _renderPdExtras(); return;
+  }
+  tasks.forEach(function(t){ if(_pdTaskChecks[t.id]===undefined) _pdTaskChecks[t.id]=true; });
+  el.innerHTML=tasks.map(function(t){
+    var done=_pdTaskChecks[t.id]!==false;
+    return '<div onclick="pdToggleTask(\''+t.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;background:'+(done?'var(--green-light)':'var(--red-light)')+';cursor:pointer;user-select:none;border:1.5px solid '+(done?'var(--green)':'var(--red)')+';transition:all .15s">'
+      +'<div style="width:22px;height:22px;border-radius:50%;border:2px solid '+(done?'#6ab88a':'var(--red)')+';background:'+(done?'#6ab88a':'white')+';display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;transition:all .2s">'+(done?'✓':'✗')+'</div>'
+      +'<span style="flex:1;font-size:13px;color:var(--text);'+(done?'':'opacity:0.55')+'">'+(t.text||'')+'</span>'
+      +(t.timerMins?'<span style="font-size:10px;color:var(--text-soft)">⏱'+t.timerMins+'m</span>':'')
+      +'<span style="font-size:11px;font-weight:700;color:'+(done?'#5a9a5a':'var(--red)')+';">'+(done?'✦ Did it':'Skipped')+'</span>'
+      +'</div>';
+  }).join('');
+  _renderPdExtras();
+}
+
+function pdToggleTask(id){
+  _pdTaskChecks[id]=!(_pdTaskChecks[id]!==false);
+  _renderPdTaskList(_pdSlot);
+}
+
+function _renderPdExtras(){
+  var el=document.getElementById('pastDayExtras'); if(!el) return;
+  if(!_pdExtras.length){ el.innerHTML=''; return; }
+  el.innerHTML=_pdExtras.map(function(x,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--pink-glow);border-radius:10px;font-size:12px">'
+      +'<span style="flex:1;color:var(--text)">'+_escHtml(x.text)+'</span>'
+      +'<button onclick="_pdExtras.splice('+i+',1);_renderPdExtras()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function pastDayAddExtra(){
+  var inp=document.getElementById('pastDayExtraInput');
+  var text=(inp&&inp.value||'').trim(); if(!text) return;
+  _pdExtras.push({id:_genId(),text:text}); inp.value=''; _renderPdExtras();
+}
+
+// ── Freeform study (no routine) ────────────────────────────
+function _renderPdFreeList(){
+  var el=document.getElementById('pastDayFreeList'); if(!el) return;
+  if(!_pdFreeItems.length){ el.innerHTML=''; return; }
+  el.innerHTML=_pdFreeItems.map(function(x,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 11px;background:var(--pink-glow);border-radius:10px;font-size:13px">'
+      +'<span style="flex:1;color:var(--text)">'+_escHtml(x.text)+'</span>'
+      +'<button onclick="_pdFreeItems.splice('+i+',1);_renderPdFreeList()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function pastDayAddFree(){
+  var inp=document.getElementById('pastDayFreeInput');
+  var text=(inp&&inp.value||'').trim(); if(!text) return;
+  _pdFreeItems.push({id:_genId(),text:text}); inp.value=''; _renderPdFreeList();
+}
+
+// ── Catch-up list ──────────────────────────────────────────
+function _renderPdCatchupList(){
+  var el=document.getElementById('pastDayCatchupList'); if(!el) return;
+  if(!_pdCatchupTasks.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text-soft);font-style:italic">Add what you were catching up on ✦</div>'; return;
+  }
+  el.innerHTML=_pdCatchupTasks.map(function(t,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:11px;background:var(--pink-glow);font-size:13px">'
+      +'<span style="font-size:15px">🌅</span>'
+      +'<span style="flex:1;color:var(--text)">'+_escHtml(t.text)+'</span>'
+      +'<button onclick="_pdCatchupTasks.splice('+i+',1);_renderPdCatchupList()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:12px">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function pastDayAddCatchupTask(){
+  var inp=document.getElementById('pastDayCatchupInput');
+  var text=(inp&&inp.value||'').trim(); if(!text) return;
+  _pdCatchupTasks.push({id:_genId(),text:text,done:true}); inp.value=''; _renderPdCatchupList();
+}
+
+function pastDayAddCatchupQuick(text){
+  _pdCatchupTasks.push({id:_genId(),text:text,done:true}); _renderPdCatchupList();
+}
+
+function setPastCatchupDone(btn, val){
+  _pdCatchupDone=val;
+  ['pdCuDoneAll','pdCuDoneSome','pdCuDoneNone'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('active');
+  });
+  btn.classList.add('active');
+}
+
+// ── Save ───────────────────────────────────────────────────
+function savePastDayLog(){
+  var ds=document.getElementById('pastDayDate').value;
+  if(!ds){ showToast('Pick a date first ✦'); return; }
+  if(ds>=_todayStr()){ showToast('Choose a past date ✦'); return; }
+  if(!_pdType){ showToast('Tell me what kind of day it was ✦'); return; }
+
+  var duration=parseInt(document.getElementById('pastDayDuration').value)||0;
+  var focus=parseInt((document.getElementById('pastDayFocus')||{}).value)||3;
+  var note=(document.getElementById('pastDayNote').value||'').trim();
+
+  // ── Missed day ──
+  if(_pdType==='missed'){
+    studyLogs.push({id:_genId(),date:ds,slot:'missed',subject:'Missed day',
+      planned:0,actual:0,focus:1,note:note||'Missed — logged retroactively',
+      createdAt:new Date().toISOString(),isMissed:true,isRetroactive:true});
+    if(typeof studySkips!=='undefined' && !studySkips.includes(ds)) studySkips.push(ds);
+    saveStudyData(); try{_saveStudyExtra2();}catch(e){}
+    closeModal('pastDayModal');
+    renderStudySessions(); renderStudyTodayStrip(); try{renderStudyWeekChart();}catch(e){}
+    showToast('Missed day recorded ✦');
+    return;
+  }
+
+  // ── Catch-up day ──
+  if(_pdType==='catchup'){
+    if(!_pdCatchupTasks.length){ showToast('Add at least one thing you caught up on ✦'); return; }
+    var cuDoneAll = _pdCatchupDone!=='none';
+    var finalTasks = _pdCatchupTasks.map(function(t){
+      return Object.assign({},t,{done: _pdCatchupDone==='all' ? true : _pdCatchupDone==='none' ? false : t.done});
+    });
+    if(typeof studyCatchupDays!=='undefined')
+      studyCatchupDays[ds]={mood:'',fromDate:ds,createdAt:new Date().toISOString(),isRetroactive:true};
+    if(typeof studyCatchupTodos!=='undefined')
+      studyCatchupTodos[ds]=finalTasks;
+    var cuSubject='Catch-up: '+_pdCatchupTasks.map(function(t){return t.text;}).join(', ').slice(0,80);
+    studyLogs.push({id:_genId(),date:ds,slot:'catchup',subject:cuSubject,
+      planned:duration,actual:duration,focus:focus,note:note,
+      createdAt:new Date().toISOString(),isCatchup:true,isRetroactive:true,
+      todos:finalTasks, catchupDone:_pdCatchupDone});
+    if(typeof studyCatchupLogs!=='undefined')
+      studyCatchupLogs.push({id:_genId(),date:ds,fromDate:ds,subject:cuSubject,
+        duration:duration,focus:focus,note:note,
+        createdAt:new Date().toISOString(),isCatchup:true,isRetroactive:true,todos:finalTasks});
+    saveStudyData(); try{_saveStudyExtra2();}catch(e){} try{_saveStudyExtended();}catch(e){}
+    closeModal('pastDayModal');
+    renderStudySessions(); renderStudyTodayStrip(); try{renderStudyWeekChart();}catch(e){}
+    var cuXP=Math.max(10,Math.round((duration||30)/60*20));
+    try{awardXP(cuXP,'Past catch-up day: '+ds);}catch(e){}
+    showToast('Catch-up day logged for '+ds+' 🌅 +'+cuXP+' XP ✦');
+    return;
+  }
+
+  // ── Regular study day ──
+  if(!_pdSlot){ showToast('Pick which energy routine you followed ✦'); return; }
+
+  var subject='';
+  if(_pdSlot==='none'){
+    // Freeform
+    if(!_pdFreeItems.length){ showToast('Add at least one thing you studied ✦'); return; }
+    subject=_pdFreeItems.map(function(x){return x.text;}).join(', ').slice(0,100);
+    studyLogs.push({id:_genId(),date:ds,slot:'freeform',subject:subject,
+      planned:duration,actual:duration,focus:focus,note:note,
+      freeItems:_pdFreeItems.map(function(x){return Object.assign({},x);}),
+      completionPct:100,createdAt:new Date().toISOString(),isRetroactive:true});
+    if(typeof studyCompletionLog!=='undefined'){
+      if(!studyCompletionLog[ds]) studyCompletionLog[ds]={};
+      studyCompletionLog[ds]['freeform']={status:'done',retroactive:true};
+    }
+  } else {
+    // Routine-based
+    var tasks=(typeof studyRoutines!=='undefined'?(studyRoutines[_pdSlot]||{}).tasks:[])||[];
+    var doneTasks=tasks.filter(function(t){return _pdTaskChecks[t.id]!==false;});
+    var missedTasks=tasks.filter(function(t){return _pdTaskChecks[t.id]===false;});
+    var pct=tasks.length?Math.round(doneTasks.length/tasks.length*100):100;
+    var parts=[];
+    if(doneTasks.length) parts.push(doneTasks.map(function(t){return t.text;}).join(', ').slice(0,60));
+    if(_pdExtras.length) parts.push(_pdExtras.map(function(x){return x.text;}).join(', ').slice(0,40));
+    subject=parts.join(' + ')||_pdSlot+' session';
+    var noteWithMissed=note+(missedTasks.length?'\nSkipped: '+missedTasks.map(function(t){return t.text;}).join(', '):'');
+    studyLogs.push({id:_genId(),date:ds,slot:_pdSlot,subject:subject,
+      planned:(typeof studyRoutines!=='undefined'?(studyRoutines[_pdSlot]||{}).duration:null)||duration||45,
+      actual:duration||0,focus:focus,note:noteWithMissed,
+      completedTasks:doneTasks.map(function(t){return t.id;}),
+      missedTasks:missedTasks.map(function(t){return t.id;}),
+      extraTasks:_pdExtras.map(function(x){return x.text;}),
+      completionPct:pct,createdAt:new Date().toISOString(),isRetroactive:true});
+    if(typeof studyCompletionLog!=='undefined'){
+      if(!studyCompletionLog[ds]) studyCompletionLog[ds]={};
+      studyCompletionLog[ds][_pdSlot]={status:pct>=50?'done':'partial',retroactive:true};
+    }
+    var xp=Math.max(5,Math.round(pct/100*30));
+    saveStudyData(); try{_saveStudyExtra2();}catch(e){}
+    closeModal('pastDayModal');
+    renderStudySessions(); renderStudyTodayStrip(); try{renderStudyWeekChart();}catch(e){}
+    try{awardXP(xp,'Past day logged: '+ds+' ('+pct+'% complete)');}catch(e){}
+    showToast(pct+'% of '+_pdSlot+' logged for '+ds+' ✦ +'+xp+' XP');
+    return;
+  }
+
+  saveStudyData(); try{_saveStudyExtra2();}catch(e){}
+  closeModal('pastDayModal');
+  renderStudySessions(); renderStudyTodayStrip(); try{renderStudyWeekChart();}catch(e){}
+  var fxp=Math.max(10,Math.round((duration||30)/60*25));
+  try{awardXP(fxp,'Past study day: '+ds);}catch(e){}
+  showToast('Study day logged for '+ds+' ✦ +'+fxp+' XP');
+}
+// ══════════════════════════════════════════════════════════
+// END PAST DAY STUDY LOG
+// ══════════════════════════════════════════════════════════
 
 // ── Emergency save (visibility / unload) ───────────────────────
 function _hEmergencySave(){
