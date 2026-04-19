@@ -21548,14 +21548,17 @@ function _getDayStudyStatus(date){
 
 function _computeAll3Streak(){
   const slots=['High Energy','Medium Energy','Low Energy'];
-  const hasAllTasks=slots.every(sl=>(typeof studyRoutines!=='undefined')&&(studyRoutines[sl]||{}).tasks?.length>0);
-  if(!hasAllTasks) return 0;
+  // Only require tasks in slots the user has actually set up
+  // If NO slots have tasks at all, no streak possible
+  const anySlotHasTasks=slots.some(sl=>(typeof studyRoutines!=='undefined')&&(studyRoutines[sl]||{}).tasks?.length>0);
+  if(!anySlotHasTasks) return 0;
   const today=(typeof _todayStr!=='undefined')?_todayStr():new Date().toISOString().slice(0,10);
   let streak=0; const cursor=new Date(today+'T12:00:00');
   for(let i=0;i<365;i++){
     const ds=cursor.toISOString().slice(0,10);
     const status=_getDayStudyStatus(ds);
-    if(status==='all3'||status==='exempt'){ streak++; cursor.setDate(cursor.getDate()-1); }
+    // all3, exempt, catchup all count toward the streak
+    if(status==='all3'||status==='exempt'||status==='catchup'){ streak++; cursor.setDate(cursor.getDate()-1); }
     else break;
   }
   return streak;
@@ -27476,8 +27479,16 @@ function _renderRoutineEditorPanel(){
             <button onclick="_removeRoutineTask(${i})" style="background:var(--red-light);border:none;border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--red);margin-left:auto">🗑 Remove</button>
           </div>
         </div>` : `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;cursor:pointer" onclick="_editRoutineTask(${i})">
-          <span style="font-size:16px;cursor:grab;color:var(--text-soft);flex-shrink:0">⋮⋮</span>
+        <div draggable="true"
+          ondragstart="_rtDragStart(event,${i})"
+          ondragover="_rtDragOver(event,${i})"
+          ondragleave="_rtDragLeave(event)"
+          ondrop="_rtDrop(event,${i})"
+          ondragend="_rtDragEnd(event)"
+          id="rtRow_${i}"
+          style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--pink-glow);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:opacity .15s,border-color .15s"
+          onclick="_editRoutineTask(${i})">
+          <span style="font-size:16px;cursor:grab;color:var(--text-soft);flex-shrink:0;touch-action:none" onpointerdown="event.stopPropagation()">⋮⋮</span>
           <span style="flex:1;font-size:13px;color:var(--text)">${t.text}</span>
           ${t.timerMins?`<span style="font-size:10px;color:var(--text-soft);background:white;padding:2px 7px;border-radius:8px;border:1px solid var(--border);flex-shrink:0">⏱ ${t.timerMins}m</span>`:''}
           <span style="font-size:11px;color:var(--text-soft);flex-shrink:0">✏️</span>
@@ -27537,6 +27548,63 @@ function _cancelRoutineTaskEdit(idx){
   const tasks=_routineEditorTasks[_routineEditorSlot]||[];
   if(tasks[idx]) tasks[idx]._editing=false;
   _renderRoutineEditorPanel();
+}
+
+// ── Routine task drag-to-reorder ──────────────────────────────
+var _rtDragIdx = null;
+
+function _rtDragStart(e, idx){
+  _rtDragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', idx);
+  // Fade the dragged row
+  setTimeout(function(){ var el=document.getElementById('rtRow_'+idx); if(el) el.style.opacity='0.35'; }, 0);
+}
+
+function _rtDragOver(e, idx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // Highlight the drop target
+  document.querySelectorAll('#routineTaskList [id^="rtRow_"]').forEach(function(el){
+    el.style.borderColor = 'var(--border)';
+    el.style.borderTop = '';
+    el.style.borderBottom = '';
+  });
+  var el = document.getElementById('rtRow_'+idx);
+  if(el && idx !== _rtDragIdx){
+    if(idx < _rtDragIdx){
+      el.style.borderTop = '2.5px solid var(--pink-deep)';
+    } else {
+      el.style.borderBottom = '2.5px solid var(--pink-deep)';
+    }
+  }
+}
+
+function _rtDragLeave(e){
+  var el = e.currentTarget;
+  if(el){ el.style.borderTop = ''; el.style.borderBottom = ''; el.style.borderColor = 'var(--border)'; }
+}
+
+function _rtDrop(e, toIdx){
+  e.preventDefault();
+  if(_rtDragIdx === null || _rtDragIdx === toIdx) return;
+  var tasks = _routineEditorTasks[_routineEditorSlot] || [];
+  var moved = tasks.splice(_rtDragIdx, 1)[0];
+  tasks.splice(toIdx, 0, moved);
+  _rtDragIdx = null;
+  _renderRoutineEditorPanel();
+  _renderRoutineTaskSuggestions();
+}
+
+function _rtDragEnd(e){
+  _rtDragIdx = null;
+  // Restore all rows
+  document.querySelectorAll('#routineTaskList [id^="rtRow_"]').forEach(function(el){
+    el.style.opacity = '1';
+    el.style.borderTop = '';
+    el.style.borderBottom = '';
+    el.style.borderColor = 'var(--border)';
+  });
 }
 
 function saveRoutineEditor(){
@@ -28020,7 +28088,13 @@ function renderStudyTodayStrip(){
   const currentSlot=_currentEnergySlot();
 
   if(statusEl){
-    if(tickedToday===0&&doneCount===0){
+    const isTodayCatchupStatus = typeof studyCatchupDays!=='undefined' && !!studyCatchupDays[today];
+    if(isTodayCatchupStatus){
+      const cuTodos=(typeof studyCatchupTodos!=='undefined'&&studyCatchupTodos[today])||[];
+      const cuDone=cuTodos.filter(t=>t.checked).length;
+      statusEl.textContent='🌅 Catch-Up Day';
+      if(metaEl) metaEl.textContent=cuTodos.length?`${cuDone}/${cuTodos.length} tasks done · ${streak} day streak`:`${streak>0?streak+'🔥 day streak':'Your routines are resting today'}`;
+    } else if(tickedToday===0&&doneCount===0){
       statusEl.textContent=currentSlot?`${STUDY_SLOT_CONFIG[currentSlot].emoji} ${currentSlot} window`:'Ready to study';
       if(metaEl) metaEl.textContent=currentSlot?STUDY_SLOT_CONFIG[currentSlot].hint:'Set your wake time in Slow Planner for energy-based scheduling.';
     } else if(totalTasks>0&&tickedToday>=totalTasks){
@@ -28035,7 +28109,11 @@ function renderStudyTodayStrip(){
   const doneEl=document.getElementById('studyTodayDone');
   const minsEl=document.getElementById('studyTodayMins');
   const streakEl=document.getElementById('studyStreak');
-  if(doneEl) doneEl.textContent=tickedToday+(doneCount>0?'+'+doneCount:'');
+  // On a catch-up day with no task ticks, show "1" for DONE (day itself counts)
+  const isTodayCatchup = typeof studyCatchupDays!=='undefined' && !!studyCatchupDays[today];
+  const displayDone = isTodayCatchup && tickedToday===0 && doneCount===0
+    ? '🌅' : tickedToday+(doneCount>0?'+'+doneCount:'');
+  if(doneEl) doneEl.textContent=displayDone;
   if(minsEl) minsEl.textContent=totalMins;
   if(streakEl) streakEl.textContent=streak+(streak>0?'🔥':'');
 
