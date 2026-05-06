@@ -4028,6 +4028,16 @@ body.dark-mode .vice-feel-btn {
       </div>
     </div>
 
+    <!-- Day Template picker -->
+    <div id="studyTemplateBanner" style="background:var(--pink-glow);border:1.5px solid var(--border);border-radius:16px;padding:14px 18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-soft)">What kind of day is it?</div>
+        <button onclick="openTemplateManager()" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--text-soft);font-family:Outfit,sans-serif">✏️ Manage Templates</button>
+      </div>
+      <div id="studyTemplateChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      <div id="studyActiveTemplateName" style="font-size:11px;color:var(--pink-deep);margin-top:8px;font-weight:600;display:none"></div>
+    </div>
+
     <!-- Energy slot legend (live, from wake time) -->
     <div id="studyEnergyLegend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
 
@@ -4158,6 +4168,85 @@ body.dark-mode .vice-feel-btn {
 </div>
 
 <!-- ── ROUTINE EDITOR MODAL ── -->
+<!-- ── STUDY DAY TEMPLATE MANAGER ── -->
+<div class="modal-overlay" id="templateManagerModal">
+  <div class="modal-box" style="max-width:600px;max-height:92vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('templateManagerModal')">×</button>
+    <div class="modal-title">Day Templates ✦</div>
+    <div style="font-size:13px;color:var(--text-mid);font-style:italic;margin-bottom:18px">
+      Different days need different study plans. Build a template for each type of day — pick the right one each morning and your energy blocks load automatically.
+    </div>
+    <div id="templateManagerList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px"></div>
+    <button class="pink-btn" onclick="openTemplateEditor()" style="width:100%">＋ New Template</button>
+  </div>
+</div>
+
+<!-- ── TEMPLATE EDITOR ── -->
+<div class="modal-overlay" id="templateEditorModal">
+  <div class="modal-box" style="max-width:620px;max-height:92vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('templateEditorModal')">×</button>
+    <div id="templateEditorTitle" class="modal-title">New Template</div>
+    <input type="hidden" id="templateEditorId" value="">
+
+    <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <label class="form-label">Template name</label>
+        <input class="text-input" id="templateEditorName" placeholder="e.g. Off Uni Day, In Uni Day, Weekend…" style="font-size:14px">
+      </div>
+      <div>
+        <label class="form-label">Emoji</label>
+        <input class="text-input" id="templateEditorEmoji" placeholder="📖" maxlength="4" style="width:64px;font-size:20px;text-align:center">
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label class="form-label">Colour</label>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button type="button" class="tcb" data-c="#e07898" style="width:28px;height:28px;border-radius:50%;background:#e07898;border:2.5px solid #e07898;cursor:pointer;outline:2px solid rgba(0,0,0,.15);outline-offset:1px"></button>
+        <button type="button" class="tcb" data-c="#a0b8e8" style="width:28px;height:28px;border-radius:50%;background:#a0b8e8;border:2.5px solid transparent;cursor:pointer"></button>
+        <button type="button" class="tcb" data-c="#a8d8a8" style="width:28px;height:28px;border-radius:50%;background:#a8d8a8;border:2.5px solid transparent;cursor:pointer"></button>
+        <button type="button" class="tcb" data-c="#f5c080" style="width:28px;height:28px;border-radius:50%;background:#f5c080;border:2.5px solid transparent;cursor:pointer"></button>
+        <button type="button" class="tcb" data-c="#c8a0e8" style="width:28px;height:28px;border-radius:50%;background:#c8a0e8;border:2.5px solid transparent;cursor:pointer"></button>
+        <button type="button" class="tcb" data-c="#80d0c8" style="width:28px;height:28px;border-radius:50%;background:#80d0c8;border:2.5px solid transparent;cursor:pointer"></button>
+      </div>
+    </div>
+
+    <!-- Slot tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;background:var(--pink-glow);border-radius:12px;padding:4px" id="templateEditorTabs">
+      <button type="button" onclick="switchTemplateTab(this,'High Energy')" class="routine-editor-tab active" data-rt="High Energy"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;background:white;color:var(--pink-deep);box-shadow:0 1px 4px rgba(224,120,152,0.2);font-family:Outfit,sans-serif">⚡ High Energy</button>
+      <button type="button" onclick="switchTemplateTab(this,'Medium Energy')" class="routine-editor-tab" data-rt="Medium Energy"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-soft);font-family:Outfit,sans-serif">🌤 Medium Energy</button>
+      <button type="button" onclick="switchTemplateTab(this,'Low Energy')" class="routine-editor-tab" data-rt="Low Energy"
+        style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-soft);font-family:Outfit,sans-serif">🌙 Low Energy</button>
+    </div>
+
+    <!-- Task panel -->
+    <div id="templateEditorPanel" style="min-height:60px;margin-bottom:12px"></div>
+
+    <!-- Add task -->
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="text-input" id="templateTaskInput" placeholder="Add a step… e.g. 20 Anki per mini block x3, 5 min break, NotebookLM 1…" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')templateAddTask()">
+      <input class="text-input" type="number" id="templateTaskTimer" placeholder="mins" min="1" style="width:70px;font-size:13px" title="Timer (mins, optional)">
+      <button class="pink-btn" onclick="templateAddTask()" style="padding:10px 14px;flex-shrink:0">＋</button>
+    </div>
+
+    <!-- Quick chips -->
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px" id="templateSuggChips"></div>
+
+    <!-- Duration -->
+    <div style="margin-bottom:18px">
+      <label class="form-label">Target duration for this template (mins total)</label>
+      <input class="text-input" type="number" id="templateDuration" placeholder="e.g. 180" min="5" style="width:130px;font-size:14px">
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="pink-btn" style="flex:1" onclick="saveTemplateEditor()">Save Template ✦</button>
+      <button id="templateDeleteBtn" style="display:none;background:var(--red-light);color:var(--red);border:1.5px solid var(--red);border-radius:14px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif" onclick="deleteTemplate()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="routineEditorModal">
   <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto">
     <button class="modal-close" onclick="closeModal('routineEditorModal')">×</button>
@@ -21548,18 +21637,40 @@ function _getDayStudyStatus(date){
 
 function _computeAll3Streak(){
   const slots=['High Energy','Medium Energy','Low Energy'];
-  // Only require tasks in slots the user has actually set up
-  // If NO slots have tasks at all, no streak possible
   const anySlotHasTasks=slots.some(sl=>(typeof studyRoutines!=='undefined')&&(studyRoutines[sl]||{}).tasks?.length>0);
-  if(!anySlotHasTasks) return 0;
+  // If no tasks set at all, base streak on any study logs instead
   const today=(typeof _todayStr!=='undefined')?_todayStr():new Date().toISOString().slice(0,10);
-  let streak=0; const cursor=new Date(today+'T12:00:00');
+  let streak=0;
+  const cursor=new Date(today+'T12:00:00');
+  // If today has no study activity yet, skip it and start from yesterday
+  // so an incomplete today doesn't kill the streak
+  const todayStatus = _getDayStudyStatus(today);
+  const todayHasActivity = todayStatus==='all3'||todayStatus==='exempt'||todayStatus==='catchup'||todayStatus==='partial';
+  if(!todayHasActivity) cursor.setDate(cursor.getDate()-1);
+
   for(let i=0;i<365;i++){
     const ds=cursor.toISOString().slice(0,10);
     const status=_getDayStudyStatus(ds);
-    // all3, exempt, catchup all count toward the streak
-    if(status==='all3'||status==='exempt'||status==='catchup'){ streak++; cursor.setDate(cursor.getDate()-1); }
-    else break;
+    // Count: all3, exempt, catchup all count fully
+    // Also count partial days IF that day has actual study logs (mins > 0) or task ticks
+    // This means doing SOME studying keeps the streak alive
+    const isPartialWithWork = status==='partial' && (
+      studyTaskChecks.some(function(c){return c.date===ds;}) ||
+      studyLogs.some(function(l){return l.date===ds && (l.actual||0)>0;})
+    );
+    // Count catchup even if logged via studyLogs only (not just studyCatchupDays)
+    const isCatchupLog = status==='none' && studyLogs.some(function(l){return l.date===ds && l.isCatchup;});
+    if(status==='all3'||status==='exempt'||status==='catchup'||isPartialWithWork||isCatchupLog){
+      streak++;
+      cursor.setDate(cursor.getDate()-1);
+    } else if(!anySlotHasTasks){
+      // No routines set — just count days with any study log
+      const hasLog=studyLogs.some(function(l){return l.date===ds && !l.isMissed;});
+      if(hasLog){ streak++; cursor.setDate(cursor.getDate()-1); }
+      else break;
+    } else {
+      break;
+    }
   }
   return streak;
 }
@@ -21599,11 +21710,12 @@ function renderStudyWeekChart(){
     const mins=studyLogs.filter(l=>l.date===date).reduce((a,l)=>a+(l.actual||0),0);
 
     let bg, border, label;
-    if(status==='all3'){       bg='#fce8f4'; border='2px solid var(--pink-deep)'; label='✦'; }
+    if(status==='all3'){        bg='#fce8f4'; border='2px solid var(--pink-deep)'; label='✦'; }
     else if(status==='exempt'){ bg='#fce8f4'; border='2px solid var(--pink-deep)'; label='💗'; }
+    else if(status==='catchup'){ bg='#fff3e0'; border='2px solid #f0c060'; label='🌅'; }
     else if(status==='partial'){ bg='var(--pink-deep)'; border='2px solid var(--pink-deep)'; label=''; }
-    else if(isToday){          bg='transparent'; border='2px dashed var(--border)'; label=''; }
-    else if(date>today){       bg='var(--pink-glow)'; border='2px dashed var(--border)'; label=''; }
+    else if(isToday){           bg='transparent'; border='2px dashed var(--border)'; label=''; }
+    else if(date>today){        bg='var(--pink-glow)'; border='2px dashed var(--border)'; label=''; }
     else {
       // Past day with nothing — red if they had tasks set, grey if no routines
       const hadTasks=['High Energy','Medium Energy','Low Energy'].some(sl=>(studyRoutines[sl]||{}).tasks?.length>0);
@@ -31736,6 +31848,461 @@ function _hEmergencySave(){
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') _hEmergencySave(); });
 window.addEventListener('pagehide',_hEmergencySave);
 window.addEventListener('beforeunload',_hEmergencySave);
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// STUDY DAY TEMPLATES  v1
+// Each template = { id, name, emoji, color, slots: { 'High Energy': [{id,text,timerMins}], … }, duration, createdAt }
+// studyActiveTemplate = { date: 'YYYY-MM-DD', templateId: '…' }  — which template is active today
+// ════════════════════════════════════════════════════════════════
+
+var studyTemplates = [];
+var studyActiveTemplate = {}; // { date, templateId }
+var _tmplEditorSlot = 'High Energy';
+var _tmplEditorTasks = { 'High Energy': [], 'Medium Energy': [], 'Low Energy': [] };
+var _tmplEditorColor = '#e07898';
+
+// ── Default templates seeded from Temi's actual method ──────────
+function _seedDefaultTemplates(){
+  if(studyTemplates.length) return;
+  studyTemplates = [
+    {
+      id: 'tmpl_offuni', name: 'Off Uni Day', emoji: '📖', color: '#e07898', duration: 240,
+      createdAt: Date.now(),
+      slots: {
+        'High Energy': [
+          {id:'t1a',text:'Anki Block 1 — 20 per mini block × 3',timerMins:null},
+          {id:'t1b',text:'5 min break',timerMins:5},
+          {id:'t1c',text:'NotebookLM 1 (15 q → 2 min break → 15 q)',timerMins:35},
+          {id:'t1d',text:'5 min break',timerMins:5},
+          {id:'t1e',text:'Anki Block 2 — 20 per mini block × 3',timerMins:null},
+          {id:'t1f',text:'5 min break',timerMins:5},
+          {id:'t1g',text:'NotebookLM 2 (15 q → 2 min break → 15 q)',timerMins:35},
+        ],
+        'Medium Energy': [
+          {id:'t2a',text:'Anki Block 3 — 20 per mini block × 2',timerMins:null},
+          {id:'t2b',text:'5 min break',timerMins:5},
+          {id:'t2c',text:'Passtest 1',timerMins:null},
+        ],
+        'Low Energy': [
+          {id:'t3a',text:'5 min break',timerMins:5},
+          {id:'t3b',text:'Anki Block 4 — 20 per mini block × 1',timerMins:null},
+          {id:'t3c',text:'5 min break',timerMins:5},
+          {id:'t3d',text:'Passtest 2',timerMins:null},
+          {id:'t3e',text:'5 min break',timerMins:5},
+          {id:'t3f',text:'Anki editing / review',timerMins:null},
+        ]
+      }
+    },
+    {
+      id: 'tmpl_inuni', name: 'In Uni Day', emoji: '🏥', color: '#a0b8e8', duration: 180,
+      createdAt: Date.now(),
+      slots: {
+        'High Energy': [
+          {id:'u1a',text:'Anki Block 1 — 20 per mini block × 3',timerMins:null},
+          {id:'u1b',text:'10 min break',timerMins:10},
+          {id:'u1c',text:'NotebookLM 1 (15 q → 2 min break → 15 q)',timerMins:35},
+        ],
+        'Medium Energy': [
+          {id:'u2a',text:'Anki Block 3 — 20 per mini block × 3',timerMins:null},
+          {id:'u2b',text:'10 min break',timerMins:10},
+          {id:'u2c',text:'NotebookLM 2 (15 q → 2 min break → 15 q)',timerMins:35},
+          {id:'u2d',text:'Anki Block 4 — 20 per mini block × 2',timerMins:null},
+          {id:'u2e',text:'10 min break',timerMins:10},
+          {id:'u2f',text:'Passtest 1',timerMins:null},
+        ],
+        'Low Energy': [
+          {id:'u3a',text:'Anki Block 4 — 20 per mini block × 1',timerMins:null},
+          {id:'u3b',text:'10 min break',timerMins:10},
+          {id:'u3c',text:'Passtest 2',timerMins:null},
+          {id:'u3d',text:'Anki editing / review',timerMins:null},
+        ]
+      }
+    },
+    {
+      id: 'tmpl_weekend', name: 'Weekend', emoji: '🌅', color: '#a8d8a8', duration: 200,
+      createdAt: Date.now(),
+      slots: {
+        'High Energy': [
+          {id:'w1a',text:'Morning Block — 40 cards (20 per mini block × 2)',timerMins:null},
+          {id:'w1b',text:'Morning Block 2 — 40 cards (20 per mini block × 2)',timerMins:null},
+        ],
+        'Medium Energy': [
+          {id:'w2a',text:'Afternoon Block — 40 cards (20 per mini block × 2)',timerMins:null},
+          {id:'w2b',text:'Afternoon Block 2 — 40 cards (20 per mini block × 2)',timerMins:null},
+        ],
+        'Low Energy': [
+          {id:'w3a',text:'Light Anki review / editing',timerMins:null},
+          {id:'w3b',text:'Passive review or NotebookLM audio',timerMins:null},
+        ]
+      }
+    }
+  ];
+}
+
+// ── Persist ─────────────────────────────────────────────────────
+(function(){
+  var _oc = window.collectAllData;
+  window.collectAllData = function(){
+    var d = _oc();
+    d.studyTemplates = studyTemplates;
+    d.studyActiveTemplate = studyActiveTemplate;
+    return d;
+  };
+  var _or = window.restoreAllData;
+  window.restoreAllData = function(d){
+    _or(d);
+    if(d.studyTemplates && d.studyTemplates.length){
+      studyTemplates.splice(0, studyTemplates.length, ...d.studyTemplates);
+    }
+    if(d.studyActiveTemplate) Object.assign(studyActiveTemplate, d.studyActiveTemplate);
+    _seedDefaultTemplates();
+  };
+  var _oref = window.refreshAllRenderers;
+  window.refreshAllRenderers = function(){
+    _oref();
+    try{ renderTemplateChips(); }catch(e){}
+  };
+})();
+
+// ── Get today's active template ──────────────────────────────────
+function _getTodayTemplate(){
+  _seedDefaultTemplates();
+  var today = _todayStr();
+  if(studyActiveTemplate.date === today && studyActiveTemplate.templateId){
+    return studyTemplates.find(function(t){ return t.id === studyActiveTemplate.templateId; }) || null;
+  }
+  return null;
+}
+
+// ── Apply a template to studyRoutines ───────────────────────────
+function applyTemplate(templateId){
+  _seedDefaultTemplates();
+  var tmpl = studyTemplates.find(function(t){ return t.id === templateId; });
+  if(!tmpl) return;
+  var today = _todayStr();
+  studyActiveTemplate = { date: today, templateId: templateId };
+
+  // Load template tasks into studyRoutines (the core slot system)
+  ['High Energy','Medium Energy','Low Energy'].forEach(function(slot){
+    var tasks = (tmpl.slots[slot] || []).map(function(t){
+      return { id: _genId(), text: t.text, timerMins: t.timerMins || null };
+    });
+    if(!studyRoutines[slot]) studyRoutines[slot] = {};
+    studyRoutines[slot].tasks = tasks;
+    if(tmpl.duration) studyRoutines[slot].duration = Math.round(tmpl.duration / 3);
+  });
+
+  // Clear today's task checks so it's fresh
+  studyTaskChecks = studyTaskChecks.filter(function(c){ return c.date !== today; });
+  if(studyDaySnapshots[today]) delete studyDaySnapshots[today];
+
+  saveStudyData();
+  try{ _saveStudyExtra2(); }catch(e){}
+  renderTemplateChips();
+  renderStudySessions();
+  renderStudyTodayStrip();
+  showToast(tmpl.emoji + ' ' + tmpl.name + ' loaded ✦');
+}
+
+// ── Render template chips in the banner ─────────────────────────
+function renderTemplateChips(){
+  _seedDefaultTemplates();
+  var chips = document.getElementById('studyTemplateChips');
+  var activeName = document.getElementById('studyActiveTemplateName');
+  if(!chips) return;
+
+  var todayTmpl = _getTodayTemplate();
+
+  chips.innerHTML = studyTemplates.map(function(tmpl){
+    var isActive = todayTmpl && todayTmpl.id === tmpl.id;
+    return '<button onclick="applyTemplate(\'' + tmpl.id + '\')" style="'
+      + 'display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid ' + tmpl.color + ';'
+      + 'background:' + (isActive ? tmpl.color : 'white') + ';'
+      + 'color:' + (isActive ? 'white' : tmpl.color) + ';'
+      + 'font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s'
+      + '">'
+      + (tmpl.emoji || '') + ' ' + _escHtml(tmpl.name)
+      + (isActive ? ' ✦' : '')
+      + '</button>';
+  }).join('');
+
+  if(activeName){
+    if(todayTmpl){
+      activeName.style.display = 'block';
+      activeName.textContent = 'Today: ' + todayTmpl.emoji + ' ' + todayTmpl.name;
+    } else {
+      activeName.style.display = 'none';
+    }
+  }
+}
+
+// ── Template Manager modal ───────────────────────────────────────
+function openTemplateManager(){
+  _seedDefaultTemplates();
+  renderTemplateManagerList();
+  openModal('templateManagerModal');
+}
+
+function renderTemplateManagerList(){
+  var el = document.getElementById('templateManagerList');
+  if(!el) return;
+  if(!studyTemplates.length){
+    el.innerHTML = '<div style="font-size:13px;color:var(--text-soft);font-style:italic;padding:12px 0">No templates yet — create your first one ✦</div>';
+    return;
+  }
+  el.innerHTML = studyTemplates.map(function(tmpl, idx){
+    var totalTasks = Object.values(tmpl.slots||{}).reduce(function(s,tasks){ return s + (tasks||[]).filter(function(t){ return !t.text.toLowerCase().includes('break'); }).length; }, 0);
+    return '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px">'
+      + '<div style="width:10px;height:40px;border-radius:5px;background:' + (tmpl.color||'#e07898') + ';flex-shrink:0"></div>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--text)">' + (tmpl.emoji||'') + ' ' + _escHtml(tmpl.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--text-soft);margin-top:2px">' + totalTasks + ' study steps · ' + _fmtMins(tmpl.duration||120) + ' total</div>'
+      + '</div>'
+      + '<button onclick="applyTemplate(\'' + tmpl.id + '\');closeModal(\'templateManagerModal\')" style="background:' + (tmpl.color||'#e07898') + ';color:white;border:none;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">Use today</button>'
+      + '<button onclick="openTemplateEditor(\'' + tmpl.id + '\')" style="background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--text-soft);font-family:Outfit,sans-serif">Edit</button>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Template Editor ──────────────────────────────────────────────
+function openTemplateEditor(templateId){
+  _seedDefaultTemplates();
+  var isNew = !templateId;
+  _tmplEditorSlot = 'High Energy';
+  _tmplEditorColor = '#e07898';
+  _tmplEditorTasks = { 'High Energy': [], 'Medium Energy': [], 'Low Energy': [] };
+
+  document.getElementById('templateEditorTitle').textContent = isNew ? 'New Template' : 'Edit Template';
+  document.getElementById('templateEditorId').value = templateId || '';
+  document.getElementById('templateDeleteBtn').style.display = isNew ? 'none' : 'block';
+
+  if(!isNew){
+    var tmpl = studyTemplates.find(function(t){ return t.id === templateId; });
+    if(tmpl){
+      document.getElementById('templateEditorName').value = tmpl.name || '';
+      document.getElementById('templateEditorEmoji').value = tmpl.emoji || '';
+      document.getElementById('templateDuration').value = tmpl.duration || '';
+      _tmplEditorColor = tmpl.color || '#e07898';
+      ['High Energy','Medium Energy','Low Energy'].forEach(function(slot){
+        _tmplEditorTasks[slot] = (tmpl.slots[slot] || []).map(function(t){ return Object.assign({}, t); });
+      });
+    }
+  } else {
+    document.getElementById('templateEditorName').value = '';
+    document.getElementById('templateEditorEmoji').value = '';
+    document.getElementById('templateDuration').value = '';
+    document.getElementById('templateTaskInput').value = '';
+    document.getElementById('templateTaskTimer').value = '';
+  }
+
+  // Set colour buttons
+  document.querySelectorAll('#templateEditorModal .tcb').forEach(function(btn){
+    var c = btn.getAttribute('data-c');
+    btn.style.border = c === _tmplEditorColor ? '2.5px solid ' + c : '2.5px solid transparent';
+    btn.style.outline = c === _tmplEditorColor ? '2px solid rgba(0,0,0,.15)' : 'none';
+  });
+
+  // Reset tabs
+  document.querySelectorAll('#templateEditorTabs .routine-editor-tab').forEach(function(b){
+    var isActive = b.getAttribute('data-rt') === 'High Energy';
+    b.style.background = isActive ? 'white' : 'transparent';
+    b.style.color = isActive ? 'var(--pink-deep)' : 'var(--text-soft)';
+    b.style.boxShadow = isActive ? '0 1px 4px rgba(224,120,152,0.2)' : 'none';
+  });
+
+  _renderTemplateEditorPanel();
+  _renderTemplateSuggChips();
+  closeModal('templateManagerModal');
+  openModal('templateEditorModal');
+}
+
+// Colour delegation
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('#templateEditorModal .tcb');
+  if(!btn) return;
+  _tmplEditorColor = btn.getAttribute('data-c');
+  document.querySelectorAll('#templateEditorModal .tcb').forEach(function(b){
+    var c = b.getAttribute('data-c');
+    b.style.border = c === _tmplEditorColor ? '2.5px solid ' + c : '2.5px solid transparent';
+    b.style.outline = c === _tmplEditorColor ? '2px solid rgba(0,0,0,.15)' : 'none';
+  });
+});
+
+function switchTemplateTab(btn, slot){
+  _tmplEditorSlot = slot;
+  document.querySelectorAll('#templateEditorTabs .routine-editor-tab').forEach(function(b){
+    var isActive = b.getAttribute('data-rt') === slot;
+    b.style.background = isActive ? 'white' : 'transparent';
+    b.style.color = isActive ? 'var(--pink-deep)' : 'var(--text-soft)';
+    b.style.boxShadow = isActive ? '0 1px 4px rgba(224,120,152,0.2)' : 'none';
+  });
+  _renderTemplateEditorPanel();
+  _renderTemplateSuggChips();
+  document.getElementById('templateTaskInput').value = '';
+  document.getElementById('templateTaskTimer').value = '';
+}
+
+function _renderTemplateEditorPanel(){
+  var el = document.getElementById('templateEditorPanel');
+  if(!el) return;
+  var tasks = _tmplEditorTasks[_tmplEditorSlot] || [];
+  if(!tasks.length){
+    el.innerHTML = '<div style="text-align:center;padding:20px;background:var(--pink-glow);border-radius:12px;font-size:13px;color:var(--text-soft);font-style:italic">No steps yet — add some below ✦</div>';
+    return;
+  }
+  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">'
+    + tasks.map(function(t, i){
+      var isBreak = t.text.toLowerCase().includes('break');
+      var bg = isBreak ? '#fff8f0' : 'var(--pink-glow)';
+      var borderColor = isBreak ? '#f0d080' : 'var(--border)';
+      if(t._editing){
+        return '<div style="background:var(--white);border:2px solid var(--pink-mid);border-radius:14px;padding:12px 14px">'
+          + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pink-deep);margin-bottom:8px">Editing step ' + (i+1) + '</div>'
+          + '<div style="display:flex;gap:8px;margin-bottom:8px">'
+          + '<input class="text-input" id="tmplEditText_' + i + '" value="' + _escHtml(t.text) + '" style="flex:1;font-size:13px" onkeydown="if(event.key===\'Enter\')_tmplSaveEdit(' + i + ')">'
+          + '<input class="text-input" type="number" id="tmplEditTimer_' + i + '" value="' + (t.timerMins||'') + '" placeholder="mins" min="1" style="width:70px;font-size:13px">'
+          + '</div>'
+          + '<div style="display:flex;gap:8px">'
+          + '<button onclick="_tmplSaveEdit(' + i + ')" class="pink-btn" style="font-size:12px;padding:7px 16px">Save ✦</button>'
+          + '<button onclick="_tmplCancelEdit(' + i + ')" style="background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 14px;font-size:12px;cursor:pointer;color:var(--text-soft)">Cancel</button>'
+          + '<button onclick="_tmplRemoveTask(' + i + ')" style="background:var(--red-light);border:none;border-radius:12px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--red);margin-left:auto">🗑</button>'
+          + '</div></div>';
+      }
+      return '<div draggable="true" ondragstart="_tmplDragStart(event,' + i + ')" ondragover="_tmplDragOver(event,' + i + ')" ondragleave="_tmplDragLeave(event)" ondrop="_tmplDrop(event,' + i + ')" ondragend="_tmplDragEnd(event)" id="tmplRow_' + i + '" onclick="_tmplEditTask(' + i + ')" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:' + bg + ';border:1.5px solid ' + borderColor + ';border-radius:12px;cursor:pointer;transition:opacity .15s">'
+        + '<span style="font-size:15px;cursor:grab;color:var(--text-soft);flex-shrink:0">⋮⋮</span>'
+        + '<span style="flex:1;font-size:13px;color:var(--text)">' + _escHtml(t.text) + '</span>'
+        + (t.timerMins ? '<span style="font-size:10px;color:var(--text-soft);background:white;padding:2px 7px;border-radius:8px;border:1px solid var(--border);flex-shrink:0">⏱ ' + t.timerMins + 'm</span>' : '')
+        + '<span style="font-size:11px;color:var(--text-soft);flex-shrink:0">✏️</span>'
+        + '<button onclick="event.stopPropagation();_tmplRemoveTask(' + i + ')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-soft);padding:0 4px;flex-shrink:0">🗑</button>'
+        + '</div>';
+    }).join('')
+    + '</div>';
+}
+
+// Suggestion chips
+var _TMPL_SUGGS = {
+  'High Energy': ['Anki Block — 20 per mini block × 3','NotebookLM (15 q → 2 min break → 15 q)','Passtest questions','Past paper','5 min break','10 min break'],
+  'Medium Energy': ['Anki Block — 20 per mini block × 2','NotebookLM (15 q → 2 min break → 15 q)','Passtest questions','Studyglow','5 min break','10 min break'],
+  'Low Energy': ['Anki Block — 20 per mini block × 1','Edit Anki cards','Passive review','Passtest','5 min break','10 min break'],
+};
+function _renderTemplateSuggChips(){
+  var el = document.getElementById('templateSuggChips');
+  if(!el) return;
+  var suggs = _TMPL_SUGGS[_tmplEditorSlot] || [];
+  var existing = (_tmplEditorTasks[_tmplEditorSlot]||[]).map(function(t){ return t.text.toLowerCase(); });
+  el.innerHTML = suggs.filter(function(s){ return !existing.includes(s.toLowerCase()); }).map(function(s){
+    return '<button class="shower-mood-chip" onclick="document.getElementById(\'templateTaskInput\').value=\'' + s.replace(/'/g,"\\'") + '\'" style="font-size:10px">' + s + '</button>';
+  }).join('');
+}
+
+function templateAddTask(){
+  var inp = document.getElementById('templateTaskInput');
+  var timerInp = document.getElementById('templateTaskTimer');
+  var text = (inp && inp.value || '').trim();
+  if(!text) return;
+  var timer = timerInp && timerInp.value ? parseInt(timerInp.value) || null : null;
+  if(!_tmplEditorTasks[_tmplEditorSlot]) _tmplEditorTasks[_tmplEditorSlot] = [];
+  _tmplEditorTasks[_tmplEditorSlot].push({ id: _genId(), text: text, timerMins: timer });
+  inp.value = ''; if(timerInp) timerInp.value = '';
+  _renderTemplateEditorPanel();
+  _renderTemplateSuggChips();
+}
+
+// Inline edit
+function _tmplEditTask(idx){
+  var tasks = _tmplEditorTasks[_tmplEditorSlot] || [];
+  tasks.forEach(function(t, i){ t._editing = i === idx; });
+  _renderTemplateEditorPanel();
+  setTimeout(function(){ var el = document.getElementById('tmplEditText_' + idx); if(el){ el.focus(); el.select(); } }, 50);
+}
+function _tmplSaveEdit(idx){
+  var tasks = _tmplEditorTasks[_tmplEditorSlot] || [];
+  var t = tasks[idx]; if(!t) return;
+  var textEl = document.getElementById('tmplEditText_' + idx);
+  var timerEl = document.getElementById('tmplEditTimer_' + idx);
+  var newText = (textEl && textEl.value || '').trim();
+  if(!newText){ showToast('Step name cannot be empty ✦'); return; }
+  t.text = newText;
+  t.timerMins = timerEl && timerEl.value ? parseInt(timerEl.value) || null : null;
+  t._editing = false;
+  _renderTemplateEditorPanel();
+  _renderTemplateSuggChips();
+}
+function _tmplCancelEdit(idx){
+  var tasks = _tmplEditorTasks[_tmplEditorSlot] || [];
+  if(tasks[idx]) tasks[idx]._editing = false;
+  _renderTemplateEditorPanel();
+}
+function _tmplRemoveTask(idx){
+  _tmplEditorTasks[_tmplEditorSlot].splice(idx, 1);
+  _renderTemplateEditorPanel();
+  _renderTemplateSuggChips();
+}
+
+// Drag-to-reorder
+var _tmplDragIdx = null;
+function _tmplDragStart(e, idx){ _tmplDragIdx = idx; e.dataTransfer.effectAllowed='move'; setTimeout(function(){ var el=document.getElementById('tmplRow_'+idx); if(el) el.style.opacity='0.35'; },0); }
+function _tmplDragOver(e, idx){ e.preventDefault(); document.querySelectorAll('#templateEditorPanel [id^="tmplRow_"]').forEach(function(el){ el.style.borderTop=''; el.style.borderBottom=''; }); var el=document.getElementById('tmplRow_'+idx); if(el&&idx!==_tmplDragIdx){ if(idx<_tmplDragIdx) el.style.borderTop='2.5px solid var(--pink-deep)'; else el.style.borderBottom='2.5px solid var(--pink-deep)'; } }
+function _tmplDragLeave(e){ var el=e.currentTarget; if(el){ el.style.borderTop=''; el.style.borderBottom=''; } }
+function _tmplDrop(e, toIdx){ e.preventDefault(); if(_tmplDragIdx===null||_tmplDragIdx===toIdx) return; var tasks=_tmplEditorTasks[_tmplEditorSlot]||[]; var moved=tasks.splice(_tmplDragIdx,1)[0]; tasks.splice(toIdx,0,moved); _tmplDragIdx=null; _renderTemplateEditorPanel(); }
+function _tmplDragEnd(e){ _tmplDragIdx=null; document.querySelectorAll('#templateEditorPanel [id^="tmplRow_"]').forEach(function(el){ el.style.opacity='1'; el.style.borderTop=''; el.style.borderBottom=''; }); }
+
+// Save template
+function saveTemplateEditor(){
+  var name = (document.getElementById('templateEditorName').value || '').trim();
+  if(!name){ document.getElementById('templateEditorName').focus(); showToast('Give your template a name ✦'); return; }
+  var idVal = document.getElementById('templateEditorId').value;
+  var isNew = !idVal;
+  var slots = {};
+  ['High Energy','Medium Energy','Low Energy'].forEach(function(slot){
+    slots[slot] = (_tmplEditorTasks[slot] || []).map(function(t){ return { id: t.id||_genId(), text: t.text, timerMins: t.timerMins||null }; });
+  });
+  var tmpl = {
+    id: isNew ? 'tmpl_' + _genId() : idVal,
+    name: name,
+    emoji: (document.getElementById('templateEditorEmoji').value || '').trim() || '📖',
+    color: _tmplEditorColor,
+    duration: parseInt(document.getElementById('templateDuration').value) || 120,
+    slots: slots,
+    createdAt: isNew ? Date.now() : (studyTemplates.find(function(t){ return t.id===idVal; })||{}).createdAt || Date.now(),
+  };
+  if(isNew) studyTemplates.push(tmpl);
+  else { var idx = studyTemplates.findIndex(function(t){ return t.id===idVal; }); if(idx>=0) studyTemplates[idx]=tmpl; }
+  scheduleSave();
+  closeModal('templateEditorModal');
+  renderTemplateChips();
+  showToast((isNew?'Template created':'Template updated') + ' ✦');
+}
+
+function deleteTemplate(){
+  var idVal = document.getElementById('templateEditorId').value;
+  if(!idVal || !confirm('Delete this template?')) return;
+  studyTemplates = studyTemplates.filter(function(t){ return t.id !== idVal; });
+  if(studyActiveTemplate.templateId === idVal) studyActiveTemplate = {};
+  scheduleSave();
+  closeModal('templateEditorModal');
+  renderTemplateChips();
+  showToast('Template deleted');
+}
+
+// ── Init ────────────────────────────────────────────────────────
+_seedDefaultTemplates();
+
+// Hook into the study tab open to render chips
+(function(){
+  var _sp = window.switchProdTab;
+  window.switchProdTab = function(btn, panel){
+    _sp(btn, panel);
+    if(panel === 'study') setTimeout(renderTemplateChips, 50);
+  };
+  // Also render on load
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(renderTemplateChips, 800);
+  });
+})();
 </script>
 
 </body>
