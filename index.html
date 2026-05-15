@@ -31314,7 +31314,9 @@ function habitSave(){
   if(reminder) _hScheduleReminder(h);
   closeModal('habitModal');
   renderHabitList();
-  scheduleSave();
+  saveLocal();
+  clearTimeout(_syncTimer);
+  try{ syncToCloud(); }catch(e){}
   showToast((isEdit?'Habit updated':'Habit added')+' \u2744');
 }
 
@@ -31328,7 +31330,9 @@ function habitDelete(){
   habits.splice(idx,1);
   closeModal('habitModal');
   renderHabitList();
-  scheduleSave();
+  saveLocal();
+  clearTimeout(_syncTimer);
+  try{ syncToCloud(); }catch(e){}
   showToast('Habit deleted');
 }
 
@@ -31843,7 +31847,10 @@ function savePastDayLog(){
 // ── Emergency save (visibility / unload) ───────────────────────
 function _hEmergencySave(){
   try{ var e=document.getElementById('tgnEditorView'); if(e&&e.style.display!=='none'){ _tgnSaveToMemory(); clearTimeout(_tgnAutoSaveTimer); } }catch(ex){}
-  try{ scheduleSave(); }catch(ex){}
+  try{ saveLocal(); }catch(ex){}
+  // Force immediate cloud sync on app hide/close
+  clearTimeout(_syncTimer);
+  try{ syncToCloud(); }catch(ex){}
 }
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') _hEmergencySave(); });
 window.addEventListener('pagehide',_hEmergencySave);
@@ -32271,7 +32278,9 @@ function saveTemplateEditor(){
   };
   if(isNew) studyTemplates.push(tmpl);
   else { var idx = studyTemplates.findIndex(function(t){ return t.id===idVal; }); if(idx>=0) studyTemplates[idx]=tmpl; }
-  scheduleSave();
+  saveLocal();
+  clearTimeout(_syncTimer);
+  try{ syncToCloud(); }catch(e){}
   closeModal('templateEditorModal');
   renderTemplateChips();
   showToast((isNew?'Template created':'Template updated') + ' ✦');
@@ -32282,7 +32291,9 @@ function deleteTemplate(){
   if(!idVal || !confirm('Delete this template?')) return;
   studyTemplates = studyTemplates.filter(function(t){ return t.id !== idVal; });
   if(studyActiveTemplate.templateId === idVal) studyActiveTemplate = {};
-  scheduleSave();
+  saveLocal();
+  clearTimeout(_syncTimer);
+  try{ syncToCloud(); }catch(e){}
   closeModal('templateEditorModal');
   renderTemplateChips();
   showToast('Template deleted');
