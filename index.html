@@ -26298,6 +26298,12 @@ document.addEventListener('visibilitychange', function(){
   }
 });
 
+// Habit + template data stores — declared here so loadLocal() restores them on boot
+var habits    = [];
+var habitLogs = {};
+var studyTemplates = [];
+var studyActiveTemplate = {};
+
 (async function boot(){
   // 1. Load local cache instantly — show something ASAP
   const hadLocal = loadLocal();
@@ -26726,8 +26732,8 @@ window.collectAllData = function(){
   d.playerLevel = playerLevel;
   var bdEl = document.getElementById('brainDumpText');
   d.brainDumpText = bdEl ? bdEl.value : '';
-  d.habits = typeof habits !== 'undefined' ? habits : [];
-  d.habitLogs = typeof habitLogs !== 'undefined' ? habitLogs : {};
+  d.habits = habits;
+  d.habitLogs = habitLogs;
   return d;
 };
 
@@ -26742,8 +26748,8 @@ window.restoreAllData = function(d){
   if(d.totalXP !== undefined) totalXP = d.totalXP;
   if(d.playerLevel !== undefined) playerLevel = d.playerLevel;
   if(d.brainDumpText !== undefined){ var bdEl=document.getElementById('brainDumpText'); if(bdEl) bdEl.value=d.brainDumpText; }
-  if(d.habits && typeof habits !== 'undefined') habits.splice(0, habits.length, ...d.habits);
-  if(d.habitLogs && typeof habitLogs !== 'undefined'){ Object.keys(habitLogs).forEach(function(k){delete habitLogs[k];}); Object.assign(habitLogs, d.habitLogs); }
+  if(d.habits){ habits.splice(0, habits.length, ...d.habits); }
+  if(d.habitLogs){ Object.keys(habitLogs).forEach(function(k){delete habitLogs[k];}); Object.assign(habitLogs, d.habitLogs); }
   // Re-render vice tiers immediately so they're visible after restore
   try{ renderViceTiers(); _populateViceSelect(); renderViceLog(); renderViceTrends(); } catch(e){}
 };
@@ -31061,8 +31067,7 @@ function _fcmShowBanner(msg) {
 // ════════════════════════════════════════════════════════════════
 // HABIT TRACKER  v2
 // ════════════════════════════════════════════════════════════════
-var habits      = [];          // [{id,name,emoji,color,freq,days,bwEvery,bwDay,mEvery,mDay,reminder,target,notes,createdAt}]
-var habitLogs   = {};          // {habitId: {'YYYY-MM-DD': true}}
+// habits + habitLogs declared before boot sequence (see above)
 var _hFreq      = 'daily';
 var _hColor     = '#e07898';
 var _hDays      = [];
@@ -31865,8 +31870,7 @@ window.addEventListener('beforeunload',_hEmergencySave);
 // studyActiveTemplate = { date: 'YYYY-MM-DD', templateId: '…' }  — which template is active today
 // ════════════════════════════════════════════════════════════════
 
-var studyTemplates = [];
-var studyActiveTemplate = {}; // { date, templateId }
+// studyTemplates + studyActiveTemplate declared before boot sequence
 var _tmplEditorSlot = 'High Energy';
 var _tmplEditorTasks = { 'High Energy': [], 'Medium Energy': [], 'Low Energy': [] };
 var _tmplEditorColor = '#e07898';
