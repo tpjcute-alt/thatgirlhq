@@ -26307,6 +26307,30 @@ var studyActiveTemplate = {};
 (async function boot(){
   // 1. Load local cache instantly — show something ASAP
   const hadLocal = loadLocal();
+
+  // ── HABIT BOOT PATCH ───────────────────────────────────────────────────────
+  // The restoreAllData wrappers that handle habits/habitLogs are defined AFTER
+  // this boot IIFE in the file, so loadLocal() above runs the base restoreAllData
+  // which does NOT restore habits. We fix this by reading habits directly from
+  // the raw localStorage payload right after loadLocal().
+  // ───────────────────────────────────────────────────────────────────────────
+  if(hadLocal){
+    try {
+      const _rawBoot = localStorage.getItem(SAVE_KEY);
+      if(_rawBoot){
+        const _dBoot = JSON.parse(_rawBoot);
+        if(_dBoot.habits && Array.isArray(_dBoot.habits)){
+          habits.splice(0, habits.length, ..._dBoot.habits);
+        }
+        if(_dBoot.habitLogs && typeof _dBoot.habitLogs === 'object'){
+          Object.keys(habitLogs).forEach(function(k){ delete habitLogs[k]; });
+          Object.assign(habitLogs, _dBoot.habitLogs);
+        }
+      }
+    } catch(_bootHabitErr){ console.warn('ThatGirlHQ: habit boot patch error', _bootHabitErr); }
+  }
+  // ───────────────────────────────────────────────────────────────────────────
+
   if(hadLocal){
     _runRewardsMigration();
     refreshAllRenderers();
